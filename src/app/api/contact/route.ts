@@ -2,13 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { rateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL as string | undefined;
+    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY as string | undefined;
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('API /contact: Missing Supabase envs', {
+        hasUrl: Boolean(SUPABASE_URL),
+        hasServiceRole: Boolean(SUPABASE_SERVICE_ROLE_KEY),
+      });
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
     // Rate limiting
     const clientIP = getClientIP(request);
     const rateLimitResult = rateLimit(`contact:${clientIP}`, RATE_LIMITS.CONTACT_FORM);
