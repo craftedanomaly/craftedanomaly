@@ -9,10 +9,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    // We only do public reads; avoid storing/refreshing sessions in the browser.
-    persistSession: false,
-    autoRefreshToken: false,
-    detectSessionInUrl: false,
-    storage: undefined,
+    // Enable session persistence for admin authentication
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
   },
 });
