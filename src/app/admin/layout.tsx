@@ -1,15 +1,12 @@
-"use client";
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 import { Toaster } from 'sonner';
 import { Poppins } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
-import { AdminSidebar } from '@/components/admin/admin-sidebar';
 import '@/app/globals.css';
-import { usePathname } from 'next/navigation';
 import { AuthProvider } from '@/contexts/auth-context';
 import { AdminAuthGuard } from '@/components/admin/admin-auth-guard';
+import { AdminSidebarWrapper } from '@/components/admin/admin-sidebar-wrapper';
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -22,9 +19,6 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-  const isAuthPage = pathname === '/admin/login' || pathname === '/admin/unauthorized';
-
   return (
     <div className={`${poppins.variable} font-sans antialiased`}>
       <ThemeProvider
@@ -33,22 +27,15 @@ export default function AdminLayout({
         enableSystem
         disableTransitionOnChange
       >
-        {isAuthPage ? (
-          <>
-            <main className="min-h-screen">{children}</main>
+        <AuthProvider>
+          <AdminAuthGuard>
+            <div className="flex min-h-screen">
+              <AdminSidebarWrapper />
+              <main className="flex-1 ml-64">{children}</main>
+            </div>
             <Toaster position="top-right" />
-          </>
-        ) : (
-          <AuthProvider>
-            <AdminAuthGuard>
-              <div className="flex min-h-screen">
-                <AdminSidebar />
-                <main className="flex-1 ml-64">{children}</main>
-              </div>
-              <Toaster position="top-right" />
-            </AdminAuthGuard>
-          </AuthProvider>
-        )}
+          </AdminAuthGuard>
+        </AuthProvider>
       </ThemeProvider>
     </div>
   );
