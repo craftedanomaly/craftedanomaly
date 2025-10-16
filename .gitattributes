@@ -1,0 +1,20 @@
+# Normalize line endings
+* text=auto eol=lf
+
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+
+# Fonts
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+
+# Keep shell/bat/crlf where needed
+*.bat eol=crlf
+*.cmd eol=crlf

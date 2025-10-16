@@ -1,0 +1,25 @@
+# Crafted Anomaly - Design Studio
+# https://craftedanomaly.com
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://craftedanomaly.com/sitemap.xml
+
+# Disallow admin pages
+Disallow: /admin/
+Disallow: /api/
+
+# Allow important pages
+Allow: /
+Allow: /projects/
+Allow: /contact/
+Allow: /visual-design/
+Allow: /spatial-design/
+Allow: /films/
+Allow: /games/
+Allow: /books/
+
+# Crawl delay (optional)
+Crawl-delay: 1
