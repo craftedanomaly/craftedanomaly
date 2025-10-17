@@ -158,11 +158,6 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
   const statusValue = watch('status');
 
   const onSubmit = async (data: ProjectFormData) => {
-    console.log('Form submitted with data:', data);
-    console.log('Form errors:', errors);
-    console.log('Media type:', mediaType);
-    console.log('Before/After images:', beforeAfterImages);
-    
     // Check for validation errors
     if (Object.keys(errors).length > 0) {
       toast.error(`Please fix ${Object.keys(errors).length} validation error${Object.keys(errors).length > 1 ? 's' : ''} before submitting`);

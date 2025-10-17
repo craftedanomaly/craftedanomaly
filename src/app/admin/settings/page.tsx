@@ -305,8 +305,6 @@ export default function SettingsPage() {
         const fileName = `logo-${Date.now()}.${fileExt}`;
         const filePath = `branding/${fileName}`;
 
-        console.log('Uploading file:', fileName, 'to path:', filePath);
-
         const { error: uploadError, data } = await supabase.storage
           .from('media')
           .upload(filePath, file);
@@ -316,8 +314,6 @@ export default function SettingsPage() {
           toast.error(`Upload failed: ${uploadError.message}`);
           return;
         }
-
-        console.log('Upload successful:', data);
 
         const { data: { publicUrl } } = supabase.storage
           .from('media')
@@ -362,8 +358,6 @@ export default function SettingsPage() {
         const fileName = `${settingKey}-${Date.now()}.${fileExt}`;
         const filePath = `content/${fileName}`;
 
-        console.log('Uploading file:', fileName, 'to path:', filePath);
-
         const { error: uploadError, data } = await supabase.storage
           .from('media')
           .upload(filePath, file);
@@ -373,8 +367,6 @@ export default function SettingsPage() {
           toast.error(`Upload failed: ${uploadError.message}`);
           return;
         }
-
-        console.log('Upload successful:', data);
 
         const { data: { publicUrl } } = supabase.storage
           .from('media')

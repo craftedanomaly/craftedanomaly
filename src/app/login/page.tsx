@@ -58,8 +58,6 @@ export default function AdminLoginPage() {
 
       if (data.user) {
         // Check if user is in admin_users table using service role
-        console.log('Checking admin user for email:', data.user.email);
-        
         const response = await fetch('/api/admin/check-user', {
           method: 'POST',
           headers: {
@@ -68,8 +66,6 @@ export default function AdminLoginPage() {
           body: JSON.stringify({ email: data.user.email }),
         });
 
-        console.log('API response status:', response.status);
-        
         if (!response.ok) {
           const errorData = await response.text();
           console.error('API error:', errorData);
@@ -79,7 +75,6 @@ export default function AdminLoginPage() {
         }
 
         const responseData = await response.json();
-        console.log('API response data:', responseData);
         
         const { adminUser } = responseData;
 
@@ -89,8 +84,6 @@ export default function AdminLoginPage() {
           setError('Access denied. User not found in admin table or inactive.');
           return;
         }
-
-        console.log('Admin user found:', adminUser);
 
         toast.success('Login successful!');
         router.replace(redirectTo);

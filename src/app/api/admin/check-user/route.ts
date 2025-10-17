@@ -23,7 +23,6 @@ export async function POST(request: NextRequest) {
     }
 
     const { email } = await request.json();
-    console.log('API: Checking user for email:', email);
 
     if (!email) {
       console.error('API: No email provided');
@@ -37,14 +36,11 @@ export async function POST(request: NextRequest) {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Check if user is in admin_users table using service role
-    console.log('API: Querying admin_users table...');
     const { data: adminUser, error } = await supabase
       .from('admin_users')
       .select('role, is_active, email, auth_user_id')
       .eq('email', email)
       .single();
-
-    console.log('API: Query result:', { adminUser, error });
 
     if (error || !adminUser) {
       console.error('API: Admin user check error:', error);
@@ -54,7 +50,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('API: Admin user found:', adminUser);
     return NextResponse.json({ adminUser });
 
   } catch (e: unknown) {

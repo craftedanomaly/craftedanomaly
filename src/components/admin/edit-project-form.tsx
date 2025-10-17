@@ -233,9 +233,6 @@ export function EditProjectForm({ project, onProjectUpdated }: EditProjectFormPr
   const statusValue = watch('status');
 
   const onSubmit = async (data: ProjectFormData) => {
-    console.log('Updating project with data:', data);
-    console.log('Project ID:', project.id);
-    
     setIsSubmitting(true);
 
     try {
