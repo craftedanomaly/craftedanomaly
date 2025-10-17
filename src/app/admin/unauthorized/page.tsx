@@ -37,7 +37,7 @@ export default function Unauthorized() {
             </Button>
             
             <Button variant="outline" asChild>
-              <Link href="/admin/login">
+              <Link href="/login">
                 <LogOut className="h-4 w-4 mr-2" />
                 Try Login Again
               </Link>

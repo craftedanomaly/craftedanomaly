@@ -22,14 +22,9 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
     const checkAdminAccess = async () => {
       if (loading) return;
 
-      // Skip auth check for login and unauthorized pages
-      if (pathname === '/admin/login' || pathname === '/admin/unauthorized') {
-        setChecking(false);
-        return;
-      }
-
+      // Redirect to login if no user
       if (!user) {
-        router.push(`/admin/login?redirectTo=${encodeURIComponent(pathname)}`);
+        router.push(`/login?redirectTo=${encodeURIComponent(pathname)}`);
         return;
       }
 
@@ -64,7 +59,7 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
         setAdminUser(profile);
       } catch (error) {
         console.error('Admin access check error:', error);
-        router.push('/admin/login');
+        router.push('/login');
       } finally {
         setChecking(false);
       }
@@ -90,8 +85,8 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Skip auth for login/unauthorized pages
-  if (pathname === '/admin/login' || pathname === '/admin/unauthorized') {
+  // Skip auth for unauthorized page
+  if (pathname === '/admin/unauthorized') {
     return <>{children}</>;
   }
 

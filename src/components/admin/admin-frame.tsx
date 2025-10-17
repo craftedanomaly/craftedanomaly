@@ -9,12 +9,12 @@ import { AdminAuthGuard } from '@/components/admin/admin-auth-guard';
 
 function AdminContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAuthPage = pathname === '/admin/login' || pathname === '/admin/unauthorized';
+  const isUnauthorized = pathname === '/admin/unauthorized';
   
   return (
     <>
       <AdminSidebarWrapper />
-      <main className={`flex-1 min-h-screen ${isAuthPage ? '' : 'ml-64'}`}>{children}</main>
+      <main className={`flex-1 min-h-screen ${isUnauthorized ? '' : 'ml-64'}`}>{children}</main>
     </>
   );
 }
