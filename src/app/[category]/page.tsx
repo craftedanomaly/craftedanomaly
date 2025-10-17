@@ -2,6 +2,9 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { CategoryPageClient } from '@/components/category/category-page-client';
 
+// Revalidate every 60 seconds - ISR strategy
+export const revalidate = 60;
+
 interface CategoryPageProps {
   params: Promise<{
     category: string;

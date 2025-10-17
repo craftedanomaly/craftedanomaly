@@ -2,6 +2,9 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { ProjectDetailClient } from '@/components/projects/project-detail-client';
 
+// Revalidate every 60 seconds - ISR strategy
+export const revalidate = 60;
+
 interface ProjectPageProps {
   params: Promise<{
     slug: string;

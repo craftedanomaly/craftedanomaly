@@ -2,6 +2,9 @@ import { HeroCarousel } from '@/components/home/hero-carousel';
 import { FieldAccordion } from '@/components/home/field-accordion';
 import { createClient } from '@supabase/supabase-js';
 
+// Revalidate every 60 seconds - ISR strategy
+export const revalidate = 60;
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
