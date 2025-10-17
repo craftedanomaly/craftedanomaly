@@ -4,9 +4,7 @@ import { Toaster } from 'sonner';
 import { Poppins } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import '@/app/globals.css';
-import { AuthProvider } from '@/contexts/auth-context';
-import { AdminAuthGuard } from '@/components/admin/admin-auth-guard';
-import { AdminSidebarWrapper } from '@/components/admin/admin-sidebar-wrapper';
+import { AdminFrame } from '@/components/admin/admin-frame';
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -27,15 +25,7 @@ export default function AdminLayout({
         enableSystem
         disableTransitionOnChange
       >
-        <AuthProvider>
-          <AdminAuthGuard>
-            <div className="flex min-h-screen">
-              <AdminSidebarWrapper />
-              <main className="flex-1 ml-64">{children}</main>
-            </div>
-            <Toaster position="top-right" />
-          </AdminAuthGuard>
-        </AuthProvider>
+        <AdminFrame>{children}</AdminFrame>
       </ThemeProvider>
     </div>
   );
