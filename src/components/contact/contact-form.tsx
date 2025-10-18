@@ -52,6 +52,7 @@ export function ContactForm({ settings }: ContactFormProps) {
     setIsSubmitting(true);
     
     try {
+      // Save to database
       const { error } = await supabase
         .from('contact_messages')
         .insert({
@@ -66,6 +67,26 @@ export function ContactForm({ settings }: ContactFormProps) {
         console.error('Error submitting contact form:', error);
         toast.error('Failed to send message. Please try again.');
         return;
+      }
+
+      // Send email notification to admin
+      try {
+        await fetch('/api/contact/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email,
+            subject: data.subject,
+            message: data.message,
+          }),
+        });
+        // Don't fail the submission if email fails - it's already in database
+      } catch (emailError) {
+        console.error('Failed to send notification email:', emailError);
+        // Silent fail - message is saved in database
       }
 
       toast.success('Message sent successfully! We\'ll get back to you soon.');

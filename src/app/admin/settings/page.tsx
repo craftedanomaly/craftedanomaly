@@ -19,6 +19,7 @@ interface SiteSettings {
   contact_email: string;
   contact_phone: string;
   contact_address: string;
+  admin_email: string;
   logo_url: string;
   logo_light_url: string;
   logo_dark_url: string;
@@ -63,6 +64,7 @@ export default function SettingsPage() {
     contact_email: '',
     contact_phone: '',
     contact_address: '',
+    admin_email: '',
     logo_url: '',
     logo_light_url: '',
     logo_dark_url: '',
@@ -128,6 +130,7 @@ export default function SettingsPage() {
         contact_email: data?.contact_email || 'hello@craftedanomaly.com',
         contact_phone: data?.contact_phone || '+90 xxx xxx xx xx',
         contact_address: data?.contact_address || 'Istanbul, Turkey',
+        admin_email: data?.admin_email || 'admin@craftedanomaly.com',
         logo_url: data?.logo_url || '/Anomaly.png',
         logo_light_url: data?.logo_light_url || '/Anomaly.png',
         logo_dark_url: data?.logo_dark_url || '/Anomaly.png',
@@ -176,6 +179,7 @@ export default function SettingsPage() {
         contact_email: 'hello@craftedanomaly.com',
         contact_phone: '+90 xxx xxx xx xx',
         contact_address: 'Istanbul, Turkey',
+        admin_email: 'admin@craftedanomaly.com',
         logo_url: '/Anomaly.png',
         logo_light_url: '/Anomaly.png',
         logo_dark_url: '/Anomaly.png',
@@ -666,6 +670,24 @@ export default function SettingsPage() {
                     className="pl-10"
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="admin_email">Admin Email (Notification Recipient)</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="admin_email"
+                    type="email"
+                    value={settings.admin_email}
+                    onChange={(e) => handleChange('admin_email', e.target.value)}
+                    placeholder="admin@craftedanomaly.com"
+                    className="pl-10"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Contact form notifications will be sent to this email address
+                </p>
               </div>
             </div>
           </motion.div>
