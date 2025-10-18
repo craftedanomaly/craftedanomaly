@@ -176,8 +176,7 @@ export function EditProjectForm({ project, onProjectUpdated }: EditProjectFormPr
         setContentBlocks(blocksData.map((b: any) => ({
           id: b.id,
           block_type: b.block_type,
-          content_en: b.content_en || '',
-          content_tr: b.content_tr || '',
+          content: b.content || b.content_en || '',
           media_url: b.media_url || '',
           media_urls: b.media_urls || [],
           display_order: b.display_order,
@@ -389,8 +388,7 @@ export function EditProjectForm({ project, onProjectUpdated }: EditProjectFormPr
           contentBlocks.map((block) => ({
             project_id: projectId,
             block_type: block.block_type,
-            content_en: block.content_en || null,
-            content_tr: block.content_tr || null,
+            content: block.content || null,
             media_url: block.media_url || null,
             media_urls: block.media_urls || null,
             display_order: block.display_order,

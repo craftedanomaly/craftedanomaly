@@ -24,8 +24,7 @@ import {
 export interface ContentBlock {
   id: string;
   block_type: 'text' | 'image' | 'video' | 'gallery' | 'quote' | 'code' | 'embed';
-  content_en: string;
-  content_tr: string;
+  content: string;
   media_url?: string;
   media_urls?: string[];
   display_order: number;
@@ -63,8 +62,7 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
     const newBlock: ContentBlock = {
       id: `block-${Date.now()}`,
       block_type: type,
-      content_en: '',
-      content_tr: '',
+      content: '',
       media_url: '',
       media_urls: type === 'gallery' ? [] : undefined,
       display_order: blocks.length,
@@ -191,26 +189,15 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
           <CardContent className="space-y-4">
             {/* Text Block */}
             {block.block_type === 'text' && (
-              <>
-                <div className="space-y-2">
-                  <Label>Content (English)</Label>
-                  <Textarea
-                    value={block.content_en}
-                    onChange={(e) => updateBlock(block.id, { content_en: e.target.value })}
-                    placeholder="Enter text content (HTML supported)"
-                    rows={6}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Content (Turkish)</Label>
-                  <Textarea
-                    value={block.content_tr}
-                    onChange={(e) => updateBlock(block.id, { content_tr: e.target.value })}
-                    placeholder="Türkçe içerik (HTML destekli)"
-                    rows={6}
-                  />
-                </div>
-              </>
+              <div className="space-y-2">
+                <Label>Content</Label>
+                <Textarea
+                  value={block.content}
+                  onChange={(e) => updateBlock(block.id, { content: e.target.value })}
+                  placeholder="Enter text content (HTML supported)"
+                  rows={6}
+                />
+              </div>
             )}
 
             {/* Image Block */}
@@ -225,19 +212,11 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Caption (English)</Label>
+                  <Label>Caption</Label>
                   <Input
-                    value={block.content_en}
-                    onChange={(e) => updateBlock(block.id, { content_en: e.target.value })}
+                    value={block.content}
+                    onChange={(e) => updateBlock(block.id, { content: e.target.value })}
                     placeholder="Image caption"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Caption (Turkish)</Label>
-                  <Input
-                    value={block.content_tr}
-                    onChange={(e) => updateBlock(block.id, { content_tr: e.target.value })}
-                    placeholder="Görsel açıklaması"
                   />
                 </div>
               </>
@@ -255,19 +234,11 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Description (English)</Label>
+                  <Label>Description</Label>
                   <Input
-                    value={block.content_en}
-                    onChange={(e) => updateBlock(block.id, { content_en: e.target.value })}
+                    value={block.content}
+                    onChange={(e) => updateBlock(block.id, { content: e.target.value })}
                     placeholder="Video description"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Description (Turkish)</Label>
-                  <Input
-                    value={block.content_tr}
-                    onChange={(e) => updateBlock(block.id, { content_tr: e.target.value })}
-                    placeholder="Video açıklaması"
                   />
                 </div>
               </>
@@ -309,26 +280,15 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
 
             {/* Quote Block */}
             {block.block_type === 'quote' && (
-              <>
-                <div className="space-y-2">
-                  <Label>Quote (English)</Label>
-                  <Textarea
-                    value={block.content_en}
-                    onChange={(e) => updateBlock(block.id, { content_en: e.target.value })}
-                    placeholder="Enter quote text"
-                    rows={3}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Quote (Turkish)</Label>
-                  <Textarea
-                    value={block.content_tr}
-                    onChange={(e) => updateBlock(block.id, { content_tr: e.target.value })}
-                    placeholder="Alıntı metni"
-                    rows={3}
-                  />
-                </div>
-              </>
+              <div className="space-y-2">
+                <Label>Quote</Label>
+                <Textarea
+                  value={block.content}
+                  onChange={(e) => updateBlock(block.id, { content: e.target.value })}
+                  placeholder="Enter quote text"
+                  rows={3}
+                />
+              </div>
             )}
 
             {/* Code Block */}
@@ -336,15 +296,12 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
               <div className="space-y-2">
                 <Label>Code</Label>
                 <Textarea
-                  value={block.content_en}
-                  onChange={(e) => updateBlock(block.id, { content_en: e.target.value })}
+                  value={block.content}
+                  onChange={(e) => updateBlock(block.id, { content: e.target.value })}
                   placeholder="Enter code snippet"
                   rows={8}
                   className="font-mono text-sm"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Code will be displayed in both languages
-                </p>
               </div>
             )}
 
@@ -353,8 +310,8 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
               <div className="space-y-2">
                 <Label>Embed Code (iframe/HTML)</Label>
                 <Textarea
-                  value={block.content_en}
-                  onChange={(e) => updateBlock(block.id, { content_en: e.target.value })}
+                  value={block.content}
+                  onChange={(e) => updateBlock(block.id, { content: e.target.value })}
                   placeholder='<iframe src="https://youtube.com/embed/..." ...></iframe>'
                   rows={4}
                 />

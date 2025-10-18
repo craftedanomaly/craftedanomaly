@@ -303,8 +303,7 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
           contentBlocks.map((block) => ({
             project_id: projectId,
             block_type: block.block_type,
-            content_en: block.content_en || null,
-            content_tr: block.content_tr || null,
+            content: block.content || null,
             media_url: block.media_url || null,
             media_urls: block.media_urls || null,
             display_order: block.display_order,

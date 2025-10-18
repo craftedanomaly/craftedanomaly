@@ -25,10 +25,8 @@ interface SiteSettings {
   logo_dark_url: string;
   logo_alt: string;
   favicon_url: string;
-  about_title_en: string;
-  about_title_tr: string;
-  about_text_en: string;
-  about_text_tr: string;
+  about_title: string;
+  about_text: string;
   about_image_url: string;
   footer_explore_title: string;
   footer_contact_title: string;
@@ -43,10 +41,8 @@ interface SiteSettings {
   working_hours_saturday: string;
   working_hours_sunday: string;
   contact_consent_text: string;
-  homepage_fields_title_en: string;
-  homepage_fields_title_tr: string;
-  homepage_fields_subtitle_en: string;
-  homepage_fields_subtitle_tr: string;
+  homepage_fields_title: string;
+  homepage_fields_subtitle: string;
   social_instagram: string;
   social_twitter: string;
   social_linkedin: string;
@@ -70,10 +66,8 @@ export default function SettingsPage() {
     logo_dark_url: '',
     logo_alt: '',
     favicon_url: '',
-    about_title_en: '',
-    about_title_tr: '',
-    about_text_en: '',
-    about_text_tr: '',
+    about_title: '',
+    about_text: '',
     about_image_url: '',
     footer_explore_title: '',
     footer_contact_title: '',
@@ -88,10 +82,8 @@ export default function SettingsPage() {
     working_hours_saturday: '',
     working_hours_sunday: '',
     contact_consent_text: '',
-    homepage_fields_title_en: '',
-    homepage_fields_title_tr: '',
-    homepage_fields_subtitle_en: '',
-    homepage_fields_subtitle_tr: '',
+    homepage_fields_title: '',
+    homepage_fields_subtitle: '',
     social_instagram: '',
     social_twitter: '',
     social_linkedin: '',
@@ -136,10 +128,8 @@ export default function SettingsPage() {
         logo_dark_url: data?.logo_dark_url || '/Anomaly.png',
         logo_alt: data?.logo_alt || 'Crafted Anomaly',
         favicon_url: data?.favicon_url || '/Anomaly.png',
-        about_title_en: data?.about_title_en || 'about',
-        about_title_tr: data?.about_title_tr || 'hakkımızda',
-        about_text_en: data?.about_text_en || 'crafted anomaly is a design studio that transforms visions into tangible experiences. we specialize in creating museum-grade portfolios that blur the lines between art and functionality.',
-        about_text_tr: data?.about_text_tr || 'crafted anomaly, vizyonları somut deneyimlere dönüştüren bir tasarım stüdyosudur. sanat ve işlevsellik arasındaki çizgileri bulanıklaştıran müze kalitesinde portföyler oluşturma konusunda uzmanız.',
+        about_title: data?.about_title || data?.about_title_en || 'about',
+        about_text: data?.about_text || data?.about_text_en || 'crafted anomaly is a design studio that transforms visions into tangible experiences. we specialize in creating museum-grade portfolios that blur the lines between art and functionality.',
         about_image_url: data?.about_image_url || '',
         footer_explore_title: data?.footer_explore_title || 'explore',
         footer_contact_title: data?.footer_contact_title || 'contact',
@@ -154,10 +144,8 @@ export default function SettingsPage() {
         working_hours_saturday: data?.working_hours_saturday || 'Saturday: 10:00 AM - 4:00 PM',
         working_hours_sunday: data?.working_hours_sunday || 'Sunday: Closed',
         contact_consent_text: data?.contact_consent_text || 'I consent to being contacted via email regarding this inquiry',
-        homepage_fields_title_en: data?.homepage_fields_title_en || 'our fields',
-        homepage_fields_title_tr: data?.homepage_fields_title_tr || 'alanlarımız',
-        homepage_fields_subtitle_en: data?.homepage_fields_subtitle_en || 'explore our diverse portfolio of creative disciplines, each crafted with precision and passion',
-        homepage_fields_subtitle_tr: data?.homepage_fields_subtitle_tr || 'tutkuyla ve özenle hazırlanmış çeşitli yaratıcı disiplinlerimizi keşfedin',
+        homepage_fields_title: data?.homepage_fields_title || data?.homepage_fields_title_en || 'our fields',
+        homepage_fields_subtitle: data?.homepage_fields_subtitle || data?.homepage_fields_subtitle_en || 'explore our diverse portfolio of creative disciplines, each crafted with precision and passion',
         social_instagram: data?.social_instagram || '',
         social_twitter: data?.social_twitter || '',
         social_linkedin: data?.social_linkedin || '',
@@ -185,10 +173,8 @@ export default function SettingsPage() {
         logo_dark_url: '/Anomaly.png',
         logo_alt: 'Crafted Anomaly',
         favicon_url: '/Anomaly.png',
-        about_title_en: 'about',
-        about_title_tr: 'hakkımızda',
-        about_text_en: 'crafted anomaly is a design studio that transforms visions into tangible experiences. we specialize in creating museum-grade portfolios that blur the lines between art and functionality.',
-        about_text_tr: 'crafted anomaly, vizyonları somut deneyimlere dönüştüren bir tasarım stüdyosudur. sanat ve işlevsellik arasındaki çizgileri bulanıklaştıran müze kalitesinde portföyler oluşturma konusunda uzmanız.',
+        about_title: 'about',
+        about_text: 'crafted anomaly is a design studio that transforms visions into tangible experiences. we specialize in creating museum-grade portfolios that blur the lines between art and functionality.',
         about_image_url: '',
         footer_explore_title: 'explore',
         footer_contact_title: 'contact',
@@ -203,10 +189,8 @@ export default function SettingsPage() {
         working_hours_saturday: 'Saturday: 10:00 AM - 4:00 PM',
         working_hours_sunday: 'Sunday: Closed',
         contact_consent_text: 'I consent to being contacted via email regarding this inquiry',
-        homepage_fields_title_en: 'our fields',
-        homepage_fields_title_tr: 'alanlarımız',
-        homepage_fields_subtitle_en: 'explore our diverse portfolio of creative disciplines, each crafted with precision and passion',
-        homepage_fields_subtitle_tr: 'tutkuyla ve özenle hazırlanmış çeşitli yaratıcı disiplinlerimizi keşfedin',
+        homepage_fields_title: 'our fields',
+        homepage_fields_subtitle: 'explore our diverse portfolio of creative disciplines, each crafted with precision and passion',
         social_instagram: '',
         social_twitter: '',
         social_linkedin: '',
@@ -705,52 +689,27 @@ export default function SettingsPage() {
             </div>
             
             <div className="space-y-6">
-              {/* About Section Titles */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="about_title_en">About Title (English)</Label>
-                  <Input
-                    id="about_title_en"
-                    value={settings.about_title_en}
-                    onChange={(e) => handleChange('about_title_en', e.target.value)}
-                    placeholder="about"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="about_title_tr">About Title (Turkish)</Label>
-                  <Input
-                    id="about_title_tr"
-                    value={settings.about_title_tr}
-                    onChange={(e) => handleChange('about_title_tr', e.target.value)}
-                    placeholder="hakkımızda"
-                  />
-                </div>
+              {/* About Section Title */}
+              <div className="space-y-2">
+                <Label htmlFor="about_title">About Title</Label>
+                <Input
+                  id="about_title"
+                  value={settings.about_title}
+                  onChange={(e) => handleChange('about_title', e.target.value)}
+                  placeholder="about"
+                />
               </div>
 
               {/* About Section Text */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="about_text_en">About Text (English)</Label>
-                  <Textarea
-                    id="about_text_en"
-                    value={settings.about_text_en}
-                    onChange={(e) => handleChange('about_text_en', e.target.value)}
-                    placeholder="Describe your studio in English..."
-                    rows={4}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="about_text_tr">About Text (Turkish)</Label>
-                  <Textarea
-                    id="about_text_tr"
-                    value={settings.about_text_tr}
-                    onChange={(e) => handleChange('about_text_tr', e.target.value)}
-                    placeholder="Stüdyonuzu Türkçe tanıtın..."
-                    rows={4}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="about_text">About Text</Label>
+                <Textarea
+                  id="about_text"
+                  value={settings.about_text}
+                  onChange={(e) => handleChange('about_text', e.target.value)}
+                  placeholder="Describe your studio..."
+                  rows={4}
+                />
               </div>
 
               {/* Studio Image */}
@@ -993,52 +952,27 @@ export default function SettingsPage() {
             </div>
             
             <div className="space-y-6">
-              {/* Fields Section Titles */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="homepage_fields_title_en">Fields Title (English)</Label>
-                  <Input
-                    id="homepage_fields_title_en"
-                    value={settings.homepage_fields_title_en}
-                    onChange={(e) => handleChange('homepage_fields_title_en', e.target.value)}
-                    placeholder="our fields"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="homepage_fields_title_tr">Fields Title (Turkish)</Label>
-                  <Input
-                    id="homepage_fields_title_tr"
-                    value={settings.homepage_fields_title_tr}
-                    onChange={(e) => handleChange('homepage_fields_title_tr', e.target.value)}
-                    placeholder="alanlarımız"
-                  />
-                </div>
+              {/* Fields Section Title */}
+              <div className="space-y-2">
+                <Label htmlFor="homepage_fields_title">Fields Title</Label>
+                <Input
+                  id="homepage_fields_title"
+                  value={settings.homepage_fields_title}
+                  onChange={(e) => handleChange('homepage_fields_title', e.target.value)}
+                  placeholder="our fields"
+                />
               </div>
 
-              {/* Fields Section Subtitles */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="homepage_fields_subtitle_en">Fields Subtitle (English)</Label>
-                  <Textarea
-                    id="homepage_fields_subtitle_en"
-                    value={settings.homepage_fields_subtitle_en}
-                    onChange={(e) => handleChange('homepage_fields_subtitle_en', e.target.value)}
-                    placeholder="explore our diverse portfolio of creative disciplines..."
-                    rows={3}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="homepage_fields_subtitle_tr">Fields Subtitle (Turkish)</Label>
-                  <Textarea
-                    id="homepage_fields_subtitle_tr"
-                    value={settings.homepage_fields_subtitle_tr}
-                    onChange={(e) => handleChange('homepage_fields_subtitle_tr', e.target.value)}
-                    placeholder="çeşitli yaratıcı disiplinlerimizi keşfedin..."
-                    rows={3}
-                  />
-                </div>
+              {/* Fields Section Subtitle */}
+              <div className="space-y-2">
+                <Label htmlFor="homepage_fields_subtitle">Fields Subtitle</Label>
+                <Textarea
+                  id="homepage_fields_subtitle"
+                  value={settings.homepage_fields_subtitle}
+                  onChange={(e) => handleChange('homepage_fields_subtitle', e.target.value)}
+                  placeholder="explore our diverse portfolio of creative disciplines..."
+                  rows={3}
+                />
               </div>
             </div>
           </motion.div>
