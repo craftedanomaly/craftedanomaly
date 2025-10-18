@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Grid, List, Filter, Search, Calendar, User, Eye } from 'lucide-react';
+import { Grid, List, Columns2, Filter, Search, Calendar, User, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -40,7 +40,7 @@ interface CategoryPageClientProps {
 }
 
 export function CategoryPageClient({ category, projects }: CategoryPageClientProps) {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'masonry'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [filteredProjects, setFilteredProjects] = useState(projects);
@@ -181,14 +181,25 @@ export function CategoryPageClient({ category, projects }: CategoryPageClientPro
                   size="sm"
                   onClick={() => setViewMode('grid')}
                   className="h-8 w-8 p-0"
+                  title="Grid View"
                 >
                   <Grid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'masonry' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('masonry')}
+                  className="h-8 w-8 p-0"
+                  title="Masonry View"
+                >
+                  <Columns2 className="h-4 w-4" />
                 </Button>
                 <Button
                   variant={viewMode === 'list' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('list')}
                   className="h-8 w-8 p-0"
+                  title="List View"
                 >
                   <List className="h-4 w-4" />
                 </Button>
@@ -225,6 +236,17 @@ export function CategoryPageClient({ category, projects }: CategoryPageClientPro
                     project={project}
                     index={index}
                   />
+                ))}
+              </div>
+            ) : viewMode === 'masonry' ? (
+              <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
+                {filteredProjects.map((project, index) => (
+                  <div key={project.id} className="break-inside-avoid mb-8">
+                    <ProjectCard
+                      project={project}
+                      index={index}
+                    />
+                  </div>
                 ))}
               </div>
             ) : (
