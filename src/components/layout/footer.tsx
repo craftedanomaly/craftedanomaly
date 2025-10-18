@@ -37,6 +37,17 @@ export function Footer() {
     // Temporarily disabled
   };
 
+  const normalizeUrl = (url?: string) => {
+    if (!url) return '';
+    const trimmed = String(url).trim();
+    if (/^(https?:)?\/\//i.test(trimmed)) {
+      return trimmed.startsWith('http') ? trimmed : `https:${trimmed}`;
+    }
+    if (/^(mailto:|tel:)/i.test(trimmed)) return trimmed;
+    if (trimmed.startsWith('www.')) return `https://${trimmed}`;
+    return `https://${trimmed}`;
+  };
+
   const socialLinks = [
     {
       name: 'Email',
@@ -109,17 +120,19 @@ export function Footer() {
               <div className="flex space-x-4">
                 {socialLinks.map((link) => {
                   const Icon = link.icon;
+                  const href = link.href?.startsWith('mailto:') ? link.href : normalizeUrl(link.href);
+                  if (!href) return null;
                   return (
-                    <Link
+                    <a
                       key={link.name}
-                      href={link.href}
+                      href={href}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-muted-foreground hover:text-accent transition-colors"
                       aria-label={link.name}
                     >
                       <Icon className="h-5 w-5" />
-                    </Link>
+                    </a>
                   );
                 })}
               </div>
