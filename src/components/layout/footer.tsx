@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Globe, Mail, Instagram, Twitter, Linkedin, Youtube } from 'lucide-react';
+import { Globe, Mail, Instagram, Twitter, Linkedin, Youtube, Phone, Palette, Dribbble } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
@@ -64,6 +64,18 @@ export function Footer() {
       href: settings.social_linkedin,
       icon: Linkedin,
       show: !!settings.social_linkedin,
+    },
+    {
+      name: 'Behance',
+      href: settings.social_behance,
+      icon: Palette,
+      show: !!settings.social_behance,
+    },
+    {
+      name: 'Dribbble',
+      href: settings.social_dribbble,
+      icon: Dribbble,
+      show: !!settings.social_dribbble,
     },
     {
       name: 'YouTube',
@@ -141,9 +153,24 @@ export function Footer() {
                 {settings.footer_contact_title || 'contact'}
               </h4>
               <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  {settings.contact_email || 'hello@craftedanomaly.com'}
-                </p>
+                {settings.contact_email && (
+                  <a
+                    href={`mailto:${settings.contact_email}`}
+                    className="text-sm text-muted-foreground hover:text-accent transition-colors flex items-center gap-2"
+                  >
+                    <Mail className="h-4 w-4" />
+                    {settings.contact_email}
+                  </a>
+                )}
+                {settings.contact_phone && (
+                  <a
+                    href={`tel:${settings.contact_phone.replace(/\s/g, '')}`}
+                    className="text-sm text-muted-foreground hover:text-accent transition-colors flex items-center gap-2"
+                  >
+                    <Phone className="h-4 w-4" />
+                    {settings.contact_phone}
+                  </a>
+                )}
                 {settings.contact_address && (
                   <p className="text-sm text-muted-foreground">
                     {settings.contact_address}
