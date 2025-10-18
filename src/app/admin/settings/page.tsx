@@ -251,7 +251,18 @@ export default function SettingsPage() {
         return;
       }
 
-      toast.success('Settings saved successfully!');
+      // Trigger on-demand revalidation for pages that read settings server-side
+      try {
+        await fetch('/api/revalidate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ paths: ['/', '/contact'] })
+        });
+      } catch (e) {
+        console.warn('Revalidation request failed:', e);
+      }
+
+      toast.success('Settings saved successfully! Changes will reflect shortly.');
     } catch (error) {
       console.error('Error saving settings:', error);
       toast.error('Failed to save settings');

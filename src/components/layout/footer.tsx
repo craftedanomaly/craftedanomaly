@@ -21,16 +21,13 @@ export function Footer() {
     try {
       const { data, error } = await supabase
         .from('site_settings')
-        .select('*');
+        .select('*')
+        .limit(1)
+        .single();
 
       if (error) throw error;
 
-      const settingsObj: any = {};
-      data?.forEach((setting: any) => {
-        settingsObj[setting.setting_key] = setting.setting_value || '';
-      });
-
-      setSettings(settingsObj);
+      setSettings(data || {});
     } catch (error) {
       console.error('Error fetching settings:', error);
     }

@@ -83,22 +83,23 @@ async function getCategoriesWithProjects() {
 }
 
 async function getAboutSettings() {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('site_settings')
-    .select('*')
-    .in('setting_key', ['about_title_en', 'about_text_en', 'about_image_url']);
+    .select('about_title, about_text, about_image_url, about_title_en, about_text_en')
+    .limit(1)
+    .single();
 
-  const settings: any = {
-    about_title_en: 'about',
-    about_text_en: 'crafted anomaly is a design studio that transforms visions into tangible experiences. we specialize in creating museum-grade portfolios that blur the lines between art and functionality.',
-    about_image_url: ''
+  if (error) {
+    console.error('Error fetching about settings:', error);
+  }
+
+  return {
+    about_title: data?.about_title ?? data?.about_title_en ?? 'about',
+    about_text:
+      data?.about_text ?? data?.about_text_en ??
+      'crafted anomaly is a design studio that transforms visions into tangible experiences. we specialize in creating museum-grade portfolios that blur the lines between art and functionality.',
+    about_image_url: data?.about_image_url ?? ''
   };
-
-  data?.forEach((setting: any) => {
-    settings[setting.setting_key] = setting.setting_value || settings[setting.setting_key];
-  });
-
-  return settings;
 }
 
 export default async function Home() {
@@ -129,10 +130,10 @@ export default async function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-3xl font-bold text-foreground mb-6" style={{ fontFamily: 'BBH Sans Bartle, -apple-system, BlinkMacSystemFont, sans-serif' }}>
-              {aboutSettings.about_title_en}
+              {aboutSettings.about_title}
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              {aboutSettings.about_text_en}
+              {aboutSettings.about_text}
             </p>
           </div>
           <div className="bg-card rounded-lg aspect-video flex items-center justify-center overflow-hidden">
