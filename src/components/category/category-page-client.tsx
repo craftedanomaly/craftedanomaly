@@ -2,12 +2,19 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Grid, List, Columns2, Filter, Search, Calendar, User, Eye } from 'lucide-react';
+import { Grid, List, Columns2, Filter, Search, Calendar, User, Eye, X, Tag as TagIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { ProjectCard } from '@/components/projects/project-card';
 import { ProjectList } from '@/components/projects/project-list';
+
+interface Tag {
+  id: string;
+  slug: string;
+  name: string;
+}
 
 interface Project {
   id: string;
@@ -23,6 +30,7 @@ interface Project {
   client: string;
   published_at: string;
   view_count: number;
+  tags?: Tag[];
 }
 
 interface Category {
@@ -37,12 +45,14 @@ interface Category {
 interface CategoryPageClientProps {
   category: Category;
   projects: Project[];
+  availableTags: Tag[];
 }
 
-export function CategoryPageClient({ category, projects }: CategoryPageClientProps) {
+export function CategoryPageClient({ category, projects, availableTags }: CategoryPageClientProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'masonry'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [filteredProjects, setFilteredProjects] = useState(projects);
 
   // Get English content
@@ -52,15 +62,29 @@ export function CategoryPageClient({ category, projects }: CategoryPageClientPro
   // Filter and sort projects
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    filterProjects(term, sortBy);
+    filterProjects(term, sortBy, selectedTags);
   };
 
   const handleSort = (sort: string) => {
     setSortBy(sort);
-    filterProjects(searchTerm, sort);
+    filterProjects(searchTerm, sort, selectedTags);
   };
 
-  const filterProjects = (search: string, sort: string) => {
+  const toggleTag = (tagId: string) => {
+    const newSelectedTags = selectedTags.includes(tagId)
+      ? selectedTags.filter(id => id !== tagId)
+      : [...selectedTags, tagId];
+    setSelectedTags(newSelectedTags);
+    filterProjects(searchTerm, sortBy, newSelectedTags);
+  };
+
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setSelectedTags([]);
+    filterProjects('', sortBy, []);
+  };
+
+  const filterProjects = (search: string, sort: string, tags: string[]) => {
     let filtered = [...projects];
 
     // Search filter
@@ -76,6 +100,14 @@ export function CategoryPageClient({ category, projects }: CategoryPageClientPro
           role.toLowerCase().includes(search.toLowerCase()) ||
           project.client.toLowerCase().includes(search.toLowerCase())
         );
+      });
+    }
+
+    // Tag filter
+    if (tags.length > 0) {
+      filtered = filtered.filter(project => {
+        const projectTagIds = project.tags?.map(t => t.id) || [];
+        return tags.some(tagId => projectTagIds.includes(tagId));
       });
     }
 
@@ -125,10 +157,50 @@ export function CategoryPageClient({ category, projects }: CategoryPageClientPro
           <div className="mt-8 flex items-center justify-center gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <Filter className="h-4 w-4" />
-              {projects.length} projects
+              {filteredProjects.length} of {projects.length} projects
             </span>
           </div>
         </motion.div>
+
+        {/* Tag Filter Pills */}
+        {availableTags.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-6"
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <TagIcon className="h-4 w-4" />
+                <span className="font-medium">Filter by tag:</span>
+              </div>
+              {availableTags.map((tag) => (
+                <Badge
+                  key={tag.id}
+                  variant={selectedTags.includes(tag.id) ? 'default' : 'outline'}
+                  className="cursor-pointer hover:bg-accent/20 transition-colors"
+                  onClick={() => toggleTag(tag.id)}
+                >
+                  {tag.name}
+                  {selectedTags.includes(tag.id) && (
+                    <X className="ml-1 h-3 w-3" />
+                  )}
+                </Badge>
+              ))}
+              {selectedTags.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearAllFilters}
+                  className="h-7 text-xs"
+                >
+                  Clear all
+                </Button>
+              )}
+            </div>
+          </motion.div>
+        )}
 
         {/* Controls */}
         <motion.div
@@ -209,14 +281,16 @@ export function CategoryPageClient({ category, projects }: CategoryPageClientPro
         </motion.div>
 
         {/* Results Count */}
-        {searchTerm && (
+        {(searchTerm || selectedTags.length > 0) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="mb-6"
           >
             <p className="text-sm text-muted-foreground">
-              Found {filteredProjects.length} projects matching "{searchTerm}"
+              Found {filteredProjects.length} projects
+              {searchTerm && ` matching "${searchTerm}"`}
+              {selectedTags.length > 0 && ` with ${selectedTags.length} tag${selectedTags.length > 1 ? 's' : ''}`}
             </p>
           </motion.div>
         )}
@@ -239,12 +313,13 @@ export function CategoryPageClient({ category, projects }: CategoryPageClientPro
                 ))}
               </div>
             ) : viewMode === 'masonry' ? (
-              <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
+              <div className="columns-1 md:columns-2 lg:columns-3 gap-6">
                 {filteredProjects.map((project, index) => (
-                  <div key={project.id} className="break-inside-avoid mb-8">
+                  <div key={project.id} className="break-inside-avoid mb-6">
                     <ProjectCard
                       project={project}
                       index={index}
+                      variant="masonry"
                     />
                   </div>
                 ))}

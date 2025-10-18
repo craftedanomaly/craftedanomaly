@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Calendar, User, ExternalLink, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -68,6 +68,22 @@ export function ProjectDetailClient({ project, media, tags, blocks }: ProjectDet
   const blurb = project.blurb_en;
   const role = project.role_en;
   const categoryName = project.categories?.name_en;
+
+  // Increment view count when component mounts
+  useEffect(() => {
+    const incrementViewCount = async () => {
+      try {
+        await fetch(`/api/projects/${project.slug}/view`, {
+          method: 'POST',
+        });
+      } catch (error) {
+        // Silently fail - view count is not critical
+        console.error('Failed to increment view count:', error);
+      }
+    };
+
+    incrementViewCount();
+  }, [project.slug]);
 
   const handleShare = async () => {
     const url = typeof window !== 'undefined' ? window.location.href : '';

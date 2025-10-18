@@ -120,9 +120,46 @@ async function getCategoryData(slug: string) {
       .eq('status', 'published')
       .order('published_at', { ascending: false });
 
+    // Get all tags for projects in this category
+    const projectIds = projects?.map(p => p.id) || [];
+    const { data: projectTags } = await supabaseServer
+      .from('project_tags')
+      .select(`
+        project_id,
+        tags (
+          id,
+          slug,
+          name
+        )
+      `)
+      .in('project_id', projectIds);
+
+    // Build a map of project_id to tags
+    const projectTagsMap = new Map<string, any[]>();
+    projectTags?.forEach((pt: any) => {
+      if (pt.tags) {
+        const existing = projectTagsMap.get(pt.project_id) || [];
+        projectTagsMap.set(pt.project_id, [...existing, pt.tags]);
+      }
+    });
+
+    // Add tags to each project
+    const projectsWithTags = projects?.map(project => ({
+      ...project,
+      tags: projectTagsMap.get(project.id) || []
+    })) || [];
+
+    // Get unique tags for the filter
+    const allTags = Array.from(
+      new Map(
+        projectTags?.map((pt: any) => pt.tags).filter(Boolean).map((tag: any) => [tag.id, tag])
+      ).values()
+    );
+
     return {
       category,
-      projects: projects || [],
+      projects: projectsWithTags,
+      availableTags: allTags,
     };
   } catch (error) {
     console.error('Error fetching category data:', error);
@@ -142,7 +179,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     <CategoryPageClient 
       category={data.category}
       projects={data.projects}
-      locale={"en"}
+      availableTags={data.availableTags || []}
     />
   );
 }
