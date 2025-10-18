@@ -93,6 +93,7 @@ export default function SettingsPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [existingColumns, setExistingColumns] = useState<Set<string>>(new Set());
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   useEffect(() => {
@@ -105,8 +106,9 @@ export default function SettingsPage() {
       const { data, error } = await supabase
         .from('site_settings')
         .select('*')
+        .order('id', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching settings:', error);
@@ -155,6 +157,8 @@ export default function SettingsPage() {
       };
 
       setSettings(settingsObj);
+      // Track which columns actually exist in the table
+      setExistingColumns(new Set(Object.keys(data || {})));
     } catch (error) {
       console.error('Error fetching settings:', error);
       toast.error('Failed to load settings');
@@ -211,23 +215,99 @@ export default function SettingsPage() {
       const { data: existingData } = await supabase
         .from('site_settings')
         .select('id')
+        .order('id', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       let error;
-      if (existingData?.id) {
-        // Update existing record
-        const result = await supabase
-          .from('site_settings')
-          .update(settings)
-          .eq('id', existingData.id);
-        error = result.error;
+
+      // Build a payload that only includes known columns, and map About fields
+      const buildPayload = () => {
+        const payload: Record<string, any> = {};
+        const has = (c: string) => existingColumns.has(c);
+        const put = (k: string, v: any) => {
+          if (typeof v === 'undefined') return;
+          payload[k] = v;
+        };
+
+        // About fields: prefer new columns, fallback to legacy if table doesn't have them
+        if (has('about_title')) put('about_title', settings.about_title);
+        else if (has('about_title_en')) put('about_title_en', settings.about_title);
+
+        if (has('about_text')) put('about_text', settings.about_text);
+        else if (has('about_text_en')) put('about_text_en', settings.about_text);
+
+        // Homepage fields: prefer new, fallback to legacy
+        if (has('homepage_fields_title')) put('homepage_fields_title', (settings as any).homepage_fields_title);
+        else if (has('homepage_fields_title_en')) put('homepage_fields_title_en', (settings as any).homepage_fields_title);
+
+        if (has('homepage_fields_subtitle')) put('homepage_fields_subtitle', (settings as any).homepage_fields_subtitle);
+        else if (has('homepage_fields_subtitle_en')) put('homepage_fields_subtitle_en', (settings as any).homepage_fields_subtitle);
+
+        // Copy all other fields that exist in the table
+        Object.entries(settings).forEach(([k, v]) => {
+          if (['about_title','about_text','homepage_fields_title','homepage_fields_subtitle'].includes(k)) return;
+          if (existingColumns.has(k)) payload[k] = v as any;
+        });
+
+        return payload;
+      };
+
+      const payload = buildPayload();
+
+      const usesKeyValue = existingColumns.has('setting_key') && existingColumns.has('setting_value') &&
+        !existingColumns.has('about_text') && !existingColumns.has('about_text_en');
+
+      if (!usesKeyValue) {
+        if (existingData?.id) {
+          const result = await supabase
+            .from('site_settings')
+            .update(payload)
+            .eq('id', existingData.id);
+          error = result.error;
+        } else {
+          const result = await supabase
+            .from('site_settings')
+            .insert(payload);
+          error = result.error;
+        }
       } else {
-        // Insert new record
-        const result = await supabase
-          .from('site_settings')
-          .insert(settings);
-        error = result.error;
+        // Key-value fallback: upsert rows by setting_key
+        const upsertKV = async (key: string, value: any) => {
+          if (typeof value === 'undefined') return;
+          const { data: existing } = await supabase
+            .from('site_settings')
+            .select('id')
+            .eq('setting_key', key)
+            .limit(1);
+          if (existing && existing.length > 0) {
+            await supabase.from('site_settings').update({ setting_value: value }).eq('setting_key', key);
+          } else {
+            await supabase.from('site_settings').insert({ setting_key: key, setting_value: value });
+          }
+        };
+
+        await Promise.all([
+          upsertKV('about_title', settings.about_title),
+          upsertKV('about_text', settings.about_text),
+          upsertKV('about_image_url', settings.about_image_url),
+          upsertKV('footer_explore_title', settings.footer_explore_title),
+          upsertKV('footer_contact_title', settings.footer_contact_title),
+          upsertKV('footer_bottom_text', settings.footer_bottom_text),
+          upsertKV('contact_page_title', settings.contact_page_title),
+          upsertKV('contact_page_subtitle', settings.contact_page_subtitle),
+          upsertKV('contact_info_title', settings.contact_info_title),
+          upsertKV('contact_info_description', settings.contact_info_description),
+          upsertKV('contact_email', settings.contact_email),
+          upsertKV('contact_phone', settings.contact_phone),
+          upsertKV('contact_address', settings.contact_address),
+          upsertKV('social_instagram', (settings as any).social_instagram),
+          upsertKV('social_twitter', (settings as any).social_twitter),
+          upsertKV('social_linkedin', (settings as any).social_linkedin),
+          upsertKV('social_behance', (settings as any).social_behance),
+          upsertKV('social_dribbble', (settings as any).social_dribbble),
+          upsertKV('social_youtube', (settings as any).social_youtube),
+        ]);
       }
 
       if (error) {

@@ -86,11 +86,30 @@ async function getAboutSettings() {
   const { data, error } = await supabase
     .from('site_settings')
     .select('about_title, about_text, about_image_url, about_title_en, about_text_en')
+    .order('id', { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error('Error fetching about settings:', error);
+  }
+
+  // If column-based fields are not present, fallback to key-value rows.
+  if (!data || (!data.about_title && !data.about_title_en && !data.about_text && !data.about_text_en && !data.about_image_url)) {
+    const { data: kv } = await supabase
+      .from('site_settings')
+      .select('setting_key, setting_value');
+
+    const map: Record<string, string> = {};
+    kv?.forEach((row: any) => {
+      if (row?.setting_key) map[row.setting_key] = row.setting_value;
+    });
+
+    return {
+      about_title: map['about_title'] ?? map['about_title_en'] ?? 'about',
+      about_text: map['about_text'] ?? map['about_text_en'] ?? 'crafted anomaly is a design studio that transforms visions into tangible experiences. we specialize in creating museum-grade portfolios that blur the lines between art and functionality.',
+      about_image_url: map['about_image_url'] ?? ''
+    };
   }
 
   return {
