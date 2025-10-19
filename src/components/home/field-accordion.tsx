@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,10 +35,30 @@ interface FieldAccordionProps {
 export function FieldAccordion({ categories /* locale kept for signature, site is EN */, locale }: FieldAccordionProps) {
   const [sectionSettings, setSectionSettings] = useState<any>({});
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [preloadedVideos, setPreloadedVideos] = useState<Set<string>>(new Set());
+  const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
 
   useEffect(() => {
     fetchSectionSettings();
+    preloadVideos();
   }, []);
+
+  // Preload videos for better UX
+  const preloadVideos = () => {
+    categories.forEach(category => {
+      if (category.video_url && !preloadedVideos.has(category.video_url)) {
+        const video = document.createElement('video');
+        video.src = category.video_url;
+        video.preload = 'metadata';
+        video.muted = true;
+        video.load();
+        
+        video.addEventListener('loadeddata', () => {
+          setPreloadedVideos(prev => new Set([...prev, category.video_url!]));
+        });
+      }
+    });
+  };
 
   const fetchSectionSettings = async () => {
     try {
@@ -102,8 +122,27 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
                 duration: 0.6,
                 ease: [0.25, 0.46, 0.45, 0.94]
               }}
-              onMouseEnter={() => setHoveredCategory(category.id)}
-              onMouseLeave={() => setHoveredCategory(null)}
+              onMouseEnter={() => {
+                setHoveredCategory(category.id);
+                // Start video immediately on hover
+                if (category.video_url) {
+                  const video = videoRefs.current.get(category.id);
+                  if (video) {
+                    video.currentTime = 0;
+                    video.play().catch(console.warn);
+                  }
+                }
+              }}
+              onMouseLeave={() => {
+                setHoveredCategory(null);
+                // Pause video when not hovering
+                if (category.video_url) {
+                  const video = videoRefs.current.get(category.id);
+                  if (video) {
+                    video.pause();
+                  }
+                }
+              }}
             >
               <Link href={href} className="block h-full w-full group" aria-label={category.name}>
                 <div className="relative h-full w-full">
@@ -138,18 +177,32 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
                     <motion.div
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3, duration: 0.4 }}
-                      className="absolute right-0 top-0 w-2/3 h-full bg-black/90 backdrop-blur-sm"
+                      transition={{ delay: 0.2, duration: 0.5 }}
+                      className="absolute right-0 top-0 w-2/3 h-full bg-black/95 backdrop-blur-sm overflow-hidden"
                     >
                       <video
+                        ref={(el) => {
+                          if (el) videoRefs.current.set(category.id, el);
+                        }}
                         src={category.video_url}
-                        autoPlay
                         muted
                         loop
                         playsInline
+                        preload="metadata"
                         className="w-full h-full object-cover"
+                        onCanPlay={() => {
+                          // Mark as preloaded when ready
+                          setPreloadedVideos(prev => new Set([...prev, category.video_url!]));
+                        }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-background/20" />
+                      <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-background/10" />
+                      
+                      {/* Video loading indicator */}
+                      {!preloadedVideos.has(category.video_url) && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                          <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        </div>
+                      )}
                     </motion.div>
                   )}
 
@@ -162,15 +215,9 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
                     transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
                   >
                     <div className="max-w-sm">
-                      <motion.h3 
-                        className="text-xl lg:text-2xl font-heading text-foreground mb-2"
-                        animate={{
-                          fontSize: isHovered ? '2rem' : '1.5rem'
-                        }}
-                        transition={{ duration: 0.4 }}
-                      >
+                      <h3 className="text-xl lg:text-2xl font-heading text-foreground mb-2">
                         {category.name}
-                      </motion.h3>
+                      </h3>
                       
                       <div className="inline-flex items-center px-2 py-1 rounded-md bg-accent/80 backdrop-blur-sm text-xs text-accent-foreground font-medium mb-3">
                         {(category.projects?.length || 0)} {(category.projects?.length === 1 ? 'project' : 'projects')}

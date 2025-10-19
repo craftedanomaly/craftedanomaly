@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
 import { ImageUpload } from '@/components/admin/image-upload';
+import { VideoUpload } from '@/components/admin/video-upload';
 
 interface Category {
   id: string;
@@ -354,16 +355,14 @@ export default function CategoriesPage() {
 
             {/* Hover Video */}
             <div className="space-y-2">
-              <Label htmlFor="video_url">Hover Video (Desktop Only)</Label>
-              <Input
-                id="video_url"
+              <Label>Hover Video (Desktop Only)</Label>
+              <VideoUpload
                 value={formData.video_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, video_url: e.target.value }))}
-                placeholder="https://example.com/video.mp4"
-                type="url"
+                onChange={(url) => setFormData(prev => ({ ...prev, video_url: url }))}
+                maxSizeMB={100}
               />
               <p className="text-xs text-muted-foreground">
-                Video that plays when hovering over this category on desktop. Supports MP4, WebM formats.
+                Video that plays when hovering over this category on desktop. Auto-plays muted on hover.
               </p>
             </div>
 
