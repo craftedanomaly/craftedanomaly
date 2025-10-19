@@ -52,7 +52,7 @@ async function getCategoriesWithProjects() {
   // Fetch all categories with cover_image
   const { data: categories, error: catError } = await supabase
     .from('categories')
-    .select('id, slug, name, description, cover_image, display_order, active')
+    .select('id, slug, name, description, cover_image, video_url, display_order, active')
     .eq('active', true)
     .order('display_order');
 

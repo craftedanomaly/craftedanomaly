@@ -20,6 +20,7 @@ interface Category {
   name: string;
   description: string;
   cover_image?: string | null;
+  video_url?: string | null;
   display_order: number;
   active: boolean;
   created_at: string;
@@ -36,6 +37,7 @@ export default function CategoriesPage() {
     name: '',
     description: '',
     cover_image: '',
+    video_url: '',
     active: true,
   });
 
@@ -107,6 +109,7 @@ export default function CategoriesPage() {
       name: category.name,
       description: category.description,
       cover_image: category.cover_image || '',
+      video_url: category.video_url || '',
       active: category.active,
     });
     setIsDialogOpen(true);
@@ -157,6 +160,7 @@ export default function CategoriesPage() {
       name: '',
       description: '',
       cover_image: '',
+      video_url: '',
       active: true,
     });
   };
@@ -345,6 +349,21 @@ export default function CategoriesPage() {
               />
               <p className="text-xs text-muted-foreground">
                 This image will be used as the background for this category on the homepage
+              </p>
+            </div>
+
+            {/* Hover Video */}
+            <div className="space-y-2">
+              <Label htmlFor="video_url">Hover Video (Desktop Only)</Label>
+              <Input
+                id="video_url"
+                value={formData.video_url}
+                onChange={(e) => setFormData(prev => ({ ...prev, video_url: e.target.value }))}
+                placeholder="https://example.com/video.mp4"
+                type="url"
+              />
+              <p className="text-xs text-muted-foreground">
+                Video that plays when hovering over this category on desktop. Supports MP4, WebM formats.
               </p>
             </div>
 

@@ -64,6 +64,7 @@ export interface Database {
           name: string;
           description: string | null;
           icon: string | null;
+          video_url: string | null;
           display_order: number;
           created_at: string;
           updated_at: string;

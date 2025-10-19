@@ -23,6 +23,7 @@ interface Category {
   name: string;
   description?: string;
   cover_image?: string | null;
+  video_url?: string | null;
   projects: Project[];
 }
 
@@ -33,6 +34,7 @@ interface FieldAccordionProps {
 
 export function FieldAccordion({ categories /* locale kept for signature, site is EN */, locale }: FieldAccordionProps) {
   const [sectionSettings, setSectionSettings] = useState<any>({});
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSectionSettings();
@@ -75,75 +77,135 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
 
       {/* Categories section - responsive layout */}
       
-      {/* Desktop: Horizontal slices */}
-      <div className="hidden md:flex w-full h-[72vh] overflow-hidden">
+      {/* Desktop: Horizontal slices with video hover */}
+      <div className="hidden md:flex w-full h-[72vh] overflow-hidden relative">
         {categories.map((category, index) => {
           const preview = category.projects?.[0];
           const img = category.cover_image || preview?.cover_image;
           const href = `/${category.slug}`;
+          const isHovered = hoveredCategory === category.id;
+          const isOtherHovered = hoveredCategory && hoveredCategory !== category.id;
+          
           return (
-            <Link href={href} className="relative flex-1 min-w-0 group block" aria-label={category.name} key={category.id}>
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05, duration: 0.3 }}
-                className="h-full w-full"
-              >
-                <div className="absolute inset-0">
-                  {img && !img.startsWith('blob:') ? (
-                    <Image
-                      {...getOptimizedImageProps(
-                        img,
-                        category.name,
-                        index < 3 // Priority for first 3 categories
-                      )}
-                      fill
-                      className="object-cover"
-                      sizes={imageSizes.categorySlice}
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-muted flex items-center justify-center">
-                      <span className="text-muted-foreground text-sm">No Image</span>
-                    </div>
-                  )}
-                  {/* Gradient overlay for hover */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/85 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  
-                  {/* Click feedback overlay */}
-                  <div className="absolute inset-0 bg-muted/20 opacity-0 group-active:opacity-100 transition-opacity duration-150" />
-                  
-                  {/* Bottom gradient for text readability - always visible */}
-                  <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background via-background/70 via-background/40 to-transparent" />
-                </div>
-
-                {/* Default state - always visible */}
-                <div className="absolute inset-0 p-6 lg:p-8 flex items-end group-hover:opacity-0 transition-opacity duration-300">
-                  <div className="max-w-sm">
-                    <h3 className="text-xl lg:text-2xl font-heading text-foreground mb-2">{category.name}</h3>
-                    <div className="inline-flex items-center px-2 py-1 rounded-md bg-accent/80 backdrop-blur-sm text-xs text-accent-foreground font-medium">
-                      {(category.projects?.length || 0)} {(category.projects?.length === 1 ? 'project' : 'projects')}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Hover state - centered content */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="text-center w-full h-full bg-accent/60 backdrop-blur-sm flex flex-col items-center justify-center p-6 lg:p-8">
-                    <div className="inline-flex items-center px-2 py-1 rounded-md bg-background/30 backdrop-blur-sm text-xs uppercase tracking-wide text-foreground mb-3">
-                      {(category.projects?.length || 0)} {(category.projects?.length === 1 ? 'project' : 'projects')}
-                    </div>
-                    <h3 className="text-xl lg:text-2xl font-heading mb-3" style={{ color: '#7a4072' }}>{category.name}</h3>
-                    {category.description && (
-                      <p className="text-sm mb-6 line-clamp-3 leading-relaxed text-black font-medium">{category.description}</p>
+            <motion.div
+              key={category.id}
+              className="relative overflow-hidden"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ 
+                opacity: 1, 
+                y: 0,
+                width: isHovered ? '60%' : isOtherHovered ? '10%' : '25%',
+                x: isOtherHovered && index > categories.findIndex(c => c.id === hoveredCategory) ? '0%' : '0%'
+              }}
+              transition={{ 
+                delay: index * 0.05, 
+                duration: 0.6,
+                ease: [0.25, 0.46, 0.45, 0.94]
+              }}
+              onMouseEnter={() => setHoveredCategory(category.id)}
+              onMouseLeave={() => setHoveredCategory(null)}
+            >
+              <Link href={href} className="block h-full w-full group" aria-label={category.name}>
+                <div className="relative h-full w-full">
+                  {/* Background Image */}
+                  <div className="absolute inset-0">
+                    {img && !img.startsWith('blob:') ? (
+                      <Image
+                        {...getOptimizedImageProps(
+                          img,
+                          category.name,
+                          index < 3
+                        )}
+                        fill
+                        className="object-cover"
+                        sizes={imageSizes.categorySlice}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-muted flex items-center justify-center">
+                        <span className="text-muted-foreground text-sm">No Image</span>
+                      </div>
                     )}
-                    <Button className="bg-accent text-accent-foreground hover:bg-accent/90 pointer-events-none">
-                      explore
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Button>
+                    
+                    {/* Overlay gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+                    
+                    {/* Bottom gradient for text readability */}
+                    <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background via-background/70 via-background/40 to-transparent" />
                   </div>
+
+                  {/* Video Area - Only visible when hovered */}
+                  {isHovered && category.video_url && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3, duration: 0.4 }}
+                      className="absolute right-0 top-0 w-2/3 h-full bg-black/90 backdrop-blur-sm"
+                    >
+                      <video
+                        src={category.video_url}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-background/20" />
+                    </motion.div>
+                  )}
+
+                  {/* Category Info */}
+                  <motion.div
+                    className="absolute inset-0 p-6 lg:p-8 flex items-end"
+                    animate={{
+                      width: isHovered ? '40%' : '100%'
+                    }}
+                    transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  >
+                    <div className="max-w-sm">
+                      <motion.h3 
+                        className="text-xl lg:text-2xl font-heading text-foreground mb-2"
+                        animate={{
+                          fontSize: isHovered ? '2rem' : '1.5rem'
+                        }}
+                        transition={{ duration: 0.4 }}
+                      >
+                        {category.name}
+                      </motion.h3>
+                      
+                      <div className="inline-flex items-center px-2 py-1 rounded-md bg-accent/80 backdrop-blur-sm text-xs text-accent-foreground font-medium mb-3">
+                        {(category.projects?.length || 0)} {(category.projects?.length === 1 ? 'project' : 'projects')}
+                      </div>
+
+                      {/* Description - only visible when hovered */}
+                      {isHovered && category.description && (
+                        <motion.p
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.4, duration: 0.3 }}
+                          className="text-sm text-foreground/80 mb-4 line-clamp-3"
+                        >
+                          {category.description}
+                        </motion.p>
+                      )}
+
+                      {/* Explore Button - only visible when hovered */}
+                      {isHovered && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.5, duration: 0.3 }}
+                        >
+                          <Button className="bg-accent text-accent-foreground hover:bg-accent/90 pointer-events-none">
+                            explore
+                            <ArrowRight className="h-4 w-4 ml-2" />
+                          </Button>
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.div>
                 </div>
-              </motion.div>
-            </Link>
+              </Link>
+            </motion.div>
           );
         })}
       </div>
