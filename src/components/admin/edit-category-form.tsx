@@ -47,13 +47,21 @@ export function EditCategoryForm({ category, onCategoryUpdated, onBack }: EditCa
     setIsSubmitting(true);
 
     try {
+      // Re-sanitize before submit to satisfy DB varchar(50)
+      const cleanedName = (formData.name || '').slice(0, 50);
+      const cleanedSlug = (formData.slug || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 50);
+
       const { data, error } = await supabase
         .from('categories')
         .update({
-          slug: formData.slug,
-          name: formData.name,
+          slug: cleanedSlug,
+          name: cleanedName,
           description: formData.description,
-          icon: formData.cover_image,
+          cover_image: formData.cover_image,
           video_url: formData.video_url,
           active: formData.active,
         })
@@ -79,7 +87,7 @@ export function EditCategoryForm({ category, onCategoryUpdated, onBack }: EditCa
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const name = e.target.value;
+    const name = e.target.value.slice(0, 50);
     const slug = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
@@ -159,6 +167,7 @@ export function EditCategoryForm({ category, onCategoryUpdated, onBack }: EditCa
                   onChange={handleNameChange}
                   placeholder="Films"
                   required
+                  maxLength={50}
                 />
               </div>
 
@@ -167,9 +176,18 @@ export function EditCategoryForm({ category, onCategoryUpdated, onBack }: EditCa
                 <Input
                   id="slug"
                   value={formData.slug}
-                  onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    const cleaned = raw
+                      .toLowerCase()
+                      .replace(/[^a-z0-9]+/g, '-')
+                      .replace(/^-|-$/g, '')
+                      .slice(0, 50);
+                    setFormData(prev => ({ ...prev, slug: cleaned }));
+                  }}
                   placeholder="films"
                   required
+                  maxLength={50}
                 />
                 <p className="text-xs text-muted-foreground">
                   Used in URLs: /{formData.slug}

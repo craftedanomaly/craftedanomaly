@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { ImageUpload } from '@/components/admin/image-upload';
+import { VideoUpload } from '@/components/admin/video-upload';
 import { ContentBlocksBuilder, ContentBlock } from '@/components/admin/content-blocks-builder';
 
 // Validation Schema
@@ -46,6 +47,7 @@ const projectSchema = z.object({
       'Must be a valid URL'
     ),
   status: z.enum(['draft', 'published']),
+  coverVideo: z.string().optional(),
 });
 
 type ProjectFormData = z.infer<typeof projectSchema>;
@@ -95,6 +97,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
       tags: '',
       coverImage: '',
       liveUrl: '',
+      coverVideo: '',
     },
   });
 
@@ -119,6 +122,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
             title: data.title,
             blurb: data.blurb,
             cover_image: data.coverImage,
+            cover_video_url: data.coverVideo || null,
             year: data.year,
             role_en: data.role || null,
             client: data.client || null,
@@ -521,6 +525,16 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                   {errors.coverImage && (
                     <p className="text-sm text-destructive">{errors.coverImage.message}</p>
                   )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Cover Video (optional)</Label>
+                  <VideoUpload
+                    value={watch('coverVideo') as any}
+                    onChange={(url) => setValue('coverVideo', url)}
+                    maxSizeMB={200}
+                  />
+                  <p className="text-xs text-muted-foreground">Shown on project hero when Play is clicked.</p>
                 </div>
 
                 <div className="space-y-2">

@@ -4,7 +4,8 @@ import { useMemo, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar, User, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Calendar, User, ExternalLink, Play, Pause } from 'lucide-react';
+import { getEmbedInfo } from '@/lib/video-utils';
 import { Badge } from '@/components/ui/badge';
 import { ContentBlocksRenderer } from './content-blocks-renderer';
 
@@ -16,6 +17,7 @@ interface ProjectDetailClientProps {
     blurb: string;
     content?: string | null;
     cover_image: string;
+    cover_video_url?: string | null;
     year?: number | null;
     role_en?: string | null;
     role_tr?: string | null;
@@ -90,23 +92,67 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
     return () => ro.disconnect();
   }, [leftRef]);
 
+  const [isPlaying, setIsPlaying] = useState(false);
+  const embedInfo = useMemo(() => getEmbedInfo(project.cover_video_url || ''), [project.cover_video_url]);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Hero with Title Overlay */}
       {project.cover_image && (
         <div className="relative h-[70vh] w-full overflow-hidden">
-          <Image
-            src={project.cover_image}
-            alt={project.title}
-            fill
-            className="object-cover"
-            sizes="100vw"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          {isPlaying && project.cover_video_url ? (
+            embedInfo.kind === 'direct' ? (
+              <video
+                className="w-full h-full object-contain bg-black"
+                src={embedInfo.embedUrl}
+                autoPlay
+                playsInline
+              />
+            ) : embedInfo.embedUrl ? (
+              <iframe
+                src={embedInfo.embedUrl}
+                className="w-full h-full"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowFullScreen
+                frameBorder={0}
+              />
+            ) : null
+          ) : (
+            <Image
+              src={project.cover_image}
+              alt={project.title}
+              fill
+              className="object-cover"
+              sizes="100vw"
+              priority
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+
+          {/* Play button */}
+          {!isPlaying && project.cover_video_url && (
+            <button
+              type="button"
+              onClick={() => setIsPlaying(true)}
+              className="absolute bottom-6 right-6 z-10 h-16 w-16 rounded-full bg-white/85 text-black flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+              aria-label="Play cover video"
+            >
+              <Play className="h-8 w-8" />
+            </button>
+          )}
+          {isPlaying && project.cover_video_url && (
+            <button
+              type="button"
+              onClick={() => setIsPlaying(false)}
+              className="absolute bottom-6 right-6 z-10 h-16 w-16 rounded-full bg-white/85 text-black flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+              aria-label="Pause cover video"
+            >
+              <Pause className="h-8 w-8" />
+            </button>
+          )}
           
-          {/* Title and Description Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-8 lg:p-16">
+          {/* Title and Description Overlay (keeps interactive even when video is playing) */}
+          <div className={`absolute bottom-0 left-0 right-0 p-8 lg:p-16`}>
             <div className="max-w-4xl">
               <Link
                 href={categorySlug ? `/${categorySlug}` : '/'}
