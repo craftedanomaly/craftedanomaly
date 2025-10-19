@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase/client';
 import { motion } from 'framer-motion';
 import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
 import { AddProjectForm } from '@/components/admin/add-project-form';
@@ -10,7 +11,6 @@ import { DeleteProjectDialog } from '@/components/admin/delete-project-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
-import { supabase } from '@/lib/supabase/client';
 
 // Sample projects data
 const sampleProjects = [
@@ -45,6 +45,7 @@ export default function AdminProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -64,10 +65,12 @@ export default function AdminProjectsPage() {
         .from('projects')
         .select(`
           *,
-          categories (
-            id,
-            slug,
-            name
+          project_categories (
+            categories (
+              id,
+              slug,
+              name
+            )
           )
         `)
         .order('created_at', { ascending: false });
@@ -79,8 +82,8 @@ export default function AdminProjectsPage() {
         id: project.id,
         title: project.title,
         slug: project.slug,
-        category: project.categories?.name || 'Uncategorized',
-        categoryId: project.category_id,
+        category: project.project_categories?.[0]?.categories?.name || 'Uncategorized',
+        categoryId: project.project_categories?.[0]?.categories?.id,
         blurb: project.blurb,
         year: project.year,
         role: project.role_en,
@@ -120,6 +123,16 @@ export default function AdminProjectsPage() {
     setProjects(projects.filter((p) => p.id !== projectId));
   };
 
+  // Show add form if requested
+  if (showAddForm) {
+    return (
+      <AddProjectForm 
+        onProjectAdded={handleProjectAdded}
+        onBack={() => setShowAddForm(false)}
+      />
+    );
+  }
+
   return (
     <div className="p-8">
         {/* Header */}
@@ -130,7 +143,13 @@ export default function AdminProjectsPage() {
               Manage your portfolio projects
             </p>
           </div>
-          <AddProjectForm onProjectAdded={handleProjectAdded} />
+          <Button 
+            onClick={() => setShowAddForm(true)}
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add New Project
+          </Button>
         </div>
 
         {/* Search */}

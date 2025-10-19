@@ -254,10 +254,12 @@ export function EditProjectForm({ project, onProjectUpdated }: EditProjectFormPr
         .eq('id', project.id)
         .select(`
           *,
-          categories (
-            id,
-            slug,
-            name
+          project_categories (
+            categories (
+              id,
+              slug,
+              name
+            )
           )
         `)
         .single();

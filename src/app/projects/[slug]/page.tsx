@@ -89,10 +89,12 @@ async function getProjectData(slug: string) {
       .from('projects')
       .select(`
         *,
-        categories (
-          id,
-          slug,
-          name
+        project_categories (
+          categories (
+            id,
+            slug,
+            name
+          )
         )
       `)
       .eq('slug', slug)

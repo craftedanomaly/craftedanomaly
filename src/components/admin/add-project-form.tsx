@@ -4,16 +4,8 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,8 +19,6 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { ImageUpload } from '@/components/admin/image-upload';
-import { BeforeAfterUpload } from '@/components/admin/before-after-upload';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ContentBlocksBuilder, ContentBlock } from '@/components/admin/content-blocks-builder';
 
 // Validation Schema
@@ -61,18 +51,14 @@ type ProjectFormData = z.infer<typeof projectSchema>;
 
 interface AddProjectFormProps {
   onProjectAdded?: (project: any) => void;
+  onBack?: () => void;
 }
 
-export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
-  const [open, setOpen] = useState(false);
+export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categoriesData, setCategoriesData] = useState<any[]>([]);
-  const [techStack, setTechStack] = useState<string[]>([]);
-  const [externalLinks, setExternalLinks] = useState<{ label: string; url: string }[]>([]);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([]);
-  const [mediaType, setMediaType] = useState<'standard' | 'before_after'>('standard');
-  const [beforeAfterImages, setBeforeAfterImages] = useState({ before: '', after: '' });
 
   useEffect(() => {
     fetchCategories();
@@ -119,13 +105,6 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
       return;
     }
     
-    if (mediaType === 'before_after') {
-      if (!beforeAfterImages.before || !beforeAfterImages.after) {
-        toast.error('Both before and after images are required for before/after comparison');
-        return;
-      }
-    }
-    
     setIsSubmitting(true);
 
     try {
@@ -139,7 +118,7 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
             blurb: data.blurb,
             cover_image: data.coverImage,
             year: data.year,
-            role_en: data.role || null,
+            role: data.role || null,
             client: data.client || null,
             status: data.status,
             published_at: data.status === 'published' ? new Date().toISOString() : null,
@@ -147,10 +126,12 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
         ])
         .select(`
           *,
-          categories (
-            id,
-            slug,
-            name
+          project_categories (
+            categories (
+              id,
+              slug,
+              name
+            )
           )
         `)
         .single();
@@ -208,29 +189,6 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
         }
       }
 
-      // Handle tech stack
-      if (techStack.length > 0) {
-        await supabase.from('tech_stack').insert(
-          techStack.map((tech, index) => ({
-            project_id: projectId,
-            name: tech,
-            display_order: index,
-          }))
-        );
-      }
-
-      // Handle external links
-      if (externalLinks.length > 0) {
-        await supabase.from('external_links').insert(
-          externalLinks.map((link, index) => ({
-            project_id: projectId,
-            label_en: link.label,
-            url: link.url,
-            display_order: index,
-          }))
-        );
-      }
-
       // Handle gallery images
       if (galleryImages.length > 0) {
         await supabase.from('media').insert(
@@ -241,19 +199,6 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
             display_order: index,
           }))
         );
-      }
-
-      // Handle before/after media
-      if (mediaType === 'before_after' && beforeAfterImages.before && beforeAfterImages.after) {
-        await supabase.from('media').insert([{
-          project_id: projectId,
-          media_type: 'before_after',
-          url: beforeAfterImages.after,
-          before_url: beforeAfterImages.before,
-          after_url: beforeAfterImages.after,
-          display_order: 0,
-          title: 'Before/After Comparison'
-        }]);
       }
 
       // Handle content blocks
@@ -277,11 +222,11 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
           id: project.id,
           title: project.title,
           slug: project.slug,
-          category: project.categories?.name || 'Uncategorized',
-          categoryId: project.category_id,
+          category: 'Uncategorized', // Will be updated with proper category logic
+          categoryId: data.categories[0] || null,
           blurb: project.blurb,
           year: project.year,
-          role: project.role_en,
+          role: project.role,
           client: project.client,
           image: project.cover_image,
           status: project.status,
@@ -295,13 +240,9 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
       }
 
       reset();
-      setTechStack([]);
-      setExternalLinks([]);
       setGalleryImages([]);
       setContentBlocks([]);
-      setMediaType('standard');
-      setBeforeAfterImages({ before: '', after: '' });
-      setOpen(false);
+      if (onBack) onBack();
     } catch (error: any) {
       console.error('Error creating project:', error);
       toast.error(error.message || 'Failed to create project');
@@ -320,234 +261,354 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add New Project
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle>Add New Project</DialogTitle>
-          <DialogDescription>
-            Create a new portfolio project. Fill in the details below.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 overflow-y-auto max-h-[70vh] pr-2">
-          {/* Basic Info */}
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Title *</Label>
-              <Input
-                id="title"
-                {...register('title')}
-                onChange={(e) => {
-                  register('title').onChange(e);
-                  handleTitleChange(e);
-                }}
-                placeholder="Project Title"
-              />
-              {errors.title && (
-                <p className="text-sm text-destructive">{errors.title.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="slug">Slug *</Label>
-              <Input
-                id="slug"
-                {...register('slug')}
-                placeholder="project-slug"
-              />
-              {errors.slug && (
-                <p className="text-sm text-destructive">{errors.slug.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Categories *</Label>
-              <div className="space-y-2 max-h-32 overflow-y-auto border rounded-lg p-3">
-                {categoriesData.map((cat) => {
-                  const checked = categoriesValue.includes(cat.id);
-                  return (
-                    <label
-                      key={cat.id}
-                      className="flex items-center justify-between text-sm"
-                    >
-                      <span>{cat.name}</span>
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={(e) => {
-                          const value = e.target.checked
-                            ? [...categoriesValue, cat.id]
-                            : categoriesValue.filter((id) => id !== cat.id);
-                          setValue('categories', value, { shouldValidate: true });
-                        }}
-                        className="h-4 w-4"
-                      />
-                    </label>
-                  );
-                })}
-              </div>
-              {errors.categories && (
-                <p className="text-sm text-destructive">{errors.categories.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="blurb">Description *</Label>
-              <Textarea
-                id="blurb"
-                {...register('blurb')}
-                placeholder="Project description..."
-                rows={3}
-              />
-              {errors.blurb && (
-                <p className="text-sm text-destructive">{errors.blurb.message}</p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="year">Year *</Label>
-                <Input
-                  id="year"
-                  type="number"
-                  {...register('year', { valueAsNumber: true })}
-                  placeholder="2024"
-                />
-                {errors.year && (
-                  <p className="text-sm text-destructive">{errors.year.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
-                <Input
-                  id="role"
-                  {...register('role')}
-                  placeholder="Designer, Developer"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="client">Client</Label>
-              <Input
-                id="client"
-                {...register('client')}
-                placeholder="Company Name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="tags">Tags</Label>
-              <Input
-                id="tags"
-                {...register('tags')}
-                placeholder="UI/UX, Mobile, React"
-              />
-            </div>
-          </div>
-
-          {/* Media */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Media</h3>
-            
-            <div className="space-y-2">
-              <Label>Cover Image *</Label>
-              <ImageUpload
-                value={watch('coverImage')}
-                onChange={(url) => setValue('coverImage', url)}
-              />
-              {errors.coverImage && (
-                <p className="text-sm text-destructive">{errors.coverImage.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Gallery Images</Label>
-              <div className="space-y-2">
-                {galleryImages.map((img, index) => (
-                  <div key={index} className="flex gap-2">
-                    <ImageUpload
-                      value={img}
-                      onChange={(url) => {
-                        const newImages = [...galleryImages];
-                        newImages[index] = url;
-                        setGalleryImages(newImages);
-                      }}
-                      bucket="project-gallery"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setGalleryImages(galleryImages.filter((_, i) => i !== index))}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setGalleryImages([...galleryImages, ''])}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Gallery Image
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Content Blocks */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Content Blocks</h3>
-            <ContentBlocksBuilder 
-              blocks={contentBlocks} 
-              onChange={setContentBlocks}
-            />
-          </div>
-
-          {/* Status */}
-          <div className="space-y-2">
-            <Label htmlFor="status">Status *</Label>
-            <Select
-              value={statusValue}
-              onValueChange={(value: 'draft' | 'published') => setValue('status', value)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="published">Published</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Submit */}
-          <div className="flex justify-end gap-3 pt-4">
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex h-16 items-center justify-between px-6">
+          <div className="flex items-center gap-4">
             <Button
-              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onBack}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Projects
+            </Button>
+            <div className="h-6 w-px bg-border" />
+            <div>
+              <h1 className="text-xl font-semibold">Create New Project</h1>
+              <p className="text-sm text-muted-foreground">Build your next portfolio masterpiece</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={onBack}
             >
               Cancel
             </Button>
             <Button 
               type="submit"
+              form="project-form"
               disabled={isSubmitting}
+              className="min-w-32"
             >
-              {isSubmitting ? 'Creating...' : 'Create Project'}
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Creating...
+                </>
+              ) : (
+                'Create Project'
+              )}
             </Button>
           </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <form id="project-form" onSubmit={handleSubmit(onSubmit)} className="flex overflow-hidden min-h-[calc(100vh-4rem)]">
+        {/* Left Sidebar Navigation */}
+        <aside className="w-64 border-r bg-muted/30 p-6 overflow-y-auto">
+          <div className="space-y-2">
+            <div className="text-xs uppercase tracking-wide text-muted-foreground font-semibold mb-4">
+              Project Sections
+            </div>
+            {[
+              { id: "basic", label: "📝 Basic Info", desc: "Title, category, description" },
+              { id: "media", label: "🎨 Media", desc: "Images and gallery" },
+              { id: "content", label: "📄 Content", desc: "Rich content blocks" },
+              { id: "publish", label: "🚀 Publish", desc: "Status and visibility" }
+            ].map((section) => (
+              <button
+                key={section.id}
+                type="button"
+                onClick={() => document.getElementById(section.id)?.scrollIntoView({ behavior: 'smooth' })}
+                className="w-full text-left p-3 rounded-lg hover:bg-accent/50 transition-colors group"
+              >
+                <div className="font-medium text-sm group-hover:text-accent-foreground">
+                  {section.label}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {section.desc}
+                </div>
+              </button>
+            ))}
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-4xl mx-auto p-8 space-y-8">
+            
+            {/* Basic Info Section */}
+            <section id="basic" className="space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-lg">📝</span>
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold">Basic Information</h2>
+                  <p className="text-sm text-muted-foreground">Essential project details</p>
+                </div>
+              </div>
+              
+              <div className="grid gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title *</Label>
+                  <Input
+                    id="title"
+                    {...register('title')}
+                    onChange={(e) => {
+                      register('title').onChange(e);
+                      handleTitleChange(e);
+                    }}
+                    placeholder="Project Title"
+                  />
+                  {errors.title && (
+                    <p className="text-sm text-destructive">{errors.title.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="slug">Slug *</Label>
+                  <Input
+                    id="slug"
+                    {...register('slug')}
+                    placeholder="project-slug"
+                  />
+                  {errors.slug && (
+                    <p className="text-sm text-destructive">{errors.slug.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Categories *</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {categoriesData.map((cat) => {
+                      const checked = categoriesValue.includes(cat.id);
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => {
+                            const value = checked
+                              ? categoriesValue.filter((id) => id !== cat.id)
+                              : [...categoriesValue, cat.id];
+                            setValue('categories', value, { shouldValidate: true });
+                          }}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                            checked
+                              ? 'bg-primary text-primary-foreground shadow-sm border-primary'
+                              : 'bg-background hover:bg-accent text-foreground border-border hover:border-accent-foreground/20'
+                          }`}
+                        >
+                          {cat.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {errors.categories && (
+                    <p className="text-sm text-destructive">{errors.categories.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="blurb">Description *</Label>
+                  <Textarea
+                    id="blurb"
+                    {...register('blurb')}
+                    placeholder="Project description..."
+                    rows={3}
+                  />
+                  {errors.blurb && (
+                    <p className="text-sm text-destructive">{errors.blurb.message}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="year">Year *</Label>
+                    <Input
+                      id="year"
+                      type="number"
+                      {...register('year', { valueAsNumber: true })}
+                      placeholder="2024"
+                    />
+                    {errors.year && (
+                      <p className="text-sm text-destructive">{errors.year.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="role">Role</Label>
+                    <Input
+                      id="role"
+                      {...register('role')}
+                      placeholder="Designer, Developer"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="client">Client</Label>
+                  <Input
+                    id="client"
+                    {...register('client')}
+                    placeholder="Company Name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="tags">Tags</Label>
+                  <Input
+                    id="tags"
+                    {...register('tags')}
+                    placeholder="UI/UX, Mobile, React"
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* Media Section */}
+            <section id="media" className="space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-lg">🎨</span>
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold">Media & Gallery</h2>
+                  <p className="text-sm text-muted-foreground">Visual content for your project</p>
+                </div>
+              </div>
+              
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label>Cover Image *</Label>
+                  <ImageUpload
+                    value={watch('coverImage')}
+                    onChange={(url) => setValue('coverImage', url)}
+                  />
+                  {errors.coverImage && (
+                    <p className="text-sm text-destructive">{errors.coverImage.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Gallery Images</Label>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {galleryImages.map((img, index) => (
+                      <div key={index} className="space-y-2">
+                        <ImageUpload
+                          value={img}
+                          onChange={(url) => {
+                            const newImages = [...galleryImages];
+                            newImages[index] = url;
+                            setGalleryImages(newImages);
+                          }}
+                          bucket="project-gallery"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => setGalleryImages(galleryImages.filter((_, i) => i !== index))}
+                        >
+                          Remove Image
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setGalleryImages([...galleryImages, ''])}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Gallery Image
+                  </Button>
+                </div>
+              </div>
+            </section>
+
+            {/* Content Blocks Section */}
+            <section id="content" className="space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-lg">📄</span>
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold">Content Blocks</h2>
+                  <p className="text-sm text-muted-foreground">Rich content for your project</p>
+                </div>
+              </div>
+              
+              <ContentBlocksBuilder 
+                blocks={contentBlocks} 
+                onChange={setContentBlocks}
+              />
+            </section>
+
+            {/* Publish Section */}
+            <section id="publish" className="space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-lg">🚀</span>
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold">Publish Settings</h2>
+                  <p className="text-sm text-muted-foreground">Control visibility and status</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="status">Status *</Label>
+                <Select
+                  value={statusValue}
+                  onValueChange={(value: 'draft' | 'published') => setValue('status', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="published">Published</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </section>
+          </div>
+        </div>
+      </form>
+
+      {/* Sticky Footer */}
+      <div className="sticky bottom-0 z-10 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex items-center justify-end gap-3 px-6 py-4">
+          <Button
+            variant="outline"
+            onClick={onBack}
+          >
+            Cancel
+          </Button>
+          <Button 
+            type="submit"
+            form="project-form"
+            disabled={isSubmitting}
+            className="min-w-32"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Creating...
+              </>
+            ) : (
+              'Create Project'
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
