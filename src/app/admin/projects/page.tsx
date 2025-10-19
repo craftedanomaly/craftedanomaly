@@ -11,6 +11,7 @@ import { DeleteProjectDialog } from '@/components/admin/delete-project-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
+import { toast } from 'sonner';
 
 // Sample projects data
 const sampleProjects = [
@@ -46,6 +47,8 @@ export default function AdminProjectsPage() {
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingProject, setEditingProject] = useState<any | null>(null);
+  const [loadingEdit, setLoadingEdit] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -122,6 +125,56 @@ export default function AdminProjectsPage() {
   const handleProjectDeleted = (projectId: string) => {
     setProjects(projects.filter((p) => p.id !== projectId));
   };
+
+  const handleEditClick = async (projectId: string) => {
+    setLoadingEdit(true);
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('id', projectId)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setEditingProject({
+          ...data,
+          role: data.role ?? data.role_en ?? '',
+        });
+      }
+    } catch (error) {
+      console.error('Error loading project for edit:', error);
+      toast.error('Failed to load project for editing');
+    } finally {
+      setLoadingEdit(false);
+    }
+  };
+
+  if (editingProject) {
+    return (
+      <EditProjectForm 
+        project={editingProject}
+        onProjectUpdated={(updatedProject) => {
+          handleProjectUpdated(updatedProject);
+          setEditingProject(null);
+          fetchProjects();
+        }}
+        onBack={() => {
+          setEditingProject(null);
+          fetchProjects();
+        }}
+      />
+    );
+  }
+
+  if (loadingEdit) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   // Show add form if requested
   if (showAddForm) {
@@ -242,10 +295,14 @@ export default function AdminProjectsPage() {
                         <Button variant="ghost" size="icon" title="View (coming soon)">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <EditProjectForm 
-                          project={project} 
-                          onProjectUpdated={handleProjectUpdated}
-                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditClick(project.id)}
+                          title="Edit project"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         <DeleteProjectDialog 
                           project={project}
                           onProjectDeleted={handleProjectDeleted}

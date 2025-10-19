@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Menu, X, Home, Film, Building, Palette, ImageIcon, Gamepad2, Book, Mail } from 'lucide-react';
+import { Menu, X, Home, Film, Building, Palette, ImageIcon, Gamepad2, Book, Mail, Tag as TagIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
@@ -56,29 +56,22 @@ export function Header() {
         .eq('active', true)
         .order('display_order');
 
+      const categoriesOnly = (data || []).map((category: any) => ({
+        label: category.name || category.name_en || category.name_tr || category.slug,
+        href: `/${category.slug}`,
+        icon: TagIcon,
+      }));
+
       const dynamicMenuItems = [
-        { label: 'Home', href: '/', icon: Home },
-        ...(data || []).map((category: any) => ({
-          label: category.name_en,
-          href: `/${category.slug}`,
-          icon: getIconForCategory(category.slug),
-        })),
+        ...categoriesOnly,
         { label: 'Contact', href: '/contact', icon: Mail },
       ];
 
       setMenuItems(dynamicMenuItems);
     } catch (error) {
       console.error('Error fetching menu items:', error);
-      // Fallback to static menu
+      // Fallback to minimal menu
       setMenuItems([
-        { label: 'Home', href: '/', icon: Home },
-        { label: 'Films', href: '/films', icon: Film },
-        { label: 'Spatial Design', href: '/mekan-tasarimi', icon: Building },
-        { label: 'Visual Design', href: '/gorsel-tasarim', icon: Palette },
-        { label: 'Poster & Title Design', href: '/afis-jenerik', icon: ImageIcon },
-        { label: 'App Design', href: '/uygulama-tasarimi', icon: Palette },
-        { label: 'Games', href: '/games', icon: Gamepad2 },
-        { label: 'Books', href: '/books', icon: Book },
         { label: 'Contact', href: '/contact', icon: Mail },
       ]);
     }

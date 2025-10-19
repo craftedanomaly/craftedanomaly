@@ -41,7 +41,7 @@ interface Category {
 interface CategoryPageClientProps {
   category: Category;
   projects: Project[];
-  availableTags: Tag[];
+  availableTags?: Tag[];
 }
 
 export function CategoryPageClient({ category, projects, availableTags }: CategoryPageClientProps) {
@@ -50,6 +50,8 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
   const [sortBy, setSortBy] = useState('newest');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [filteredProjects, setFilteredProjects] = useState(projects);
+
+  const tagsList = availableTags ?? [];
 
   // Get content
   const categoryName = category.name;
@@ -159,7 +161,7 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
         </motion.div>
 
         {/* Tag Filter Pills */}
-        {availableTags.length > 0 && (
+        {tagsList.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -171,7 +173,7 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
                 <TagIcon className="h-4 w-4" />
                 <span className="font-medium">Filter by tag:</span>
               </div>
-              {availableTags.map((tag) => (
+              {tagsList.map((tag) => (
                 <Badge
                   key={tag.id}
                   variant={selectedTags.includes(tag.id) ? 'default' : 'outline'}

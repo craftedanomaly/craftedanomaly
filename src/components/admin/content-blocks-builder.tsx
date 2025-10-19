@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2, GripVertical, Image as ImageIcon, Video, Type, Grid3x3, Quote, Code, Tv } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Image as ImageIcon, Video, Type, Grid3x3, Quote, Code, Tv, ArrowLeftRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { ImageUpload } from '@/components/admin/image-upload';
 import { VideoUpload } from '@/components/admin/video-upload';
 import {
@@ -25,7 +26,7 @@ import {
 
 export interface ContentBlock {
   id: string;
-  block_type: 'text' | 'image' | 'video' | 'gallery' | 'quote' | 'code' | 'embed';
+  block_type: 'text' | 'image' | 'video' | 'gallery' | 'quote' | 'code' | 'embed' | 'before_after';
   content: string;
   media_url?: string;
   media_urls?: string[];
@@ -45,6 +46,7 @@ const blockTypeIcons = {
   quote: Quote,
   code: Code,
   embed: Tv,
+  before_after: ArrowLeftRight,
 };
 
 const blockTypeLabels = {
@@ -55,6 +57,7 @@ const blockTypeLabels = {
   quote: 'Quote',
   code: 'Code Snippet',
   embed: 'Embed (YouTube/Vimeo)',
+  before_after: 'Before/After Images',
 };
 
 export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderProps) {
@@ -65,8 +68,8 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
       id: `block-${Date.now()}`,
       block_type: type,
       content: '',
-      media_url: '',
-      media_urls: type === 'gallery' ? [] : undefined,
+      media_url: type === 'image' || type === 'video' ? '' : undefined,
+      media_urls: type === 'gallery' ? [] : type === 'before_after' ? ['', ''] : undefined,
       display_order: blocks.length,
     };
     onChange([...blocks, newBlock]);
@@ -74,13 +77,23 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
   };
 
   const updateBlock = (id: string, updates: Partial<ContentBlock>) => {
-    onChange(blocks.map(block => 
-      block.id === id ? { ...block, ...updates } : block
-    ));
+    const updatedBlocks = blocks.map(block => {
+      if (block.id === id) {
+        return { ...block, ...updates };
+      }
+      return block;
+    });
+    onChange(updatedBlocks);
   };
 
   const deleteBlock = (id: string) => {
-    onChange(blocks.filter(block => block.id !== id));
+    const updatedBlocks = blocks.filter(block => block.id !== id);
+    // Reorder display_order after deletion
+    const reorderedBlocks = updatedBlocks.map((block, index) => ({
+      ...block,
+      display_order: index
+    }));
+    onChange(reorderedBlocks);
   };
 
   const moveBlock = (index: number, direction: 'up' | 'down') => {
@@ -193,11 +206,11 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
             {block.block_type === 'text' && (
               <div className="space-y-2">
                 <Label>Content</Label>
-                <Textarea
+                <RichTextEditor
                   value={block.content}
-                  onChange={(e) => updateBlock(block.id, { content: e.target.value })}
-                  placeholder="Enter text content (HTML supported)"
-                  rows={6}
+                  onChange={(content) => updateBlock(block.id, { content })}
+                  placeholder="Enter rich text content..."
+                  rows={8}
                 />
               </div>
             )}
@@ -210,7 +223,7 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
                   <ImageUpload
                     value={block.media_url || ''}
                     onChange={(url) => updateBlock(block.id, { media_url: url })}
-                    bucket="project-content"
+                    bucket="media"
                   />
                   <Input
                     value={block.media_url || ''}
@@ -268,7 +281,7 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
                       <ImageUpload
                         value={url}
                         onChange={(newUrl) => updateGalleryImage(block.id, imgIndex, newUrl)}
-                        bucket="project-gallery"
+                        bucket="media"
                       />
                       <Input
                         value={url}
@@ -343,6 +356,80 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
                 </p>
               </div>
             )}
+
+            {/* Before/After Block */}
+            {block.block_type === 'before_after' && (
+              <div className="space-y-4">
+                <Label>Before/After Images</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm">Before Image</Label>
+                    <ImageUpload
+                      value={(block.media_urls && block.media_urls[0]) || ''}
+                      onChange={(url) => {
+                        const currentUrls = Array.isArray(block.media_urls) && block.media_urls.length >= 2 
+                          ? [...block.media_urls] 
+                          : ['', ''];
+                        const newUrls = [...currentUrls];
+                        newUrls[0] = url;
+                        updateBlock(block.id, { media_urls: newUrls });
+                      }}
+                      bucket="media"
+                    />
+                    <Input
+                      value={(block.media_urls && block.media_urls[0]) || ''}
+                      onChange={(e) => {
+                        const currentUrls = Array.isArray(block.media_urls) && block.media_urls.length >= 2 
+                          ? [...block.media_urls] 
+                          : ['', ''];
+                        const newUrls = [...currentUrls];
+                        newUrls[0] = e.target.value;
+                        updateBlock(block.id, { media_urls: newUrls });
+                      }}
+                      placeholder="Before image URL"
+                      className="text-xs"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">After Image</Label>
+                    <ImageUpload
+                      value={(block.media_urls && block.media_urls[1]) || ''}
+                      onChange={(url) => {
+                        const currentUrls = Array.isArray(block.media_urls) && block.media_urls.length >= 2 
+                          ? [...block.media_urls] 
+                          : ['', ''];
+                        const newUrls = [...currentUrls];
+                        newUrls[1] = url;
+                        updateBlock(block.id, { media_urls: newUrls });
+                      }}
+                      bucket="media"
+                    />
+                    <Input
+                      value={(block.media_urls && block.media_urls[1]) || ''}
+                      onChange={(e) => {
+                        const currentUrls = Array.isArray(block.media_urls) && block.media_urls.length >= 2 
+                          ? [...block.media_urls] 
+                          : ['', ''];
+                        const newUrls = [...currentUrls];
+                        newUrls[1] = e.target.value;
+                        updateBlock(block.id, { media_urls: newUrls });
+                      }}
+                      placeholder="After image URL"
+                      className="text-xs"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <Input
+                    value={block.content}
+                    onChange={(e) => updateBlock(block.id, { content: e.target.value })}
+                    placeholder="Before/After description"
+                  />
+                </div>
+              </div>
+            )}
+
           </CardContent>
         )}
       </Card>
@@ -398,6 +485,12 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
               <div className="flex items-center gap-2">
                 <Tv className="h-4 w-4" />
                 Embed
+              </div>
+            </SelectItem>
+            <SelectItem value="before_after">
+              <div className="flex items-center gap-2">
+                <ArrowLeftRight className="h-4 w-4" />
+                Before/After Images
               </div>
             </SelectItem>
           </SelectContent>

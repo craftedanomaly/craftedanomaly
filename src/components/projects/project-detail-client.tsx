@@ -1,439 +1,265 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar, User, ExternalLink, Tag } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { BeforeAfterSlider } from '@/components/ui/before-after-slider';
-import Link from 'next/link';
+import { useMemo, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Calendar, User, ExternalLink } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ContentBlocksRenderer } from './content-blocks-renderer';
 
-interface Project {
-  id: string;
-  slug: string;
-  title: string;
-  blurb: string;
-  content?: string; // may be empty; content is now driven by blocks
-  cover_image: string;
-  year: number;
-  role_en: string;
-  role_tr: string;
-  client: string;
-  categories: {
+interface ProjectDetailClientProps {
+  project: {
+    id: string;
+    slug: string;
+    title: string;
+    blurb: string;
+    content?: string | null;
+    cover_image: string;
+    year?: number | null;
+    role_en?: string | null;
+    role_tr?: string | null;
+    client?: string | null;
+    live_url?: string | null;
+    status: string;
+    categories?: {
+      id: string;
+      slug: string;
+      name: string;
+    } | null;
+    project_categories?: Array<{
+      categories: {
+        id: string;
+        slug: string;
+        name: string;
+      };
+    }>;
+  };
+  media: Array<{
+    id: string;
+    url: string;
+    media_type: string;
+    display_order: number;
+  }>;
+  tags: Array<{
     id: string;
     slug: string;
     name: string;
-  };
-}
-
-interface Media {
-  id: string;
-  url: string;
-  media_type: 'image' | 'video' | 'before_after';
-  before_url?: string;
-  after_url?: string;
-  alt_text?: string;
-  display_order: number;
-}
-
-interface Tag {
-  id: string;
-  slug: string;
-  name: string;
-}
-
-interface ProjectDetailClientProps {
-  project: Project;
-  media: Media[];
-  tags: Tag[];
+  }>;
   blocks: Array<{
     id: string;
-    block_type: 'text' | 'image' | 'video' | 'gallery' | 'quote' | 'code' | 'embed';
-    content: string;
-    media_url?: string;
-    media_urls?: string[];
+    block_type: string;
+    content?: string | null;
+    media_url?: string | null;
+    media_urls?: string[] | null;
     display_order: number;
   }>;
 }
 
-export function ProjectDetailClient({ project, media, tags, blocks }: ProjectDetailClientProps) {
-  const [copied, setCopied] = useState(false);
-  const title = project.title;
-  const blurb = project.blurb;
-  const role = project.role_en;
+export default function ProjectDetailClient({ project, media, tags, blocks }: ProjectDetailClientProps) {
+
+  const orderedMedia = useMemo(
+    () => media.filter((item) => item.url && !item.url.startsWith('blob:')).sort((a, b) => a.display_order - b.display_order),
+    [media]
+  );
+
+  const categorySlug = project.categories?.slug;
   const categoryName = project.categories?.name;
+  const projectRole = project.role_en || project.role_tr || undefined;
+  
+  const allCategories = project.project_categories?.map(pc => pc.categories) || 
+    (project.categories ? [project.categories] : []);
 
-  // Increment view count when component mounts
+  const galleryItems = useMemo(() => {
+    return orderedMedia.filter((item) => item.url !== project.cover_image);
+  }, [orderedMedia, project.cover_image]);
+
+  const leftRef = useRef<HTMLDivElement>(null);
+  const [leftHeight, setLeftHeight] = useState<number | undefined>(undefined);
+
   useEffect(() => {
-    const incrementViewCount = async () => {
-      try {
-        await fetch(`/api/projects/${project.slug}/view`, {
-          method: 'POST',
-        });
-      } catch (error) {
-        // Silently fail - view count is not critical
-        console.error('Failed to increment view count:', error);
+    const el = leftRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const h = entry.contentRect.height;
+        if (h && h !== leftHeight) setLeftHeight(h);
       }
-    };
-
-    incrementViewCount();
-  }, [project.slug]);
-
-  const handleShare = async () => {
-    const url = typeof window !== 'undefined' ? window.location.href : '';
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: `${title} | Crafted Anomaly`, url });
-      } else if (navigator.clipboard && url) {
-        await navigator.clipboard.writeText(url);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }
-    } catch (e) {
-      // swallow errors (user cancelled share, permissions, etc.)
-    }
-  };
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [leftRef]);
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <div className="relative h-[60vh] md:h-[70vh] overflow-hidden">
-        {project.cover_image && !project.cover_image.startsWith('blob:') && (
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Hero with Title Overlay */}
+      {project.cover_image && (
+        <div className="relative h-[70vh] w-full overflow-hidden">
           <Image
             src={project.cover_image}
-            alt={title}
+            alt={project.title}
             fill
             className="object-cover"
+            sizes="100vw"
             priority
           />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-        
-        {/* Back Button */}
-        <div className="absolute top-8 left-8 z-10">
-          <Link href={project.categories ? `/${project.categories.slug}` : `/`}>
-            <Button variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-          </Link>
-        </div>
-
-        {/* Project Info Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-8">
-          <div className="container mx-auto max-w-screen-xl">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="max-w-3xl"
-            >
-              {/* Category Badge */}
-              {project.categories && (
-                <Link href={`/${project.categories.slug}`}>
-                  <Badge variant="outline" className="mb-4 bg-background/80 backdrop-blur-sm hover:bg-accent/10">
-                    {categoryName}
-                  </Badge>
-                </Link>
-              )}
-
-              <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-4 font-heading">
-                {title}
-              </h1>
-              
-              <p className="text-xl text-muted-foreground mb-6">
-                {blurb}
-              </p>
-
-              {/* Meta Info */}
-              <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
-                {role && (
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    <span>{role}</span>
-                  </div>
-                )}
-                
-                {project.client && (
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Client:</span>
-                    <span>{project.client}</span>
-                  </div>
-                )}
-                
-                {project.year && (
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    <span>{project.year}</span>
-                  </div>
-                )}
-
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </div>
-
-      {/* Content Section */}
-      <div className="container mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            {/* Fallback: render legacy HTML content if no blocks exist */}
-            {(!blocks || blocks.length === 0) && project.content && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="prose prose-lg max-w-none dark:prose-invert mb-12"
-                dangerouslySetInnerHTML={{ __html: project.content }}
-              />
-            )}
-
-            {Array.isArray(blocks) && blocks.length > 0 && (
-              <div className="space-y-10 mb-12">
-                {blocks.sort((a, b) => a.display_order - b.display_order).map((block) => {
-                  switch (block.block_type) {
-                    case 'text':
-                      return (
-                        <motion.div
-                          key={block.id}
-                          initial={{ opacity: 0, y: 16 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="prose prose-lg max-w-none dark:prose-invert"
-                          dangerouslySetInnerHTML={{ __html: block.content || '' }}
-                        />
-                      );
-                    case 'image':
-                      return (
-                        <motion.figure
-                          key={block.id}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="space-y-3"
-                        >
-                          {block.media_url && (
-                            <div className="relative aspect-video rounded-lg overflow-hidden">
-                              <Image src={block.media_url} alt={block.content || title} fill className="object-cover" />
-                            </div>
-                          )}
-                          {block.content && (
-                            <figcaption className="text-sm text-muted-foreground text-center">{block.content}</figcaption>
-                          )}
-                        </motion.figure>
-                      );
-                    case 'video':
-                      return (
-                        <motion.div key={block.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                          {block.media_url && (
-                            <video src={block.media_url} controls className="w-full rounded-lg" />
-                          )}
-                          {block.content && (
-                            <p className="text-sm text-muted-foreground text-center mt-2">{block.content}</p>
-                          )}
-                        </motion.div>
-                      );
-                    case 'gallery':
-                      return (
-                        <motion.div key={block.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {(block.media_urls || []).map((url, idx) => (
-                            <div key={`${block.id}-${idx}`} className="relative aspect-video rounded-lg overflow-hidden">
-                              <Image src={url} alt={`${title} - ${idx + 1}`} fill className="object-cover" />
-                            </div>
-                          ))}
-                        </motion.div>
-                      );
-                    case 'quote':
-                      return (
-                        <motion.blockquote key={block.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="border-l-4 border-accent pl-4 italic text-lg text-foreground/90">
-                          {block.content}
-                        </motion.blockquote>
-                      );
-                    case 'code':
-                      return (
-                        <motion.pre key={block.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-muted/20 border border-border rounded-lg p-4 overflow-auto text-sm">
-                          <code>{block.content}</code>
-                        </motion.pre>
-                      );
-                    case 'embed':
-                      return (
-                        <motion.div key={block.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="prose max-w-none dark:prose-invert">
-                          <div dangerouslySetInnerHTML={{ __html: block.content || '' }} />
-                        </motion.div>
-                      );
-                    default:
-                      return null;
-                  }
-                })}
-              </div>
-            )}
-
-            {/* Media Gallery */}
-            {media.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="space-y-8"
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          
+          {/* Title and Description Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-8 lg:p-16">
+            <div className="max-w-4xl">
+              <Link
+                href={categorySlug ? `/${categorySlug}` : '/'}
+                className="inline-flex items-center gap-2 text-sm font-medium text-white/80 transition hover:text-white mb-6"
               >
-                <h2 className="text-2xl font-bold text-foreground mb-6">
-                  Project Gallery
-                </h2>
-                
-                <div className="space-y-12">
-                  {media.filter(m => !(m.url?.startsWith('blob:') || m.before_url?.startsWith('blob:') || m.after_url?.startsWith('blob:'))).map((item, index) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 * index }}
-                      className="space-y-4"
+                <ArrowLeft className="h-4 w-4" />
+                Back to {categoryName || 'Home'}
+              </Link>
+
+              {allCategories.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {allCategories.map((category) => (
+                    <Badge
+                      key={category.id}
+                      variant="outline"
+                      className="cursor-pointer border-white/30 bg-white/10 text-white text-xs uppercase tracking-widest transition hover:bg-white/20"
+                      asChild
                     >
-                      {item.media_type === 'before_after' && item.before_url && item.after_url ? (
-                        <div className="space-y-4">
-                          <h3 className="text-lg font-semibold text-foreground">
-                            Before & After Comparison
-                          </h3>
-                          <BeforeAfterSlider
-                            beforeImage={item.before_url}
-                            afterImage={item.after_url}
-                            beforeAlt={`${title} - Before`}
-                            afterAlt={`${title} - After`}
-                            className="max-w-4xl mx-auto"
-                          />
-                          {item.alt_text && (
-                            <p className="text-sm text-muted-foreground text-center max-w-2xl mx-auto">
-                              {item.alt_text}
-                            </p>
-                          )}
-                        </div>
-                      ) : item.media_type === 'image' ? (
-                        <div className="relative aspect-video rounded-lg overflow-hidden max-w-4xl mx-auto">
-                          <Image
-                            src={item.url}
-                            alt={item.alt_text || title}
-                            fill
-                            className="object-cover"
-                          />
-                          {item.alt_text && (
-                            <div className="absolute bottom-4 left-4 right-4 bg-black/70 text-white p-3 rounded-lg backdrop-blur-sm">
-                              <p className="text-sm">{item.alt_text}</p>
-                            </div>
-                          )}
-                        </div>
-                      ) : item.media_type === 'video' ? (
-                        <div className="max-w-4xl mx-auto">
-                          <video
-                            src={item.url}
-                            controls
-                            className="w-full rounded-lg"
-                          />
-                          {item.alt_text && (
-                            <p className="text-sm text-muted-foreground text-center mt-3">
-                              {item.alt_text}
-                            </p>
-                          )}
-                        </div>
-                      ) : null}
-                    </motion.div>
+                      <Link href={`/${category.slug}`}>
+                        {category.name}
+                      </Link>
+                    </Badge>
                   ))}
                 </div>
-              </motion.div>
-            )}
-          </div>
-
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="sticky top-8 space-y-8"
-            >
-              {/* Project Details */}
-              <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">
-                  Project Details
-                </h3>
-                
-                <div className="space-y-4">
-                  {project.client && (
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">
-                        Client
-                      </dt>
-                      <dd className="text-foreground">{project.client}</dd>
-                    </div>
-                  )}
-                  
-                  {role && (
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">
-                        Role
-                      </dt>
-                      <dd className="text-foreground">{role}</dd>
-                    </div>
-                  )}
-                  
-                  {project.year && (
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">
-                        Year
-                      </dt>
-                      <dd className="text-foreground">{project.year}</dd>
-                    </div>
-                  )}
-
-                  {project.categories && (
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">
-                        Category
-                      </dt>
-                      <dd>
-                        <Link href={`/${project.categories.slug}`}>
-                          <Badge variant="outline" className="hover:bg-accent/10">
-                            {categoryName}
-                          </Badge>
-                        </Link>
-                      </dd>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Tags */}
-              {tags.length > 0 && (
-                <div className="bg-card border border-border rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-4">
-                    Tags
-                  </h3>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map((tag) => (
-                      <Badge key={tag.id} variant="secondary">
-                        <Tag className="h-3 w-3 mr-1" />
-                        {tag.name}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
               )}
 
-              {/* Share */}
-              <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">
-                  Share Project
-                </h3>
-                
-                <Button variant="outline" className="w-full" onClick={handleShare}>
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  {copied ? 'Link Copied' : 'Copy Link'}
-                </Button>
-              </div>
-            </motion.div>
+              <motion.h1
+                layout
+                className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-6"
+              >
+                {project.title}
+              </motion.h1>
+
+              {project.blurb && (
+                <p className="text-lg lg:text-xl leading-relaxed text-white/90 max-w-3xl">
+                  {project.blurb}
+                </p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      <main className="w-full py-12 lg:py-20" style={{ paddingLeft: '5%', paddingRight: '1%' }}>
+        <div className="flex flex-col gap-12 lg:grid lg:grid-cols-[minmax(0,2.3fr)_minmax(0,2.7fr)]">
+          {/* Text column */}
+          <section ref={leftRef} className="space-y-10">
+
+            <dl className="grid gap-4 text-sm text-muted-foreground">
+              {project.client && (
+                <div>
+                  <dt className="font-semibold uppercase tracking-widest text-xs text-muted-foreground/80">Client</dt>
+                  <dd className="mt-1 text-foreground">{project.client}</dd>
+                </div>
+              )}
+              {project.year && (
+                <div>
+                  <dt className="font-semibold uppercase tracking-widest text-xs text-muted-foreground/80">Year</dt>
+                  <dd className="mt-1 inline-flex items-center gap-2 text-foreground">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    {project.year}
+                  </dd>
+                </div>
+              )}
+              {projectRole && (
+                <div>
+                  <dt className="font-semibold uppercase tracking-widest text-xs text-muted-foreground/80">Role</dt>
+                  <dd className="mt-1 inline-flex items-center gap-2 text-foreground">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    {projectRole}
+                  </dd>
+                </div>
+              )}
+              {project.live_url && (
+                <div>
+                  <dt className="font-semibold uppercase tracking-widest text-xs text-muted-foreground/80">Live Link</dt>
+                  <dd className="mt-1 inline-flex items-center gap-2 text-foreground">
+                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                    <a
+                      href={project.live_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline-offset-4 transition hover:underline"
+                    >
+                      Visit project
+                    </a>
+                  </dd>
+                </div>
+              )}
+            </dl>
+
+            {tags.length > 0 && (
+              <div className="space-y-3">
+                <dt className="font-semibold uppercase tracking-widest text-xs text-muted-foreground/80">Tags</dt>
+                <dd className="flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <Badge key={tag.id} variant="outline" className="border-border/60 bg-background/60 text-xs uppercase tracking-wide">
+                      {tag.name}
+                    </Badge>
+                  ))}
+                </dd>
+              </div>
+            )}
+
+            {(project.content || blocks.length > 0) && (
+              <div className="space-y-10">
+                {project.content && (
+                  <div className="prose prose-lg max-w-none text-foreground/90">
+                    <div dangerouslySetInnerHTML={{ __html: project.content }} />
+                  </div>
+                )}
+                {blocks.length > 0 && (
+                  <ContentBlocksRenderer
+                    blocks={blocks.map((block) => {
+                      const isBeforeAfterMarker = block.block_type === 'gallery' && block.content === '__before_after__';
+                      const mapped = isBeforeAfterMarker
+                        ? { ...block, block_type: 'before_after', content: undefined }
+                        : block;
+                      return {
+                        ...mapped,
+                        content: mapped.content ?? undefined,
+                        media_url: mapped.media_url ?? undefined,
+                        media_urls: mapped.media_urls ?? undefined,
+                      } as any;
+                    })}
+                  />
+                )}
+              </div>
+            )}
+          </section>
+
+          {/* Gallery column */}
+          <aside className="lg:overflow-y-auto lg:pr-2 scrollbar-hide" style={{ height: leftHeight ? `${leftHeight}px` : undefined }}>
+            <div className="grid gap-6">
+              {galleryItems.map((item, index) => (
+                <div
+                  key={item.id}
+                  className="relative block overflow-hidden rounded-2xl"
+                >
+                  <Image
+                    src={item.url}
+                    alt={`${project.title} image ${index + 1}`}
+                    width={1200}
+                    height={800}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </aside>
+        </div>
+      </main>
+
     </div>
   );
 }

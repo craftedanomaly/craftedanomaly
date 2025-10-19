@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { VideoUpload } from '@/components/admin/video-upload';
+import { ImageUpload } from '@/components/admin/image-upload';
 
 interface Category {
   id: string;
@@ -188,13 +189,15 @@ export function EditCategoryForm({ category, onCategoryUpdated, onBack }: EditCa
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cover_image">Cover Image URL</Label>
-              <Input
-                id="cover_image"
+              <Label>Cover Image</Label>
+              <ImageUpload
                 value={formData.cover_image}
-                onChange={(e) => setFormData(prev => ({ ...prev, cover_image: e.target.value }))}
-                placeholder="https://images.unsplash.com/..."
+                onChange={(url) => setFormData(prev => ({ ...prev, cover_image: url }))}
+                bucket="media"
               />
+              <p className="text-xs text-muted-foreground">
+                Upload a cover image for this category
+              </p>
             </div>
 
             <div className="space-y-2">

@@ -30,6 +30,7 @@ const projectSchema = z.object({
   year: z.number().min(2000).max(new Date().getFullYear() + 1),
   role: z.string().optional(),
   client: z.string().optional(),
+  liveUrl: z.string().optional(),
   tags: z.string(),
   coverImage: z.string()
     .min(1, 'Cover image is required')
@@ -93,6 +94,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
       blurb: '',
       tags: '',
       coverImage: '',
+      liveUrl: '',
     },
   });
 
@@ -118,7 +120,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
             blurb: data.blurb,
             cover_image: data.coverImage,
             year: data.year,
-            role: data.role || null,
+            role_en: data.role || null,
             client: data.client || null,
             status: data.status,
             published_at: data.status === 'published' ? new Date().toISOString() : null,
@@ -203,17 +205,32 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
 
       // Handle content blocks
       if (contentBlocks.length > 0) {
-        await supabase.from('project_content_blocks').insert(
-          contentBlocks.map((block) => ({
-            project_id: projectId,
-            block_type: block.block_type,
-            content: block.content || null,
-            media_url: block.media_url || null,
-            media_urls: block.media_urls || null,
-            display_order: block.display_order,
-          }))
-        );
+        const blocksToInsert = contentBlocks
+          .map((block) => {
+            const isBeforeAfter = block.block_type === 'before_after';
+            const sanitizedMediaUrls = Array.isArray(block.media_urls)
+              ? block.media_urls.filter((u) => typeof u === 'string' && u.trim().length > 0)
+              : null;
+            // If before/after has less than 2 valid URLs, skip inserting that block entirely
+            if (isBeforeAfter && (!sanitizedMediaUrls || sanitizedMediaUrls.length < 2)) {
+              return null;
+            }
+            return {
+              project_id: projectId,
+              block_type: isBeforeAfter ? 'gallery' : block.block_type,
+              content: isBeforeAfter ? '__before_after__' : (block.content || null),
+              media_url: isBeforeAfter ? null : (block.media_url || null),
+              media_urls: sanitizedMediaUrls && sanitizedMediaUrls.length > 0 ? sanitizedMediaUrls : null,
+              display_order: block.display_order,
+            };
+          })
+          .filter(Boolean) as any[];
+        // Re-index display_order sequentially
+        blocksToInsert.forEach((b, idx) => { b.display_order = idx; });
+        const { error: blocksError } = await supabase.from('project_content_blocks').insert(blocksToInsert);
+        if (blocksError) throw blocksError;
       }
+
 
       toast.success('Project created successfully!');
 
@@ -461,6 +478,16 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="liveUrl">Live URL</Label>
+                  <Input
+                    id="liveUrl"
+                    type="url"
+                    {...register('liveUrl')}
+                    placeholder="https://example.com"
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="tags">Tags</Label>
                   <Input
                     id="tags"
@@ -489,6 +516,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                   <ImageUpload
                     value={watch('coverImage')}
                     onChange={(url) => setValue('coverImage', url)}
+                    bucket="media"
                   />
                   {errors.coverImage && (
                     <p className="text-sm text-destructive">{errors.coverImage.message}</p>
@@ -507,7 +535,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                             newImages[index] = url;
                             setGalleryImages(newImages);
                           }}
-                          bucket="project-gallery"
+                          bucket="media"
                         />
                         <Button
                           type="button"
@@ -540,8 +568,8 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                   <span className="text-lg">📄</span>
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold">Content Blocks</h2>
-                  <p className="text-sm text-muted-foreground">Rich content for your project</p>
+                  <h2 className="text-xl font-semibold">Content</h2>
+                  <p className="text-sm text-muted-foreground">Rich content blocks and before/after images</p>
                 </div>
               </div>
               

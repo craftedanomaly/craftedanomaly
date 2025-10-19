@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff, GripVertical } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -95,6 +96,39 @@ export default function CategoriesPage() {
     }
   };
 
+  const handleDragEnd = async (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(categories);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    // Update local state immediately for better UX
+    setCategories(items);
+
+    // Update display_order in database
+    try {
+      const updates = items.map((category, index) => ({
+        id: category.id,
+        display_order: index
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from('categories')
+          .update({ display_order: update.display_order })
+          .eq('id', update.id);
+      }
+
+      toast.success('Category order updated successfully!');
+    } catch (error) {
+      console.error('Error updating category order:', error);
+      toast.error('Failed to update category order');
+      // Revert local state on error
+      fetchCategories();
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -143,66 +177,92 @@ export default function CategoriesPage() {
         </Button>
       </div>
 
-      {/* Categories Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categories.map((category, index) => (
-          <motion.div
-            key={category.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg font-semibold text-foreground transition-colors">
-                      {category.name}
-                    </CardTitle>
-                    <CardDescription className="text-sm text-muted-foreground mt-1">
-                      /{category.slug}
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {category.active ? (
-                      <Eye className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                  {category.description || 'No description provided'}
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-1 hover:bg-accent hover:text-accent-foreground"
-                      onClick={() => handleEdit(category)}
+      {/* Categories Grid with Drag & Drop */}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="categories" direction="vertical">
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {categories.map((category, index) => (
+                <Draggable key={category.id} draggableId={category.id} index={index}>
+                  {(provided, snapshot) => (
+                    <motion.div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      style={provided.draggableProps.style || undefined}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className={snapshot.isDragging ? 'z-50' : ''}
                     >
-                      <Edit className="h-3 w-3" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => handleDelete(category.id)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+                      <Card className="group hover:shadow-lg transition-all duration-300">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-2 flex-1">
+                              <div
+                                {...provided.dragHandleProps}
+                                className="mt-1 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors"
+                              >
+                                <GripVertical className="h-4 w-4" />
+                              </div>
+                              <div className="flex-1">
+                                <CardTitle className="text-lg font-semibold text-foreground transition-colors">
+                                  {category.name}
+                                </CardTitle>
+                                <CardDescription className="text-sm text-muted-foreground mt-1">
+                                  /{category.slug}
+                                </CardDescription>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {category.active ? (
+                                <Eye className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                            {category.description || 'No description provided'}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1 hover:bg-accent hover:text-accent-foreground"
+                                onClick={() => handleEdit(category)}
+                              >
+                                <Edit className="h-3 w-3" />
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => handleDelete(category.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       {categories.length === 0 && (
         <div className="text-center py-12">
