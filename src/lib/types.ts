@@ -1,10 +1,8 @@
 export interface Category {
   id: string;
   slug: string;
-  name_en: string;
-  name_tr: string;
-  desc_en?: string;
-  desc_tr?: string;
+  name: string;
+  description?: string;
   order: number;
   created_at: string;
   updated_at: string;
@@ -15,8 +13,7 @@ export interface Media {
   type: 'image' | 'video';
   url: string;
   poster_url?: string;
-  alt_en?: string;
-  alt_tr?: string;
+  alt?: string;
   width?: number;
   height?: number;
   duration?: number;
@@ -26,8 +23,7 @@ export interface Media {
 
 export interface Tag {
   id: string;
-  label_en: string;
-  label_tr: string;
+  name: string;
   category_id?: string;
   created_at: string;
   updated_at: string;
@@ -36,13 +32,10 @@ export interface Tag {
 export interface Project {
   id: string;
   slug: string;
-  title_en: string;
-  title_tr: string;
-  blurb_en?: string;
-  blurb_tr?: string;
+  title: string;
+  blurb?: string;
   year?: number;
-  role_en?: string;
-  role_tr?: string;
+  role?: string;
   client?: string;
   category_id: string;
   cover_media_id?: string;

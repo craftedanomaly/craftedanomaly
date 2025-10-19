@@ -98,7 +98,7 @@ export default function AdminDashboard() {
       // Fetch recent projects for activity
       const { data: recentProjects } = await supabase
         .from('projects')
-        .select('id, title_en, status, created_at')
+        .select('id, title, status, created_at')
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -134,7 +134,7 @@ export default function AdminDashboard() {
         activities.push({
           id: project.id,
           action: project.status === 'published' ? 'Project published' : 'Project created',
-          details: project.title_en,
+          details: project.title,
           created_at: project.created_at,
         });
       });

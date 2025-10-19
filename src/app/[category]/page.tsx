@@ -58,8 +58,8 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       };
     }
 
-    const title = category.name_en;
-    const description = category.description_en || `Explore our ${category.name_en?.toLowerCase()} portfolio`;
+    const title = category.name;
+    const description = category.description || `Explore our ${category.name?.toLowerCase()} portfolio`;
 
     return {
       title: `${title} | Crafted Anomaly`,
@@ -104,10 +104,8 @@ async function getCategoryData(slug: string) {
       .select(`
         id,
         slug,
-        title_en,
-        title_tr,
-        blurb_en,
-        blurb_tr,
+        title,
+        blurb,
         cover_image,
         year,
         role_en,

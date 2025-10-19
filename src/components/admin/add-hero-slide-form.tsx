@@ -151,10 +151,8 @@ export function AddHeroSlideForm({ onSlideAdded }: AddHeroSlideFormProps) {
 
       const { error } = await supabase.from('hero_slides').insert([
         {
-          title_en: data.titleEn,
-          title_tr: data.titleTr || null,
-          subtitle_en: data.subtitleEn || null,
-          subtitle_tr: data.subtitleTr || null,
+          title: data.titleEn,
+          subtitle: data.subtitleEn || null,
           url: mediaUrl,
           type: data.mediaType,
           active: data.isActive,

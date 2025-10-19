@@ -57,8 +57,8 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
       };
     }
 
-    const title = project.title_en;
-    const description = project.blurb_en;
+    const title = project.title;
+    const description = project.blurb;
 
     return {
       title: `${title} | Crafted Anomaly`,

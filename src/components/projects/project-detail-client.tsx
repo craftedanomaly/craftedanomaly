@@ -14,8 +14,7 @@ interface Project {
   slug: string;
   title: string;
   blurb: string;
-  content_en: string; // may be empty; content is now driven by blocks
-  content_tr: string;
+  content?: string; // may be empty; content is now driven by blocks
   cover_image: string;
   year: number;
   role_en: string;
@@ -51,8 +50,7 @@ interface ProjectDetailClientProps {
   blocks: Array<{
     id: string;
     block_type: 'text' | 'image' | 'video' | 'gallery' | 'quote' | 'code' | 'embed';
-    content_en: string;
-    content_tr?: string;
+    content: string;
     media_url?: string;
     media_urls?: string[];
     display_order: number;
@@ -182,13 +180,13 @@ export function ProjectDetailClient({ project, media, tags, blocks }: ProjectDet
           {/* Main Content */}
           <div className="lg:col-span-2">
             {/* Fallback: render legacy HTML content if no blocks exist */}
-            {(!blocks || blocks.length === 0) && project.content_en && (
+            {(!blocks || blocks.length === 0) && project.content && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
                 className="prose prose-lg max-w-none dark:prose-invert mb-12"
-                dangerouslySetInnerHTML={{ __html: project.content_en }}
+                dangerouslySetInnerHTML={{ __html: project.content }}
               />
             )}
 
@@ -203,7 +201,7 @@ export function ProjectDetailClient({ project, media, tags, blocks }: ProjectDet
                           initial={{ opacity: 0, y: 16 }}
                           animate={{ opacity: 1, y: 0 }}
                           className="prose prose-lg max-w-none dark:prose-invert"
-                          dangerouslySetInnerHTML={{ __html: block.content_en || '' }}
+                          dangerouslySetInnerHTML={{ __html: block.content || '' }}
                         />
                       );
                     case 'image':
@@ -216,11 +214,11 @@ export function ProjectDetailClient({ project, media, tags, blocks }: ProjectDet
                         >
                           {block.media_url && (
                             <div className="relative aspect-video rounded-lg overflow-hidden">
-                              <Image src={block.media_url} alt={block.content_en || title} fill className="object-cover" />
+                              <Image src={block.media_url} alt={block.content || title} fill className="object-cover" />
                             </div>
                           )}
-                          {block.content_en && (
-                            <figcaption className="text-sm text-muted-foreground text-center">{block.content_en}</figcaption>
+                          {block.content && (
+                            <figcaption className="text-sm text-muted-foreground text-center">{block.content}</figcaption>
                           )}
                         </motion.figure>
                       );
@@ -230,8 +228,8 @@ export function ProjectDetailClient({ project, media, tags, blocks }: ProjectDet
                           {block.media_url && (
                             <video src={block.media_url} controls className="w-full rounded-lg" />
                           )}
-                          {block.content_en && (
-                            <p className="text-sm text-muted-foreground text-center mt-2">{block.content_en}</p>
+                          {block.content && (
+                            <p className="text-sm text-muted-foreground text-center mt-2">{block.content}</p>
                           )}
                         </motion.div>
                       );
@@ -248,19 +246,19 @@ export function ProjectDetailClient({ project, media, tags, blocks }: ProjectDet
                     case 'quote':
                       return (
                         <motion.blockquote key={block.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="border-l-4 border-accent pl-4 italic text-lg text-foreground/90">
-                          {block.content_en}
+                          {block.content}
                         </motion.blockquote>
                       );
                     case 'code':
                       return (
                         <motion.pre key={block.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-muted/20 border border-border rounded-lg p-4 overflow-auto text-sm">
-                          <code>{block.content_en}</code>
+                          <code>{block.content}</code>
                         </motion.pre>
                       );
                     case 'embed':
                       return (
                         <motion.div key={block.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="prose max-w-none dark:prose-invert">
-                          <div dangerouslySetInnerHTML={{ __html: block.content_en || '' }} />
+                          <div dangerouslySetInnerHTML={{ __html: block.content || '' }} />
                         </motion.div>
                       );
                     default:

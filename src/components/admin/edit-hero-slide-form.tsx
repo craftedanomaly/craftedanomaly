@@ -60,10 +60,10 @@ export function EditHeroSlideForm({ slide, onSlideUpdated }: EditHeroSlideFormPr
   } = useForm<SlideFormData>({
     resolver: zodResolver(slideSchema),
     defaultValues: {
-      titleEn: slide.title_en || '',
-      titleTr: slide.title_tr || '',
-      subtitleEn: slide.subtitle_en || '',
-      subtitleTr: slide.subtitle_tr || '',
+      titleEn: slide.title || '',
+      titleTr: '',
+      subtitleEn: slide.subtitle || '',
+      subtitleTr: '',
       mediaUrl: slide.url || '',
       mediaType: slide.type || 'image',
       isActive: slide.active ?? true,
@@ -73,10 +73,10 @@ export function EditHeroSlideForm({ slide, onSlideUpdated }: EditHeroSlideFormPr
 
   useEffect(() => {
     reset({
-      titleEn: slide.title_en || '',
-      titleTr: slide.title_tr || '',
-      subtitleEn: slide.subtitle_en || '',
-      subtitleTr: slide.subtitle_tr || '',
+      titleEn: slide.title || '',
+      titleTr: '',
+      subtitleEn: slide.subtitle || '',
+      subtitleTr: '',
       mediaUrl: slide.url || '',
       mediaType: slide.type || 'image',
       isActive: slide.active ?? true,
@@ -94,10 +94,8 @@ export function EditHeroSlideForm({ slide, onSlideUpdated }: EditHeroSlideFormPr
       const { error } = await supabase
         .from('hero_slides')
         .update({
-          title_en: data.titleEn,
-          title_tr: data.titleTr || null,
-          subtitle_en: data.subtitleEn || null,
-          subtitle_tr: data.subtitleTr || null,
+          title: data.titleEn,
+          subtitle: data.subtitleEn || null,
           url: data.mediaUrl,
           type: data.mediaType,
           active: data.isActive,
