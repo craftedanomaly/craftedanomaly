@@ -10,16 +10,15 @@ import { getOptimizedImageProps, imageSizes } from '@/lib/image-utils';
 
 interface HeroSlide {
   id: string;
+  display_order: number;
+  active: boolean;
   type: 'image' | 'video';
   url: string;
   thumbnail_url?: string;
-  title_en?: string;
-  title_tr?: string;
-  subtitle_en?: string;
-  subtitle_tr?: string;
-  cta_text_en?: string;
-  cta_text_tr?: string;
-  cta_link?: string;
+  title?: string;
+  subtitle?: string;
+  cta_text?: string;
+  cta_url?: string;
 }
 
 interface HeroCarouselProps {
@@ -126,8 +125,8 @@ export function HeroCarousel({
   }
 
   const currentSlideData = slides[currentSlide];
-  const title = currentSlideData.title_en;
-  const ctaLabel = currentSlideData.cta_text_en;
+  const title = currentSlideData.title;
+  const ctaLabel = currentSlideData.cta_text;
 
   return (
     <div className="relative w-full h-[60vh] lg:h-[80vh] overflow-hidden bg-card dark:bg-card light:bg-slate-100">
@@ -209,13 +208,13 @@ export function HeroCarousel({
                       {title}
                     </h2>
                   )}
-                  {ctaLabel && currentSlideData.cta_link && (
+                  {ctaLabel && currentSlideData.cta_url && (
                     <Button
                       asChild
                       variant="secondary"
                       className="bg-accent text-accent-foreground hover:bg-accent/90"
                     >
-                      <a href={currentSlideData.cta_link}>
+                      <a href={currentSlideData.cta_url}>
                         {ctaLabel}
                       </a>
                     </Button>

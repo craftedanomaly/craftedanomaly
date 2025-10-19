@@ -7,20 +7,27 @@
 -- SITE SETTINGS TABLE
 -- ============================================
 
--- Rename English fields to generic names
-ALTER TABLE site_settings 
-RENAME COLUMN about_title_en TO about_title;
+-- Rename English fields to generic names (only if they exist)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'site_settings' AND column_name = 'about_title_en') THEN
+        ALTER TABLE site_settings RENAME COLUMN about_title_en TO about_title;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'site_settings' AND column_name = 'about_text_en') THEN
+        ALTER TABLE site_settings RENAME COLUMN about_text_en TO about_text;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'site_settings' AND column_name = 'homepage_fields_title_en') THEN
+        ALTER TABLE site_settings RENAME COLUMN homepage_fields_title_en TO homepage_fields_title;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'site_settings' AND column_name = 'homepage_fields_subtitle_en') THEN
+        ALTER TABLE site_settings RENAME COLUMN homepage_fields_subtitle_en TO homepage_fields_subtitle;
+    END IF;
+END $$;
 
-ALTER TABLE site_settings 
-RENAME COLUMN about_text_en TO about_text;
-
-ALTER TABLE site_settings 
-RENAME COLUMN homepage_fields_title_en TO homepage_fields_title;
-
-ALTER TABLE site_settings 
-RENAME COLUMN homepage_fields_subtitle_en TO homepage_fields_subtitle;
-
--- Drop Turkish fields
+-- Drop Turkish fields (safe with IF EXISTS)
 ALTER TABLE site_settings 
 DROP COLUMN IF EXISTS about_title_tr;
 
@@ -41,12 +48,17 @@ DROP COLUMN IF EXISTS homepage_fields_subtitle_tr;
 ALTER TABLE project_content_blocks 
 ADD COLUMN IF NOT EXISTS content TEXT;
 
--- Migrate data from content_en to content (if content is empty)
-UPDATE project_content_blocks 
-SET content = content_en 
-WHERE content IS NULL AND content_en IS NOT NULL;
+-- Migrate data from content_en to content (only if content_en exists)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'project_content_blocks' AND column_name = 'content_en') THEN
+        UPDATE project_content_blocks 
+        SET content = content_en 
+        WHERE content IS NULL AND content_en IS NOT NULL;
+    END IF;
+END $$;
 
--- Drop old language-specific columns
+-- Drop old language-specific columns (safe with IF EXISTS)
 ALTER TABLE project_content_blocks 
 DROP COLUMN IF EXISTS content_en;
 
@@ -54,53 +66,99 @@ ALTER TABLE project_content_blocks
 DROP COLUMN IF EXISTS content_tr;
 
 -- ============================================
--- PROJECTS TABLE (if has TR fields)
+-- PROJECTS TABLE
 -- ============================================
 
--- Note: Check if your projects table has _tr fields
--- If yes, add migration steps here similar to above
+-- Rename English fields to generic names (only if they exist)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'projects' AND column_name = 'title_en') THEN
+        ALTER TABLE projects RENAME COLUMN title_en TO title;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'projects' AND column_name = 'blurb_en') THEN
+        ALTER TABLE projects RENAME COLUMN blurb_en TO blurb;
+    END IF;
+END $$;
 
--- Example (uncomment if needed):
--- ALTER TABLE projects RENAME COLUMN title_en TO title;
--- ALTER TABLE projects DROP COLUMN IF EXISTS title_tr;
--- ALTER TABLE projects RENAME COLUMN blurb_en TO blurb;
--- ALTER TABLE projects DROP COLUMN IF EXISTS blurb_tr;
+-- Drop Turkish fields (safe with IF EXISTS)
+ALTER TABLE projects 
+DROP COLUMN IF EXISTS title_tr;
+
+ALTER TABLE projects 
+DROP COLUMN IF EXISTS blurb_tr;
 
 -- ============================================
--- CATEGORIES TABLE (if has TR fields)
+-- CATEGORIES TABLE
 -- ============================================
 
--- Example (uncomment if needed):
--- ALTER TABLE categories RENAME COLUMN name_en TO name;
--- ALTER TABLE categories DROP COLUMN IF EXISTS name_tr;
--- ALTER TABLE categories RENAME COLUMN description_en TO description;
--- ALTER TABLE categories DROP COLUMN IF EXISTS description_tr;
+-- Rename English fields to generic names (only if they exist)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'categories' AND column_name = 'name_en') THEN
+        ALTER TABLE categories RENAME COLUMN name_en TO name;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'categories' AND column_name = 'description_en') THEN
+        ALTER TABLE categories RENAME COLUMN description_en TO description;
+    END IF;
+END $$;
+
+-- Drop Turkish fields (safe with IF EXISTS)
+ALTER TABLE categories 
+DROP COLUMN IF EXISTS name_tr;
+
+ALTER TABLE categories 
+DROP COLUMN IF EXISTS description_tr;
 
 -- ============================================
--- HERO SLIDES TABLE (if has TR fields)
+-- HERO SLIDES TABLE
 -- ============================================
 
--- Example (uncomment if needed):
--- ALTER TABLE hero_slides RENAME COLUMN title_en TO title;
--- ALTER TABLE hero_slides DROP COLUMN IF EXISTS title_tr;
--- ALTER TABLE hero_slides RENAME COLUMN subtitle_en TO subtitle;
--- ALTER TABLE hero_slides DROP COLUMN IF EXISTS subtitle_tr;
+-- Rename English fields to generic names (only if they exist)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'hero_slides' AND column_name = 'title_en') THEN
+        ALTER TABLE hero_slides RENAME COLUMN title_en TO title;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'hero_slides' AND column_name = 'subtitle_en') THEN
+        ALTER TABLE hero_slides RENAME COLUMN subtitle_en TO subtitle;
+    END IF;
+END $$;
+
+-- Drop Turkish fields (safe with IF EXISTS)
+ALTER TABLE hero_slides 
+DROP COLUMN IF EXISTS title_tr;
+
+ALTER TABLE hero_slides 
+DROP COLUMN IF EXISTS subtitle_tr;
 
 -- ============================================
 -- VERIFICATION QUERIES
 -- ============================================
 
--- Check site_settings columns
-SELECT column_name, data_type 
+-- Check all updated tables
+SELECT 'site_settings' as table_name, column_name, data_type 
 FROM information_schema.columns 
 WHERE table_name = 'site_settings' 
-ORDER BY ordinal_position;
-
--- Check project_content_blocks columns
-SELECT column_name, data_type 
+UNION ALL
+SELECT 'projects' as table_name, column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'projects' 
+UNION ALL
+SELECT 'categories' as table_name, column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'categories' 
+UNION ALL
+SELECT 'hero_slides' as table_name, column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'hero_slides' 
+UNION ALL
+SELECT 'project_content_blocks' as table_name, column_name, data_type 
 FROM information_schema.columns 
 WHERE table_name = 'project_content_blocks' 
-ORDER BY ordinal_position;
+ORDER BY table_name, column_name;
 
 -- ============================================
 -- NOTES

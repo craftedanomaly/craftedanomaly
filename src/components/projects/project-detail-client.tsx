@@ -12,10 +12,8 @@ import Image from 'next/image';
 interface Project {
   id: string;
   slug: string;
-  title_en: string;
-  title_tr: string;
-  blurb_en: string;
-  blurb_tr: string;
+  title: string;
+  blurb: string;
   content_en: string; // may be empty; content is now driven by blocks
   content_tr: string;
   cover_image: string;
@@ -26,8 +24,7 @@ interface Project {
   categories: {
     id: string;
     slug: string;
-    name_en: string;
-    name_tr: string;
+    name: string;
   };
 }
 
@@ -64,10 +61,10 @@ interface ProjectDetailClientProps {
 
 export function ProjectDetailClient({ project, media, tags, blocks }: ProjectDetailClientProps) {
   const [copied, setCopied] = useState(false);
-  const title = project.title_en;
-  const blurb = project.blurb_en;
+  const title = project.title;
+  const blurb = project.blurb;
   const role = project.role_en;
-  const categoryName = project.categories?.name_en;
+  const categoryName = project.categories?.name;
 
   // Increment view count when component mounts
   useEffect(() => {

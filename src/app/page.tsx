@@ -52,7 +52,7 @@ async function getCategoriesWithProjects() {
   // Fetch all categories with cover_image
   const { data: categories, error: catError } = await supabase
     .from('categories')
-    .select('id, slug, name_en, name_tr, description_en, description_tr, cover_image, display_order, active')
+    .select('id, slug, name, description, cover_image, display_order, active')
     .eq('active', true)
     .order('display_order');
 
@@ -66,7 +66,7 @@ async function getCategoriesWithProjects() {
     (categories || []).map(async (category) => {
       const { data: projects } = await supabase
         .from('projects')
-        .select('id, slug, title_en, title_tr, cover_image, category_id')
+        .select('id, slug, title, cover_image, category_id')
         .eq('category_id', category.id)
         .eq('status', 'published')
         .order('created_at', { ascending: false })
@@ -85,7 +85,7 @@ async function getCategoriesWithProjects() {
 async function getAboutSettings() {
   const { data, error } = await supabase
     .from('site_settings')
-    .select('about_title, about_text, about_image_url, about_title_en, about_text_en')
+    .select('about_title, about_text, about_image_url')
     .order('id', { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -95,14 +95,14 @@ async function getAboutSettings() {
   }
   if (data) {
     console.log('About settings row:', {
-      about_title: data?.about_title ?? data?.about_title_en,
-      has_text: Boolean(data?.about_text ?? data?.about_text_en),
+      about_title: data?.about_title,
+      has_text: Boolean(data?.about_text),
       has_image: Boolean(data?.about_image_url),
     });
   }
 
   // If column-based fields are not present, fallback to key-value rows.
-  if (!data || (!data.about_title && !data.about_title_en && !data.about_text && !data.about_text_en && !data.about_image_url)) {
+  if (!data || (!data.about_title && !data.about_text && !data.about_image_url)) {
     const { data: kv } = await supabase
       .from('site_settings')
       .select('setting_key, setting_value');
@@ -120,9 +120,9 @@ async function getAboutSettings() {
   }
 
   return {
-    about_title: data?.about_title ?? data?.about_title_en ?? 'about',
+    about_title: data?.about_title ?? 'about',
     about_text:
-      data?.about_text ?? data?.about_text_en ??
+      data?.about_text ??
       'crafted anomaly is a design studio that transforms visions into tangible experiences. we specialize in creating museum-grade portfolios that blur the lines between art and functionality.',
     about_image_url: data?.about_image_url ?? ''
   };

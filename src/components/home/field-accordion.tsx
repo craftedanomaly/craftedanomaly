@@ -12,8 +12,7 @@ import { getOptimizedImageProps, imageSizes } from '@/lib/image-utils';
 interface Project {
   id: string;
   slug: string;
-  title_en: string;
-  title_tr: string;
+  title: string;
   cover_image: string;
   category_id: string;
 }
@@ -21,10 +20,8 @@ interface Project {
 interface Category {
   id: string;
   slug: string;
-  name_en: string;
-  name_tr: string;
-  description_en?: string;
-  description_tr?: string;
+  name: string;
+  description?: string;
   cover_image?: string | null;
   projects: Project[];
 }
@@ -85,7 +82,7 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
           const img = category.cover_image || preview?.cover_image;
           const href = `/${category.slug}`;
           return (
-            <Link href={href} className="relative flex-1 min-w-0 group block" aria-label={category.name_en} key={category.id}>
+            <Link href={href} className="relative flex-1 min-w-0 group block" aria-label={category.name} key={category.id}>
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -97,7 +94,7 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
                     <Image
                       {...getOptimizedImageProps(
                         img,
-                        category.name_en,
+                        category.name,
                         index < 3 // Priority for first 3 categories
                       )}
                       fill
@@ -122,7 +119,7 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
                 {/* Default state - always visible */}
                 <div className="absolute inset-0 p-6 lg:p-8 flex items-end group-hover:opacity-0 transition-opacity duration-300">
                   <div className="max-w-sm">
-                    <h3 className="text-xl lg:text-2xl font-heading text-foreground mb-2">{category.name_en}</h3>
+                    <h3 className="text-xl lg:text-2xl font-heading text-foreground mb-2">{category.name}</h3>
                     <div className="inline-flex items-center px-2 py-1 rounded-md bg-accent/80 backdrop-blur-sm text-xs text-accent-foreground font-medium">
                       {(category.projects?.length || 0)} {(category.projects?.length === 1 ? 'project' : 'projects')}
                     </div>
@@ -135,9 +132,9 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
                     <div className="inline-flex items-center px-2 py-1 rounded-md bg-background/30 backdrop-blur-sm text-xs uppercase tracking-wide text-foreground mb-3">
                       {(category.projects?.length || 0)} {(category.projects?.length === 1 ? 'project' : 'projects')}
                     </div>
-                    <h3 className="text-xl lg:text-2xl font-heading mb-3" style={{ color: '#7a4072' }}>{category.name_en}</h3>
-                    {category.description_en && (
-                      <p className="text-sm mb-6 line-clamp-3 leading-relaxed text-black font-medium">{category.description_en}</p>
+                    <h3 className="text-xl lg:text-2xl font-heading mb-3" style={{ color: '#7a4072' }}>{category.name}</h3>
+                    {category.description && (
+                      <p className="text-sm mb-6 line-clamp-3 leading-relaxed text-black font-medium">{category.description}</p>
                     )}
                     <Button className="bg-accent text-accent-foreground hover:bg-accent/90 pointer-events-none">
                       explore
@@ -159,7 +156,7 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
             const img = category.cover_image || preview?.cover_image;
             const href = `/${category.slug}`;
             return (
-              <Link href={href} className="group block" aria-label={category.name_en} key={category.id}>
+              <Link href={href} className="group block" aria-label={category.name} key={category.id}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -170,7 +167,7 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
                     {img && !img.startsWith('blob:') ? (
                       <Image
                         src={img}
-                        alt={category.name_en}
+                        alt={category.name}
                         fill
                         className="object-cover"
                         sizes="(max-width: 640px) 100vw, 50vw"
@@ -184,9 +181,9 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
                     
                     {/* Card content */}
                     <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                      <h3 className="text-xl font-heading text-foreground mb-2">{category.name_en}</h3>
-                      {category.description_en && (
-                        <p className="text-sm text-muted-foreground/90 mb-3 line-clamp-2">{category.description_en}</p>
+                      <h3 className="text-xl font-heading text-foreground mb-2">{category.name}</h3>
+                      {category.description && (
+                        <p className="text-sm text-muted-foreground/90 mb-3 line-clamp-2">{category.description}</p>
                       )}
                       <div className="flex items-center justify-between">
                         <div className="inline-flex items-center px-2 py-1 rounded-md bg-background/20 backdrop-blur-sm text-xs text-muted-foreground">

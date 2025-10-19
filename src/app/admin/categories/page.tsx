@@ -17,10 +17,8 @@ import { ImageUpload } from '@/components/admin/image-upload';
 interface Category {
   id: string;
   slug: string;
-  name_en: string;
-  name_tr: string;
-  description_en: string;
-  description_tr: string;
+  name: string;
+  description: string;
   cover_image?: string | null;
   display_order: number;
   active: boolean;
@@ -35,10 +33,8 @@ export default function CategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({
     slug: '',
-    name_en: '',
-    name_tr: '',
-    description_en: '',
-    description_tr: '',
+    name: '',
+    description: '',
     cover_image: '',
     active: true,
   });
@@ -108,10 +104,8 @@ export default function CategoriesPage() {
     setEditingCategory(category);
     setFormData({
       slug: category.slug,
-      name_en: category.name_en,
-      name_tr: category.name_tr,
-      description_en: category.description_en,
-      description_tr: category.description_tr,
+      name: category.name,
+      description: category.description,
       cover_image: category.cover_image || '',
       active: category.active,
     });
@@ -160,10 +154,8 @@ export default function CategoriesPage() {
   const resetForm = () => {
     setFormData({
       slug: '',
-      name_en: '',
-      name_tr: '',
-      description_en: '',
-      description_tr: '',
+      name: '',
+      description: '',
       cover_image: '',
       active: true,
     });
@@ -214,13 +206,13 @@ export default function CategoriesPage() {
                   <div className="flex-1">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <GripVertical className="h-4 w-4 text-muted-foreground" />
-                      {category.name_en}
+                      {category.name}
                       {!category.active && (
                         <EyeOff className="h-4 w-4 text-muted-foreground" />
                       )}
                     </CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">
-                      /{category.slug}
+                      {category.description}
                     </p>
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -255,17 +247,15 @@ export default function CategoriesPage() {
               <CardContent>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm font-medium text-foreground">Turkish Name</p>
-                    <p className="text-sm text-muted-foreground">{category.name_tr}</p>
+                    <p className="text-sm font-medium text-foreground">Name</p>
+                    <p className="text-sm text-muted-foreground">{category.name}</p>
                   </div>
-                  {category.description_en && (
-                    <div>
-                      <p className="text-sm font-medium text-foreground">Description</p>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {category.description_en}
-                      </p>
-                    </div>
-                  )}
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Description</p>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {category.description}
+                    </p>
+                  </div>
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Order: {category.display_order}</span>
                     <span>
@@ -322,54 +312,28 @@ export default function CategoriesPage() {
               </div>
             </div>
 
-            {/* Names */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name_en">English Name *</Label>
-                <Input
-                  id="name_en"
-                  value={formData.name_en}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name_en: e.target.value }))}
-                  placeholder="Films"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="name_tr">Turkish Name *</Label>
-                <Input
-                  id="name_tr"
-                  value={formData.name_tr}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name_tr: e.target.value }))}
-                  placeholder="Filmler"
-                  required
-                />
-              </div>
+            {/* Name */}
+            <div className="space-y-2">
+              <Label htmlFor="name">Name *</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Films"
+                required
+              />
             </div>
 
-            {/* Descriptions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="description_en">English Description</Label>
-                <Textarea
-                  id="description_en"
-                  value={formData.description_en}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description_en: e.target.value }))}
-                  placeholder="Describe this category in English..."
-                  rows={4}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description_tr">Turkish Description</Label>
-                <Textarea
-                  id="description_tr"
-                  value={formData.description_tr}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description_tr: e.target.value }))}
-                  placeholder="Bu kategoriyi Türkçe açıklayın..."
-                  rows={4}
-                />
-              </div>
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Describe this category..."
+                rows={4}
+              />
             </div>
 
             {/* Cover Image */}

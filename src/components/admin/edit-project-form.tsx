@@ -240,8 +240,8 @@ export function EditProjectForm({ project, onProjectUpdated }: EditProjectFormPr
         .update({
           slug: data.slug,
           category_id: data.category,
-          title_en: data.title,
-          blurb_en: data.blurb,
+          title: data.title,
+          blurb: data.blurb,
           cover_image: data.coverImage,
           year: data.year,
           role_en: data.role || null,
@@ -401,11 +401,11 @@ export function EditProjectForm({ project, onProjectUpdated }: EditProjectFormPr
       if (onProjectUpdated && updatedData) {
         const formattedProject = {
           id: updatedData.id,
-          title: updatedData.title_en,
+          title: updatedData.title,
           slug: updatedData.slug,
-          category: updatedData.categories?.name_en || 'Uncategorized',
+          category: updatedData.categories?.name || 'Uncategorized',
           categoryId: updatedData.category_id,
-          blurb: updatedData.blurb_en,
+          blurb: updatedData.blurb,
           year: updatedData.year,
           role: updatedData.role_en,
           client: updatedData.client,

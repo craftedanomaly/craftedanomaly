@@ -15,7 +15,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from('site_settings')
-      .select('id, about_title, about_text, about_image_url, about_title_en, about_text_en')
+      .select('id, about_title, about_text, about_image_url')
       .order('id', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -24,7 +24,7 @@ export async function GET() {
       return NextResponse.json({ ok: false, stage: 'columns', error: error.message }, { status: 500 });
     }
 
-    if (data && (data.about_title || data.about_text || data.about_title_en || data.about_text_en || data.about_image_url)) {
+    if (data && (data.about_title || data.about_text || data.about_image_url)) {
       return NextResponse.json({ ok: true, source: 'columns', data });
     }
 

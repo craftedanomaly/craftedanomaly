@@ -183,8 +183,8 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
           {
             slug: data.slug,
             category_id: data.category,
-            title_en: data.title,
-            blurb_en: data.blurb,
+            title: data.title,
+            blurb: data.blurb,
             cover_image: data.coverImage,
             year: data.year,
             role_en: data.role || null,
@@ -317,11 +317,11 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
         // Transform to UI format
         const formattedProject = {
           id: project.id,
-          title: project.title_en,
+          title: project.title,
           slug: project.slug,
-          category: project.categories?.name_en || 'Uncategorized',
+          category: project.categories?.name || 'Uncategorized',
           categoryId: project.category_id,
-          blurb: project.blurb_en,
+          blurb: project.blurb,
           year: project.year,
           role: project.role_en,
           client: project.client,
