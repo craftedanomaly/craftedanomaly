@@ -67,7 +67,7 @@ export default function AdminProjectsPage() {
           categories (
             id,
             slug,
-            name_en
+            name
           )
         `)
         .order('created_at', { ascending: false });
@@ -77,11 +77,11 @@ export default function AdminProjectsPage() {
       // Transform data to match UI format
       const formattedProjects = data.map((project: any) => ({
         id: project.id,
-        title: project.title_en,
+        title: project.title,
         slug: project.slug,
-        category: project.categories?.name_en || 'Uncategorized',
+        category: project.categories?.name || 'Uncategorized',
         categoryId: project.category_id,
-        blurb: project.blurb_en,
+        blurb: project.blurb,
         year: project.year,
         role: project.role_en,
         client: project.client,

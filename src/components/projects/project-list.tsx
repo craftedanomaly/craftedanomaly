@@ -9,10 +9,8 @@ import Image from 'next/image';
 interface Project {
   id: string;
   slug: string;
-  title_en: string;
-  title_tr: string;
-  blurb_en: string;
-  blurb_tr: string;
+  title: string;
+  blurb: string;
   cover_image: string;
   year: number;
   role_en: string;
@@ -30,8 +28,8 @@ export function ProjectList({ projects }: ProjectListProps) {
   return (
     <div className="space-y-6">
       {projects.map((project, index) => {
-        const title = project.title_en;
-        const blurb = project.blurb_en;
+        const title = project.title;
+        const blurb = project.blurb;
         const role = project.role_en;
 
         return (

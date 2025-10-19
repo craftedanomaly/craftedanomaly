@@ -10,10 +10,8 @@ import { getOptimizedImageProps, imageSizes } from '@/lib/image-utils';
 interface Project {
   id: string;
   slug: string;
-  title_en: string;
-  title_tr: string;
-  blurb_en: string;
-  blurb_tr: string;
+  title: string;
+  blurb: string;
   cover_image: string;
   year: number;
   role_en: string;
@@ -30,8 +28,8 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, index, variant = 'default' }: ProjectCardProps) {
-  const title = project.title_en;
-  const blurb = project.blurb_en;
+  const title = project.title;
+  const blurb = project.blurb;
   const role = project.role_en;
 
   // Masonry variant - minimal design with only image and title overlay

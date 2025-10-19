@@ -198,7 +198,7 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
           categories (
             id,
             slug,
-            name_en
+            name
           )
         `)
         .single();
@@ -502,7 +502,7 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
                 <SelectContent>
                   {categoriesData.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name_en}
+                      {cat.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

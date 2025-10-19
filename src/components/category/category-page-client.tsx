@@ -19,10 +19,8 @@ interface Tag {
 interface Project {
   id: string;
   slug: string;
-  title_en: string;
-  title_tr: string;
-  blurb_en: string;
-  blurb_tr: string;
+  title: string;
+  blurb: string;
   cover_image: string;
   year: number;
   role_en: string;
@@ -36,10 +34,8 @@ interface Project {
 interface Category {
   id: string;
   slug: string;
-  name_en: string;
-  name_tr: string;
-  description_en: string;
-  description_tr: string;
+  name: string;
+  description: string;
 }
 
 interface CategoryPageClientProps {
@@ -55,9 +51,9 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [filteredProjects, setFilteredProjects] = useState(projects);
 
-  // Get English content
-  const categoryName = category.name_en;
-  const categoryDescription = category.description_en;
+  // Get content
+  const categoryName = category.name;
+  const categoryDescription = category.description;
 
   // Filter and sort projects
   const handleSearch = (term: string) => {
@@ -90,8 +86,8 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
     // Search filter
     if (search) {
       filtered = filtered.filter(project => {
-        const title = project.title_en;
-        const blurb = project.blurb_en;
+        const title = project.title;
+        const blurb = project.blurb;
         const role = project.role_en;
         
         return (
@@ -121,8 +117,8 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
         break;
       case 'title':
         filtered.sort((a, b) => {
-          const titleA = a.title_en;
-          const titleB = b.title_en;
+          const titleA = a.title;
+          const titleB = b.title;
           return titleA.localeCompare(titleB);
         });
         break;
