@@ -220,7 +220,7 @@ export function AddCategoryForm({ onCategoryAdded, onBack }: AddCategoryFormProp
               <VideoUpload
                 value={formData.video_url}
                 onChange={(url) => setFormData(prev => ({ ...prev, video_url: url }))}
-                maxSizeMB={100}
+                maxSizeMB={50}
               />
               <p className="text-xs text-muted-foreground">
                 Video that plays when hovering over this category on desktop. Auto-plays muted on hover.

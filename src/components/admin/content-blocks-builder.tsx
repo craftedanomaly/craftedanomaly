@@ -251,7 +251,7 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
                   <VideoUpload
                     value={block.media_url || ''}
                     onChange={(url) => updateBlock(block.id, { media_url: url })}
-                    maxSizeMB={200}
+                    maxSizeMB={50}
                   />
                   <Input
                     value={block.media_url || ''}

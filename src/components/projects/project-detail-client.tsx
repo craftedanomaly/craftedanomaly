@@ -8,6 +8,7 @@ import { ArrowLeft, Calendar, User, ExternalLink, Play, Pause } from 'lucide-rea
 import { getEmbedInfo } from '@/lib/video-utils';
 import { Badge } from '@/components/ui/badge';
 import { ContentBlocksRenderer } from './content-blocks-renderer';
+import { TestimonialsScroll } from './testimonials-scroll';
 
 interface ProjectDetailClientProps {
   project: {
@@ -18,6 +19,7 @@ interface ProjectDetailClientProps {
     content?: string | null;
     cover_image: string;
     cover_video_url?: string | null;
+    testimonials?: string[] | null;
     year?: number | null;
     role_en?: string | null;
     role_tr?: string | null;
@@ -94,6 +96,7 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
 
   const [isPlaying, setIsPlaying] = useState(false);
   const embedInfo = useMemo(() => getEmbedInfo(project.cover_video_url || ''), [project.cover_video_url]);
+  const [hovered, setHovered] = useState<'left' | 'right' | null>(null);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -106,6 +109,7 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
                 className="w-full h-full object-contain bg-black"
                 src={embedInfo.embedUrl}
                 autoPlay
+                muted
                 playsInline
               />
             ) : embedInfo.embedUrl ? (
@@ -196,10 +200,19 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
         </div>
       )}
 
+      {/* Testimonials Section */}
+      {project.testimonials && project.testimonials.length > 0 && (
+        <TestimonialsScroll testimonials={project.testimonials} />
+      )}
+
       <main className="w-full py-12 lg:py-20" style={{ paddingLeft: '5%', paddingRight: '1%' }}>
-        <div className="flex flex-col gap-12 lg:grid lg:grid-cols-[minmax(0,2.3fr)_minmax(0,2.7fr)]">
+        <div className="flex flex-col lg:flex-row gap-8" onMouseLeave={() => setHovered(null)}>
           {/* Text column */}
-          <section ref={leftRef} className="space-y-10">
+          <section
+            ref={leftRef}
+            onMouseEnter={() => setHovered('left')}
+            className={`space-y-10 transition-all duration-300 ${hovered === 'right' ? 'lg:basis-1/4' : hovered === 'left' ? 'lg:basis-3/4' : 'lg:basis-1/2'}`}
+          >
 
             <dl className="grid gap-4 text-sm text-muted-foreground">
               {project.client && (
@@ -285,7 +298,11 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
           </section>
 
           {/* Gallery column */}
-          <aside className="lg:overflow-y-auto lg:pr-2 scrollbar-hide" style={{ height: leftHeight ? `${leftHeight}px` : undefined }}>
+          <aside
+            onMouseEnter={() => setHovered('right')}
+            className={`lg:overflow-y-auto lg:pr-2 scrollbar-hide transition-all duration-300 ${hovered === 'left' ? 'lg:basis-1/4' : hovered === 'right' ? 'lg:basis-3/4' : 'lg:basis-1/2'}`}
+            style={{ height: leftHeight ? `${leftHeight}px` : undefined }}
+          >
             <div className="grid gap-6">
               {galleryItems.map((item, index) => (
                 <div

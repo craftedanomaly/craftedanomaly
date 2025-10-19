@@ -62,6 +62,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
   const [categoriesData, setCategoriesData] = useState<any[]>([]);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([]);
+  const [testimonials, setTestimonials] = useState<string[]>([]);
 
   useEffect(() => {
     fetchCategories();
@@ -123,6 +124,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
             blurb: data.blurb,
             cover_image: data.coverImage,
             cover_video_url: data.coverVideo || null,
+            testimonials: testimonials.filter(url => url.trim().length > 0),
             year: data.year,
             role_en: data.role || null,
             client: data.client || null,
@@ -263,6 +265,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
       reset();
       setGalleryImages([]);
       setContentBlocks([]);
+      setTestimonials([]);
       if (onBack) onBack();
     } catch (error: any) {
       console.error('Error creating project:', error);
@@ -339,6 +342,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
             {[
               { id: "basic", label: "📝 Basic Info", desc: "Title, category, description" },
               { id: "media", label: "🎨 Media", desc: "Images and gallery" },
+              { id: "testimonials", label: "🏆 Awards", desc: "Testimonials and laurels" },
               { id: "content", label: "📄 Content", desc: "Rich content blocks" },
               { id: "publish", label: "🚀 Publish", desc: "Status and visibility" }
             ].map((section) => (
@@ -532,7 +536,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                   <VideoUpload
                     value={watch('coverVideo') as any}
                     onChange={(url) => setValue('coverVideo', url)}
-                    maxSizeMB={200}
+                    maxSizeMB={50}
                   />
                   <p className="text-xs text-muted-foreground">Shown on project hero when Play is clicked.</p>
                 </div>
@@ -571,6 +575,60 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                     <Plus className="h-4 w-4 mr-2" />
                     Add Gallery Image
                   </Button>
+                </div>
+              </div>
+            </section>
+
+            {/* Testimonials/Awards Section */}
+            <section id="testimonials" className="space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-lg">🏆</span>
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold">Awards & Testimonials</h2>
+                  <p className="text-sm text-muted-foreground">Laurels and recognition images</p>
+                </div>
+              </div>
+              
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label>Testimonial Images</Label>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {testimonials.map((img, index) => (
+                      <div key={index} className="space-y-2">
+                        <ImageUpload
+                          value={img}
+                          onChange={(url) => {
+                            const newImages = [...testimonials];
+                            newImages[index] = url;
+                            setTestimonials(newImages);
+                          }}
+                          bucket="media"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => setTestimonials(testimonials.filter((_, i) => i !== index))}
+                        >
+                          Remove Image
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setTestimonials([...testimonials, ''])}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Testimonial Image
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Add laurel images or testimonial graphics. These will scroll horizontally on the project page.
+                  </p>
                 </div>
               </div>
             </section>

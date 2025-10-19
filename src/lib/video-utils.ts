@@ -76,13 +76,13 @@ export function getEmbedInfo(url: string): { kind: EmbedKind; embedUrl?: string 
 
   const ytId = extractYouTubeId(url);
   if (ytId) {
-    const embedUrl = `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=0&modestbranding=1&rel=0&playsinline=1`;
+    const embedUrl = `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=0&modestbranding=1&rel=0&playsinline=1&mute=1`;
     return { kind: 'youtube', embedUrl };
   }
 
   const vimeoId = extractVimeoId(url);
   if (vimeoId) {
-    const embedUrl = `https://player.vimeo.com/video/${vimeoId}?autoplay=1&title=0&byline=0&portrait=0&muted=0&controls=0&dnt=1`;
+    const embedUrl = `https://player.vimeo.com/video/${vimeoId}?autoplay=1&title=0&byline=0&portrait=0&muted=1&controls=0&dnt=1`;
     return { kind: 'vimeo', embedUrl };
   }
 
