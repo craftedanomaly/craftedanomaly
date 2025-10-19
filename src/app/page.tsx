@@ -2,8 +2,8 @@ import { HeroCarousel } from '@/components/home/hero-carousel';
 import { FieldAccordion } from '@/components/home/field-accordion';
 import { createClient } from '@supabase/supabase-js';
 
-// Revalidate every 60 seconds - ISR strategy
-export const revalidate = 60;
+// Always fetch fresh data for homepage content
+export const dynamic = 'force-dynamic';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -92,6 +92,13 @@ async function getAboutSettings() {
 
   if (error) {
     console.error('Error fetching about settings:', error);
+  }
+  if (data) {
+    console.log('About settings row:', {
+      about_title: data?.about_title ?? data?.about_title_en,
+      has_text: Boolean(data?.about_text ?? data?.about_text_en),
+      has_image: Boolean(data?.about_image_url),
+    });
   }
 
   // If column-based fields are not present, fallback to key-value rows.
