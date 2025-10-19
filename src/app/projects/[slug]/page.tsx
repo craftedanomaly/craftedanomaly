@@ -92,7 +92,7 @@ async function getProjectData(slug: string) {
         categories (
           id,
           slug,
-          name_en
+          name
         )
       `)
       .eq('slug', slug)
@@ -100,6 +100,18 @@ async function getProjectData(slug: string) {
       .single();
 
     if (projectError || !project) {
+      console.error('Project fetch error:', projectError);
+      console.log('Attempted slug:', slug);
+      return null;
+    }
+
+    // Additional validation for required fields
+    if (!project.title || !project.slug) {
+      console.error('Project missing required fields:', { 
+        id: project?.id, 
+        slug: project?.slug, 
+        title: project?.title 
+      });
       return null;
     }
 

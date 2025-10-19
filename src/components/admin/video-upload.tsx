@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
+import { getVideoType, isDirectVideoUrl } from '@/lib/video-utils';
 
 interface VideoUploadProps {
   value?: string;
@@ -71,6 +72,13 @@ export function VideoUpload({ value, onChange, maxSizeMB = 50 }: VideoUploadProp
 
   const handleUrlChange = (url: string) => {
     setUrlInput(url);
+    
+    // Validate video URL type
+    const videoType = getVideoType(url);
+    if (url && videoType !== 'direct') {
+      toast.warning(`${videoType.toUpperCase()} videos are not supported for hover effects. Please use direct video files (MP4, WebM) or upload a video file.`);
+    }
+    
     onChange(url);
   };
 
@@ -152,29 +160,56 @@ export function VideoUpload({ value, onChange, maxSizeMB = 50 }: VideoUploadProp
       {value && !isUploading && (
         <div className="space-y-2">
           <Label>Preview</Label>
-          <div className="relative aspect-video bg-black rounded-lg overflow-hidden max-w-sm">
-            <video
-              src={value}
-              controls
-              muted
-              className="w-full h-full object-cover"
-              preload="metadata"
-            >
-              Your browser does not support the video tag.
-            </video>
-            <div className="absolute top-2 right-2">
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={clearVideo}
+          {isDirectVideoUrl(value) ? (
+            <div className="relative aspect-video bg-black rounded-lg overflow-hidden max-w-sm">
+              <video
+                src={value}
+                controls
+                muted
+                className="w-full h-full object-cover"
+                preload="metadata"
               >
-                <X className="h-3 w-3" />
-              </Button>
+                Your browser does not support the video tag.
+              </video>
+              <div className="absolute top-2 right-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={clearVideo}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="relative aspect-video bg-muted rounded-lg overflow-hidden max-w-sm flex items-center justify-center">
+              <div className="text-center p-4">
+                <Play className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  {getVideoType(value).toUpperCase()} video detected
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Not supported for hover effects
+                </p>
+              </div>
+              <div className="absolute top-2 right-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={clearVideo}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">
-            Video will auto-play on hover (muted)
+            {isDirectVideoUrl(value) 
+              ? "✅ Video will auto-play on hover (muted)" 
+              : "⚠️ Only direct video files (MP4, WebM) work for hover effects"
+            }
           </p>
         </div>
       )}

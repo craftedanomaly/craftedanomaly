@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase/client';
 import { getOptimizedImageProps, imageSizes } from '@/lib/image-utils';
+import { isDirectVideoUrl } from '@/lib/video-utils';
 
 interface Project {
   id: string;
@@ -124,22 +125,25 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
               }}
               onMouseEnter={() => {
                 setHoveredCategory(category.id);
-                // Start video immediately on hover
-                if (category.video_url) {
-                  const video = videoRefs.current.get(category.id);
-                  if (video) {
-                    video.currentTime = 0;
-                    video.play().catch(console.warn);
-                  }
+                // Start video immediately on hover - with delay for better UX
+                if (category.video_url && isDirectVideoUrl(category.video_url)) {
+                  setTimeout(() => {
+                    const video = videoRefs.current.get(category.id);
+                    if (video && hoveredCategory === category.id) {
+                      video.currentTime = 0;
+                      video.play().catch(console.warn);
+                    }
+                  }, 300); // Small delay to let animation start
                 }
               }}
               onMouseLeave={() => {
                 setHoveredCategory(null);
-                // Pause video when not hovering
-                if (category.video_url) {
+                // Pause and reset video when not hovering
+                if (category.video_url && isDirectVideoUrl(category.video_url)) {
                   const video = videoRefs.current.get(category.id);
                   if (video) {
                     video.pause();
+                    video.currentTime = 0;
                   }
                 }
               }}
@@ -172,13 +176,13 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
                     <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background via-background/70 via-background/40 to-transparent" />
                   </div>
 
-                  {/* Video Area - Only visible when hovered */}
-                  {isHovered && category.video_url && (
+                  {/* Video Area - Only visible when hovered and is direct video */}
+                  {isHovered && category.video_url && isDirectVideoUrl(category.video_url) && (
                     <motion.div
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.2, duration: 0.5 }}
-                      className="absolute right-0 top-0 w-2/3 h-full bg-black/95 backdrop-blur-sm overflow-hidden"
+                      transition={{ delay: 0.1, duration: 0.4 }}
+                      className="absolute inset-0 bg-black overflow-hidden"
                     >
                       <video
                         ref={(el) => {
@@ -191,11 +195,16 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
                         preload="metadata"
                         className="w-full h-full object-cover"
                         onCanPlay={() => {
-                          // Mark as preloaded when ready
                           setPreloadedVideos(prev => new Set([...prev, category.video_url!]));
                         }}
+                        onLoadedData={() => {
+                          // Auto-play when video is ready and still hovered
+                          const video = videoRefs.current.get(category.id);
+                          if (video && hoveredCategory === category.id) {
+                            video.play().catch(console.warn);
+                          }
+                        }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-background/10" />
                       
                       {/* Video loading indicator */}
                       {!preloadedVideos.has(category.video_url) && (
@@ -206,15 +215,36 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
                     </motion.div>
                   )}
 
-                  {/* Category Info */}
+                  {/* Fallback for non-direct videos */}
+                  {isHovered && category.video_url && !isDirectVideoUrl(category.video_url) && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1, duration: 0.4 }}
+                      className="absolute inset-0 bg-muted/90 backdrop-blur-sm flex items-center justify-center"
+                    >
+                      <div className="text-center text-white">
+                        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <ArrowRight className="h-8 w-8" />
+                        </div>
+                        <p className="text-sm">Video not supported for hover</p>
+                        <p className="text-xs opacity-75 mt-1">Use direct MP4/WebM files</p>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Category Info - Always on top */}
                   <motion.div
-                    className="absolute inset-0 p-6 lg:p-8 flex items-end"
+                    className="absolute inset-0 p-6 lg:p-8 flex items-end z-10"
                     animate={{
-                      width: isHovered ? '40%' : '100%'
+                      width: isHovered && category.video_url && isDirectVideoUrl(category.video_url) ? '100%' : '100%'
                     }}
                     transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
                   >
-                    <div className="max-w-sm">
+                    {/* Background gradient for text readability */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
+                    
+                    <div className="relative max-w-sm z-10">
                       <h3 className="text-xl lg:text-2xl font-heading text-foreground mb-2">
                         {category.name}
                       </h3>
