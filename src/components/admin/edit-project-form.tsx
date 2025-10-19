@@ -35,7 +35,7 @@ import { ContentBlocksBuilder, ContentBlock } from '@/components/admin/content-b
 const projectSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   slug: z.string().min(3, 'Slug must be at least 3 characters'),
-  category: z.string().min(1, 'Category is required'),
+  categories: z.array(z.string()).min(1, 'Select at least one category'),
   blurb: z.string().min(10, 'Description must be at least 10 characters'),
   year: z.number().min(2000).max(new Date().getFullYear() + 1),
   role: z.string().optional(),
@@ -201,7 +201,7 @@ export function EditProjectForm({ project, onProjectUpdated }: EditProjectFormPr
     defaultValues: {
       title: project.title || '',
       slug: project.slug || '',
-      category: project.categoryId || '',
+      categories: project.categoryId ? [project.categoryId] : [],
       blurb: project.blurb || '',
       year: project.year || new Date().getFullYear(),
       role: project.role || '',

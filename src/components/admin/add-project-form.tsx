@@ -35,7 +35,7 @@ import { ContentBlocksBuilder, ContentBlock } from '@/components/admin/content-b
 const projectSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   slug: z.string().min(3, 'Slug must be at least 3 characters'),
-  category: z.string().min(1, 'Category is required'),
+  categories: z.array(z.string()).min(1, 'Select at least one category'),
   blurb: z.string().min(10, 'Description must be at least 10 characters'),
   year: z.number().min(2000).max(new Date().getFullYear() + 1),
   role: z.string().optional(),
@@ -145,7 +145,7 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
     defaultValues: {
       status: 'draft',
       year: new Date().getFullYear(),
-      category: '',
+      categories: [],
       title: '',
       slug: '',
       blurb: '',
@@ -154,7 +154,7 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
     },
   });
 
-  const categoryValue = watch('category');
+  const categoriesValue = watch('categories');
   const statusValue = watch('status');
 
   const onSubmit = async (data: ProjectFormData) => {
@@ -182,7 +182,6 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
         .insert([
           {
             slug: data.slug,
-            category_id: data.category,
             title: data.title,
             blurb: data.blurb,
             cover_image: data.coverImage,
@@ -206,6 +205,17 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
       if (error) throw error;
 
       const projectId = project.id;
+
+      // Handle categories (many-to-many)
+      await supabase.from('project_categories').delete().eq('project_id', projectId);
+      if (data.categories.length > 0) {
+        await supabase.from('project_categories').insert(
+          data.categories.map((catId) => ({
+            project_id: projectId,
+            category_id: catId,
+          }))
+        );
+      }
 
       // Handle tags
       const tagsArray = data.tags.split(',').map((tag) => tag.trim()).filter(Boolean);
@@ -485,33 +495,42 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
             )}
           </div>
 
-          {/* Category & Year */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="category" className="flex items-center gap-1">
-                Category 
+          {/* Categories & Year */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="space-y-3">
+              <Label className="flex items-center gap-1">
+                Categories
                 <span className="text-destructive">*</span>
               </Label>
-              <Select
-                value={categoryValue}
-                onValueChange={(value) => setValue('category', value)}
-              >
-                <SelectTrigger className={errors.category ? 'border-destructive focus:ring-destructive' : ''}>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categoriesData.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.category && (
-                <p className="text-sm text-destructive flex items-center gap-1">
-                  <span className="w-1 h-1 bg-destructive rounded-full"></span>
-                  {errors.category.message}
-                </p>
+              <div className="space-y-2 max-h-48 overflow-y-auto rounded-lg border border-border/60 bg-muted/30 p-3">
+                {categoriesData.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No categories available. Create one first.</p>
+                )}
+                {categoriesData.map((cat) => {
+                  const checked = categoriesValue.includes(cat.id);
+                  return (
+                    <label
+                      key={cat.id}
+                      className="flex items-center justify-between rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
+                    >
+                      <span className="font-medium text-foreground">{cat.name}</span>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(event) => {
+                          const value = event.target.checked
+                            ? [...categoriesValue, cat.id]
+                            : categoriesValue.filter((id) => id !== cat.id);
+                          setValue('categories', value, { shouldValidate: true });
+                        }}
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                      />
+                    </label>
+                  );
+                })}
+              </div>
+              {errors.categories && (
+                <p className="text-xs text-destructive">{errors.categories.message}</p>
               )}
             </div>
 
@@ -530,268 +549,173 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
           </div>
 
           {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="blurb" className="flex items-center gap-1">
-              Description 
-              <span className="text-destructive">*</span>
-            </Label>
-            <Textarea
-              id="blurb"
-              {...register('blurb')}
-              placeholder="A brief description of your project..."
-              rows={4}
-              className={errors.blurb ? 'border-destructive focus-visible:ring-destructive' : ''}
-            />
-            {errors.blurb && (
-              <p className="text-sm text-destructive flex items-center gap-1">
-                <span className="w-1 h-1 bg-destructive rounded-full"></span>
-                {errors.blurb.message}
-              </p>
-            )}
-          </div>
+      <div className="space-y-2">
+        <Label htmlFor="blurb" className="flex items-center gap-1">
+          Description 
+          <span className="text-destructive">*</span>
+        </Label>
+        <Textarea
+          id="blurb"
+          {...register('blurb')}
+          placeholder="A brief description of your project..."
+          rows={4}
+          className={errors.blurb ? 'border-destructive focus-visible:ring-destructive' : ''}
+        />
+        {errors.blurb && (
+          <p className="text-sm text-destructive flex items-center gap-1">
+            <span className="w-1 h-1 bg-destructive rounded-full"></span>
+            {errors.blurb.message}
+          </p>
+        )}
+      </div>
 
-          {/* Role & Client */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="role">Your Role</Label>
-              <Input
-                id="role"
-                {...register('role')}
-                placeholder="Designer, Developer"
-              />
-            </div>
+      {/* Role & Client */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="role">Your Role</Label>
+          <Input
+            id="role"
+            {...register('role')}
+            placeholder="Designer, Developer"
+          />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="client">Client</Label>
-              <Input
-                id="client"
-                {...register('client')}
-                placeholder="Company Name"
-              />
-            </div>
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="client">Client</Label>
+          <Input
+            id="client"
+            {...register('client')}
+            placeholder="Company Name"
+          />
+        </div>
+      </div>
 
-          {/* Tags */}
-          <div className="space-y-2">
-            <Label htmlFor="tags">Tags *</Label>
-            <Input
-              id="tags"
-              {...register('tags')}
-              placeholder="UI/UX, Mobile, React (comma separated)"
-            />
-            <p className="text-xs text-muted-foreground">
-              Separate tags with commas
-            </p>
-            {errors.tags && (
-              <p className="text-sm text-destructive">{errors.tags.message}</p>
-            )}
-          </div>
-            </div>
+      {/* Tags */}
+      <div className="space-y-2">
+        <Label htmlFor="tags">Tags *</Label>
+        <Input
+          id="tags"
+          {...register('tags')}
+          placeholder="UI/UX, Mobile, React (comma separated)"
+        />
+        <p className="text-xs text-muted-foreground">
+          Separate tags with commas
+        </p>
+        {errors.tags && (
+          <p className="text-sm text-destructive">{errors.tags.message}</p>
+        )}
           </div>
 
           {/* Media Section */}
-          <div id="media" className="space-y-6 rounded-lg border bg-card/50 p-6">
-            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <div className="h-8 w-1 bg-accent rounded-full"></div>
-              Media & Gallery
-            </h3>
-            <div className="space-y-6">
-              {/* Media Type Selection */}
-              <div className="space-y-3">
-                <Label>Media Type</Label>
-                <Tabs value={mediaType} onValueChange={(value) => setMediaType(value as 'standard' | 'before_after')} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="standard">Standard Media</TabsTrigger>
-                    <TabsTrigger value="before_after">Before/After Comparison</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="standard" className="space-y-4 mt-4">
-                    {/* Cover Image */}
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-1">
-                        Cover Image 
-                        <span className="text-destructive">*</span>
-                      </Label>
-                      <Tabs defaultValue="upload" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2">
-                          <TabsTrigger value="upload">Upload Image</TabsTrigger>
-                          <TabsTrigger value="url">Image URL</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="upload" className="space-y-4">
-                          <ImageUpload
-                            value={watch('coverImage')}
-                            onChange={(url) => setValue('coverImage', url)}
-                          />
-                        </TabsContent>
-                        <TabsContent value="url" className="space-y-4">
-                          <Input
-                            id="coverImage"
-                            {...register('coverImage')}
-                            placeholder="https://images.unsplash.com/photo-..."
-                            className={errors.coverImage ? 'border-destructive focus-visible:ring-destructive' : ''}
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            Or paste an image URL from Unsplash, etc.
-                          </p>
-                        </TabsContent>
-                      </Tabs>
-                      {errors.coverImage && (
-                        <p className="text-sm text-destructive flex items-center gap-1">
-                          <span className="w-1 h-1 bg-destructive rounded-full"></span>
-                          {errors.coverImage.message}
-                        </p>
-                      )}
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="before_after" className="space-y-4 mt-4">
-                    <BeforeAfterUpload
-                      onBeforeAfterChange={(before, after) => {
-                        setBeforeAfterImages({ before, after });
-                        // Set the cover image to the "after" image for thumbnails
-                        setValue('coverImage', after);
-                      }}
-                      initialBefore={beforeAfterImages.before}
-                      initialAfter={beforeAfterImages.after}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </div>
-
-          {/* Tech Stack */}
-          <div className="space-y-2">
-            <Label>Tech Stack</Label>
-            <div className="space-y-2">
-              {techStack.map((tech, index) => (
-                <div key={index} className="flex gap-2">
-                  <Input
-                    value={tech}
-                    onChange={(e) => {
-                      const newStack = [...techStack];
-                      newStack[index] = e.target.value;
-                      setTechStack(newStack);
-                    }}
-                    placeholder="e.g., React, Figma"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setTechStack(techStack.filter((_, i) => i !== index))}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+      <div id="media" className="space-y-6 rounded-lg border bg-card/50 p-6">
+        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+          <div className="h-8 w-1 bg-accent rounded-full"></div>
+          Media & Gallery
+        </h3>
+        <div className="space-y-6">
+          {/* Media Type Selection */}
+          <div className="space-y-3">
+            <Label>Media Type</Label>
+            <Tabs value={mediaType} onValueChange={(value) => setMediaType(value as 'standard' | 'before_after')} className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="standard">Standard Media</TabsTrigger>
+                <TabsTrigger value="before_after">Before/After Comparison</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="standard" className="space-y-4 mt-4">
+                {/* Cover Image */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1">
+                    Cover Image 
+                    <span className="text-destructive">*</span>
+                  </Label>
+                  <Tabs defaultValue="upload" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="upload">Upload Image</TabsTrigger>
+                      <TabsTrigger value="url">Image URL</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="upload" className="space-y-4">
+                      <ImageUpload
+                        value={watch('coverImage')}
+                        onChange={(url) => setValue('coverImage', url)}
+                      />
+                    </TabsContent>
+                    <TabsContent value="url" className="space-y-4">
+                      <Input
+                        id="coverImage"
+                        {...register('coverImage')}
+                        placeholder="https://images.unsplash.com/photo-..."
+                        className={errors.coverImage ? 'border-destructive focus-visible:ring-destructive' : ''}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Or paste an image URL from Unsplash, etc.
+                      </p>
+                    </TabsContent>
+                  </Tabs>
+                  {errors.coverImage && (
+                    <p className="text-sm text-destructive flex items-center gap-1">
+                      <span className="w-1 h-1 bg-destructive rounded-full"></span>
+                      {errors.coverImage.message}
+                    </p>
+                  )}
                 </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setTechStack([...techStack, ''])}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Tech
-              </Button>
-            </div>
-          </div>
-
-          {/* External Links */}
-          <div className="space-y-2">
-            <Label>External Links</Label>
-            <div className="space-y-2">
-              {externalLinks.map((link, index) => (
-                <div key={index} className="flex gap-2">
-                  <Input
-                    value={link.label}
-                    onChange={(e) => {
-                      const newLinks = [...externalLinks];
-                      newLinks[index].label = e.target.value;
-                      setExternalLinks(newLinks);
-                    }}
-                    placeholder="Label (e.g., Live Demo)"
-                    className="flex-1"
-                  />
-                  <Input
-                    value={link.url}
-                    onChange={(e) => {
-                      const newLinks = [...externalLinks];
-                      newLinks[index].url = e.target.value;
-                      setExternalLinks(newLinks);
-                    }}
-                    placeholder="https://..."
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setExternalLinks(externalLinks.filter((_, i) => i !== index))}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setExternalLinks([...externalLinks, { label: '', url: '' }])}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Link
-              </Button>
-            </div>
+              </TabsContent>
+              
+              <TabsContent value="before_after" className="space-y-4 mt-4">
+                <BeforeAfterUpload
+                  onBeforeAfterChange={(before, after) => {
+                    setBeforeAfterImages({ before, after });
+                    // Set the cover image to the "after" image for thumbnails
+                    setValue('coverImage', after);
+                  }}
+                  initialBefore={beforeAfterImages.before}
+                  initialAfter={beforeAfterImages.after}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
 
           {/* Gallery Images */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>Gallery Images</Label>
-            <div className="space-y-2">
+            <div className="grid gap-4 md:grid-cols-2">
               {galleryImages.map((img, index) => (
-                <div key={index} className="flex gap-2">
-                  <Input
+                <div key={index} className="space-y-2">
+                  <ImageUpload
                     value={img}
-                    onChange={(e) => {
+                    onChange={(url) => {
                       const newImages = [...galleryImages];
-                      newImages[index] = e.target.value;
+                      newImages[index] = url;
                       setGalleryImages(newImages);
                     }}
-                    placeholder="https://images.unsplash.com/..."
+                    bucket="project-gallery"
                   />
                   <Button
                     type="button"
                     variant="outline"
-                    size="icon"
+                    size="sm"
+                    className="w-full"
                     onClick={() => setGalleryImages(galleryImages.filter((_, i) => i !== index))}
                   >
-                    <X className="h-4 w-4" />
+                    Remove Image
                   </Button>
                 </div>
               ))}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setGalleryImages([...galleryImages, ''])}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Image
-              </Button>
             </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setGalleryImages([...galleryImages, ''])}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Gallery Image
+            </Button>
             <p className="text-xs text-muted-foreground">
-              Add additional images to project gallery
+              Upload high-quality visuals. Images are stored in Supabase Storage.
             </p>
           </div>
-            </div>
-          </div>
 
-          {/* Technical Details Section */}
-          <div id="details" className="space-y-6 rounded-lg border bg-card/50 p-6">
-            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <div className="h-8 w-1 bg-accent rounded-full"></div>
+          {/* Video Upload */}
               Technical Details & Links
             </h3>
             <div className="space-y-6">
@@ -956,6 +880,7 @@ export function AddProjectForm({ onProjectAdded }: AddProjectFormProps) {
                 `Create Project ${Object.keys(errors).length > 0 ? `(${Object.keys(errors).length} errors)` : ''}`
               )}
             </Button>
+          </div>
           </div>
         </form>
       </DialogContent>

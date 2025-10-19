@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { ImageUpload } from '@/components/admin/image-upload';
+import { VideoUpload } from '@/components/admin/video-upload';
 import {
   Select,
   SelectContent,
@@ -204,11 +206,17 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
             {block.block_type === 'image' && (
               <>
                 <div className="space-y-2">
-                  <Label>Image URL</Label>
+                  <Label>Image</Label>
+                  <ImageUpload
+                    value={block.media_url || ''}
+                    onChange={(url) => updateBlock(block.id, { media_url: url })}
+                    bucket="project-content"
+                  />
                   <Input
-                    value={block.media_url}
+                    value={block.media_url || ''}
                     onChange={(e) => updateBlock(block.id, { media_url: e.target.value })}
-                    placeholder="https://images.unsplash.com/..."
+                    placeholder="Or paste image URL"
+                    className="mt-2"
                   />
                 </div>
                 <div className="space-y-2">
@@ -226,11 +234,17 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
             {block.block_type === 'video' && (
               <>
                 <div className="space-y-2">
-                  <Label>Video URL</Label>
+                  <Label>Video</Label>
+                  <VideoUpload
+                    value={block.media_url || ''}
+                    onChange={(url) => updateBlock(block.id, { media_url: url })}
+                    maxSizeMB={200}
+                  />
                   <Input
-                    value={block.media_url}
+                    value={block.media_url || ''}
                     onChange={(e) => updateBlock(block.id, { media_url: e.target.value })}
-                    placeholder="https://example.com/video.mp4"
+                    placeholder="Or paste video URL"
+                    className="mt-2"
                   />
                 </div>
                 <div className="space-y-2">
@@ -248,23 +262,32 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
             {block.block_type === 'gallery' && (
               <div className="space-y-3">
                 <Label>Gallery Images</Label>
-                {(block.media_urls || []).map((url, imgIndex) => (
-                  <div key={imgIndex} className="flex gap-2">
-                    <Input
-                      value={url}
-                      onChange={(e) => updateGalleryImage(block.id, imgIndex, e.target.value)}
-                      placeholder={`Image ${imgIndex + 1} URL`}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => removeGalleryImage(block.id, imgIndex)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
+                <div className="grid gap-3 md:grid-cols-2">
+                  {(block.media_urls || []).map((url, imgIndex) => (
+                    <div key={imgIndex} className="space-y-2">
+                      <ImageUpload
+                        value={url}
+                        onChange={(newUrl) => updateGalleryImage(block.id, imgIndex, newUrl)}
+                        bucket="project-gallery"
+                      />
+                      <Input
+                        value={url}
+                        onChange={(e) => updateGalleryImage(block.id, imgIndex, e.target.value)}
+                        placeholder={`Image ${imgIndex + 1} URL`}
+                        className="text-xs"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => removeGalleryImage(block.id, imgIndex)}
+                      >
+                        Remove Image
+                      </Button>
+                    </div>
+                  ))}
+                </div>
                 <Button
                   type="button"
                   variant="outline"

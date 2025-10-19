@@ -276,98 +276,100 @@ export default function CategoriesPage() {
 
       {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {editingCategory ? 'Edit Category' : 'Add New Category'}
-            </DialogTitle>
-            <DialogDescription>
-              {editingCategory 
-                ? 'Update the category information below.' 
-                : 'Create a new category for your portfolio.'
-              }
-            </DialogDescription>
-          </DialogHeader>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <DialogContent className="max-w-3xl w-full p-0 overflow-hidden">
+          <form onSubmit={handleSubmit} className="flex flex-col max-h-[80vh]">
+            <DialogHeader className="px-6 py-5 border-b bg-background">
+              <DialogTitle>
+                {editingCategory ? 'Edit Category' : 'Add New Category'}
+              </DialogTitle>
+              <DialogDescription>
+                {editingCategory 
+                  ? 'Update the category information below.' 
+                  : 'Create a new category for your portfolio.'
+                }
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="slug">URL Slug *</Label>
+                  <Input
+                    id="slug"
+                    value={formData.slug}
+                    onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                    placeholder="films"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Used in URLs: /{formData.slug}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Switch
+                      checked={formData.active || false}
+                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, active: checked }))}
+                    />
+                    Active
+                  </Label>
+                </div>
+              </div>
+
+              {/* Name */}
               <div className="space-y-2">
-                <Label htmlFor="slug">URL Slug *</Label>
+                <Label htmlFor="name">Name *</Label>
                 <Input
-                  id="slug"
-                  value={formData.slug}
-                  onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                  placeholder="films"
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Films"
                   required
                 />
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe this category..."
+                  rows={4}
+                />
+              </div>
+
+              {/* Cover Image */}
+              <div className="space-y-2">
+                <Label>Cover Image</Label>
+                <ImageUpload
+                  value={formData.cover_image}
+                  onChange={(url) => setFormData(prev => ({ ...prev, cover_image: url }))}
+                />
                 <p className="text-xs text-muted-foreground">
-                  Used in URLs: /{formData.slug}
+                  This image will be used as the background for this category on the homepage
                 </p>
               </div>
 
+              {/* Hover Video */}
               <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Switch
-                    checked={formData.active || false}
-                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, active: checked }))}
-                  />
-                  Active
-                </Label>
+                <Label>Hover Video (Desktop Only)</Label>
+                <VideoUpload
+                  value={formData.video_url}
+                  onChange={(url) => setFormData(prev => ({ ...prev, video_url: url }))}
+                  maxSizeMB={100}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Video that plays when hovering over this category on desktop. Auto-plays muted on hover.
+                </p>
               </div>
             </div>
 
-            {/* Name */}
-            <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Films"
-                required
-              />
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Describe this category..."
-                rows={4}
-              />
-            </div>
-
-            {/* Cover Image */}
-            <div className="space-y-2">
-              <Label>Cover Image</Label>
-              <ImageUpload
-                value={formData.cover_image}
-                onChange={(url) => setFormData(prev => ({ ...prev, cover_image: url }))}
-              />
-              <p className="text-xs text-muted-foreground">
-                This image will be used as the background for this category on the homepage
-              </p>
-            </div>
-
-            {/* Hover Video */}
-            <div className="space-y-2">
-              <Label>Hover Video (Desktop Only)</Label>
-              <VideoUpload
-                value={formData.video_url}
-                onChange={(url) => setFormData(prev => ({ ...prev, video_url: url }))}
-                maxSizeMB={100}
-              />
-              <p className="text-xs text-muted-foreground">
-                Video that plays when hovering over this category on desktop. Auto-plays muted on hover.
-              </p>
-            </div>
-
             {/* Actions */}
-            <div className="flex justify-end gap-3">
+            <div className="border-t bg-background px-6 py-4 flex justify-end gap-3">
               <Button
                 type="button"
                 variant="outline"
