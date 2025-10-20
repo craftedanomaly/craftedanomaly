@@ -65,29 +65,27 @@ export function TestimonialsScroll({ testimonials }: TestimonialsScrollProps) {
   const duplicatedTestimonials = [...testimonials, ...testimonials];
 
   return (
-    <section className="py-10 bg-background">
-      <div className="max-w-6xl mx-auto px-4">
-        <div
-          ref={scrollRef}
-          className="flex gap-8 overflow-x-hidden items-center"
-          style={{ scrollBehavior: 'auto' }}
-        >
-          {duplicatedTestimonials.map((testimonial, index) => (
-            <div
-              key={`${testimonial}-${index}`}
-              className="flex-shrink-0 w-48 h-24 relative flex items-center justify-center"
-            >
-              <Image
-                src={testimonial}
-                alt={`Award ${(index % testimonials.length) + 1}`}
-                fill
-                className="object-contain"
-                sizes="(max-width: 768px) 192px, 192px"
-                priority={index < 4}
-              />
-            </div>
-          ))}
-        </div>
+    <section className="py-8 bg-background">
+      <div
+        ref={scrollRef}
+        className="flex gap-8 overflow-x-hidden items-center"
+        style={{ scrollBehavior: 'auto' }}
+      >
+        {duplicatedTestimonials.map((testimonial, index) => (
+          <div
+            key={`${testimonial}-${index}`}
+            className="flex-shrink-0 w-48 h-24 relative flex items-center justify-center"
+          >
+            <Image
+              src={testimonial}
+              alt={`Award ${(index % testimonials.length) + 1}`}
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 192px, 192px"
+              priority={index < 4}
+            />
+          </div>
+        ))}
       </div>
     </section>
   );

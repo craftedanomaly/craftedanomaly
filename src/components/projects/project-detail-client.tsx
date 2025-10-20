@@ -1,14 +1,13 @@
 'use client';
 
-import { useMemo, useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Calendar, User, ExternalLink, Play, Pause } from 'lucide-react';
 import { getEmbedInfo } from '@/lib/video-utils';
 import { Badge } from '@/components/ui/badge';
-import { ContentBlocksRenderer } from './content-blocks-renderer';
 import { TestimonialsScroll } from './testimonials-scroll';
+import { ContentBlocksRenderer } from './content-blocks-renderer';
 
 interface ProjectDetailClientProps {
   project: {
@@ -44,6 +43,7 @@ interface ProjectDetailClientProps {
     url: string;
     media_type: string;
     display_order: number;
+    layout?: 'single' | 'masonry' | null;
   }>;
   tags: Array<{
     id: string;
@@ -58,6 +58,106 @@ interface ProjectDetailClientProps {
     media_urls?: string[] | null;
     display_order: number;
   }>;
+}
+
+function JustifiedGrid({ items, alt }: { items: Array<{ id: string; url: string }>; alt: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [layout, setLayout] = useState<
+    Array<{ id: string; url: string; width: number; height: number }>
+  >([]);
+
+  useEffect(() => {
+    let disposed = false;
+
+    const compute = async () => {
+      const el = containerRef.current;
+      if (!el) return;
+
+      const containerWidth = el.clientWidth;
+      if (containerWidth <= 0) return;
+
+      // target row height responsive
+      const vw = window.innerWidth;
+      const targetRowHeight = vw >= 1536 ? 520 : vw >= 1280 ? 460 : vw >= 1024 ? 400 : vw >= 768 ? 360 : 280;
+      const gap = 0;
+
+      // load natural sizes
+      const ratios = await Promise.all(
+        items.map(
+          (it) =>
+            new Promise<{ id: string; url: string; ratio: number }>((resolve) => {
+              const img = new Image();
+              img.onload = () => {
+                const r = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 1.7778;
+                resolve({ id: it.id, url: it.url, ratio: r });
+              };
+              img.onerror = () => resolve({ id: it.id, url: it.url, ratio: 1.7778 });
+              img.src = it.url;
+            })
+        )
+      );
+
+      const next: Array<{ id: string; url: string; width: number; height: number }> = [];
+      let row: typeof ratios = [];
+      let rowWidth = 0;
+
+      const pushRow = () => {
+        if (row.length === 0) return;
+        const baseWidth = row.reduce((sum, it) => sum + it.ratio * targetRowHeight, 0);
+        const totalGaps = gap * Math.max(row.length - 1, 0);
+        const scale = (containerWidth - totalGaps) / baseWidth;
+        const h = Math.max(160, targetRowHeight * scale);
+        for (const it of row) {
+          next.push({
+            id: it.id,
+            url: it.url,
+            width: Math.round(it.ratio * h),
+            height: Math.round(h),
+          });
+        }
+        row = [];
+        rowWidth = 0;
+      };
+
+      for (const it of ratios) {
+        const w = it.ratio * targetRowHeight;
+        // if next item would overflow, finalize row then start new
+        if (rowWidth + w + (row.length > 0 ? gap : 0) > containerWidth && row.length > 0) {
+          pushRow();
+        }
+        row.push(it);
+        rowWidth += w + (row.length > 1 ? gap : 0);
+      }
+
+      // finalize last row: also fill to width for consistent look
+      pushRow();
+
+      if (!disposed) setLayout(next);
+    };
+
+    compute();
+
+    const ro = new ResizeObserver(() => compute());
+    if (containerRef.current) ro.observe(containerRef.current);
+    const onResize = () => compute();
+    window.addEventListener('resize', onResize);
+    return () => {
+      disposed = true;
+      ro.disconnect();
+      window.removeEventListener('resize', onResize);
+    };
+  }, [items]);
+
+  // Render as wrapped rows using explicit sizes
+  return (
+    <div ref={containerRef} className="w-full">
+      <div className="flex flex-wrap gap-0">
+        {layout.map((it) => (
+          <img key={it.id} src={it.url} alt={alt} style={{ width: it.width, height: it.height }} className="block" />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function ProjectDetailClient({ project, media, tags, blocks }: ProjectDetailClientProps) {
@@ -78,89 +178,69 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
     return orderedMedia.filter((item) => item.url !== project.cover_image);
   }, [orderedMedia, project.cover_image]);
 
-  const leftRef = useRef<HTMLDivElement>(null);
-  const [leftHeight, setLeftHeight] = useState<number | undefined>(undefined);
-
-  useEffect(() => {
-    const el = leftRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const h = entry.contentRect.height;
-        if (h && h !== leftHeight) setLeftHeight(h);
-      }
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [leftRef]);
+  
 
   const [isPlaying, setIsPlaying] = useState(false);
   const embedInfo = useMemo(() => getEmbedInfo(project.cover_video_url || ''), [project.cover_video_url]);
-  const [hovered, setHovered] = useState<'left' | 'right' | null>(null);
+
+  // Split gallery items by layout
+  const singleItems = useMemo(() => {
+    return galleryItems.filter((m) => (m.layout || 'masonry') === 'single');
+  }, [galleryItems]);
+  const masonryItems = useMemo(() => {
+    return galleryItems.filter((m) => (m.layout || 'masonry') === 'masonry');
+  }, [galleryItems]);
+
+  // Only textual blocks for left column
+  const textBlocks = useMemo(() => {
+    const allowed = new Set(['text', 'quote', 'code']);
+    return blocks.filter((b) => allowed.has(b.block_type));
+  }, [blocks]);
+
+  // Normalize before/after blocks coming from gallery marker
+  const normalizedBeforeAfterBlocks = useMemo(() => {
+    return blocks
+      .filter((b) => b.block_type === 'before_after' || (b.block_type === 'gallery' && b.content === '__before_after__'))
+      .map((b) => ({
+        ...b,
+        block_type: 'before_after',
+      }));
+  }, [blocks]);
+
+  const videoBlocks = useMemo(() => {
+    return blocks.filter((b) => b.block_type === 'video' && !!b.media_url);
+  }, [blocks]);
+
+  // Right panel ref to coordinate scroll
+  const rightRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = rightRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (window.innerWidth < 1024) return; // only lg+
+      const atTop = el.scrollTop <= 0;
+      const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+      if ((e.deltaY < 0 && atTop) || (e.deltaY > 0 && atBottom)) {
+        return; // allow default to bubble to page
+      }
+      e.preventDefault();
+      el.scrollTop += e.deltaY;
+    };
+    window.addEventListener('wheel', onWheel, { passive: false });
+    return () => window.removeEventListener('wheel', onWheel as any);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Hero with Title Overlay */}
-      {project.cover_image && (
-        <div className="relative h-[70vh] w-full overflow-hidden">
-          {isPlaying && project.cover_video_url ? (
-            embedInfo.kind === 'direct' ? (
-              <video
-                className="w-full h-full object-contain bg-black"
-                src={embedInfo.embedUrl}
-                autoPlay
-                muted
-                playsInline
-              />
-            ) : embedInfo.embedUrl ? (
-              <iframe
-                src={embedInfo.embedUrl}
-                className="w-full h-full"
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowFullScreen
-                frameBorder={0}
-              />
-            ) : null
-          ) : (
-            <Image
-              src={project.cover_image}
-              alt={project.title}
-              fill
-              className="object-cover"
-              sizes="100vw"
-              priority
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-
-          {/* Play button */}
-          {!isPlaying && project.cover_video_url && (
-            <button
-              type="button"
-              onClick={() => setIsPlaying(true)}
-              className="absolute bottom-6 right-6 z-10 h-16 w-16 rounded-full bg-white/85 text-black flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
-              aria-label="Play cover video"
-            >
-              <Play className="h-8 w-8" />
-            </button>
-          )}
-          {isPlaying && project.cover_video_url && (
-            <button
-              type="button"
-              onClick={() => setIsPlaying(false)}
-              className="absolute bottom-6 right-6 z-10 h-16 w-16 rounded-full bg-white/85 text-black flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
-              aria-label="Pause cover video"
-            >
-              <Pause className="h-8 w-8" />
-            </button>
-          )}
-          
-          {/* Title and Description Overlay (keeps interactive even when video is playing) */}
-          <div className={`absolute bottom-0 left-0 right-0 p-8 lg:p-16`}>
-            <div className="max-w-4xl">
+      <div className="w-full lg:h-screen lg:overflow-hidden" style={{ paddingLeft: '1%', paddingRight: '1%' }}>
+        <div className="flex flex-col lg:flex-row lg:h-full gap-0">
+          {/* Left fixed info panel */}
+          <section className="shrink-0 w-full lg:w-[32%] xl:w-[30%] lg:h-full overflow-hidden lg:border-r border-border/40">
+            <div className="h-full flex flex-col py-8 pr-6">
               <Link
                 href={categorySlug ? `/${categorySlug}` : '/'}
-                className="inline-flex items-center gap-2 text-sm font-medium text-white/80 transition hover:text-white mb-6"
+                className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-foreground mb-6"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to {categoryName || 'Home'}
@@ -172,7 +252,7 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
                     <Badge
                       key={category.id}
                       variant="outline"
-                      className="cursor-pointer border-white/30 bg-white/10 text-white text-xs uppercase tracking-widest transition hover:bg-white/20"
+                      className="cursor-pointer border-border/60 bg-background/60 text-xs uppercase tracking-widest transition hover:bg-accent/20"
                       asChild
                     >
                       <Link href={`/${category.slug}`}>
@@ -183,36 +263,15 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
                 </div>
               )}
 
-              <motion.h1
-                layout
-                className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-6"
-              >
+              <motion.h1 layout className="text-4xl lg:text-5xl font-bold tracking-tight mb-4">
                 {project.title}
               </motion.h1>
 
               {project.blurb && (
-                <p className="text-lg lg:text-xl leading-relaxed text-white/90 max-w-3xl">
+                <p className="text-base lg:text-lg leading-relaxed text-muted-foreground mb-8">
                   {project.blurb}
                 </p>
               )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Testimonials Section */}
-      {project.testimonials && project.testimonials.length > 0 && (
-        <TestimonialsScroll testimonials={project.testimonials} />
-      )}
-
-      <main className="w-full py-12 lg:py-20" style={{ paddingLeft: '5%', paddingRight: '1%' }}>
-        <div className="flex flex-col lg:flex-row gap-8" onMouseLeave={() => setHovered(null)}>
-          {/* Text column */}
-          <section
-            ref={leftRef}
-            onMouseEnter={() => setHovered('left')}
-            className={`space-y-10 transition-all duration-300 ${hovered === 'right' ? 'lg:basis-1/4' : hovered === 'left' ? 'lg:basis-3/4' : 'lg:basis-1/2'}`}
-          >
 
             <dl className="grid gap-4 text-sm text-muted-foreground">
               {project.client && (
@@ -269,59 +328,95 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
                 </dd>
               </div>
             )}
-
-            {(project.content || blocks.length > 0) && (
-              <div className="space-y-10">
+            {(project.content || textBlocks.length > 0) && (
+              <div className="space-y-8 mt-8 pr-2">
                 {project.content && (
-                  <div className="prose prose-lg max-w-none text-foreground/90">
+                  <div className="prose prose-sm lg:prose lg:max-w-none text-foreground/90">
                     <div dangerouslySetInnerHTML={{ __html: project.content }} />
                   </div>
                 )}
-                {blocks.length > 0 && (
+                {textBlocks.length > 0 && (
                   <ContentBlocksRenderer
-                    blocks={blocks.map((block) => {
-                      const isBeforeAfterMarker = block.block_type === 'gallery' && block.content === '__before_after__';
-                      const mapped = isBeforeAfterMarker
-                        ? { ...block, block_type: 'before_after', content: undefined }
-                        : block;
-                      return {
-                        ...mapped,
-                        content: mapped.content ?? undefined,
-                        media_url: mapped.media_url ?? undefined,
-                        media_urls: mapped.media_urls ?? undefined,
-                      } as any;
-                    })}
+                    blocks={textBlocks as any}
                   />
                 )}
               </div>
             )}
+            </div>
           </section>
 
-          {/* Gallery column */}
-          <aside
-            onMouseEnter={() => setHovered('right')}
-            className={`lg:overflow-y-auto lg:pr-2 scrollbar-hide transition-all duration-300 ${hovered === 'left' ? 'lg:basis-1/4' : hovered === 'right' ? 'lg:basis-3/4' : 'lg:basis-1/2'}`}
-            style={{ height: leftHeight ? `${leftHeight}px` : undefined }}
-          >
-            <div className="grid gap-6">
-              {galleryItems.map((item, index) => (
-                <div
-                  key={item.id}
-                  className="relative block overflow-hidden rounded-2xl"
-                >
-                  <Image
-                    src={item.url}
-                    alt={`${project.title} image ${index + 1}`}
-                    width={1200}
-                    height={800}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
+          {/* Right scrollable column */}
+          <aside ref={rightRef} className="flex-1 lg:min-h-0 lg:h-full lg:overflow-y-auto scrollbar-hide overscroll-contain">
+            {/* Cover at top, edge-to-edge */}
+            {project.cover_image && (
+              <div className="relative">
+                {isPlaying && project.cover_video_url ? (
+                  embedInfo.kind === 'direct' ? (
+                    <video className="w-full h-auto bg-black" src={embedInfo.embedUrl} autoPlay muted playsInline />
+                  ) : embedInfo.embedUrl ? (
+                    <div className="w-full aspect-video">
+                      <iframe
+                        src={embedInfo.embedUrl}
+                        className="w-full h-full"
+                        allow="autoplay; fullscreen; picture-in-picture"
+                        allowFullScreen
+                        frameBorder={0}
+                      />
+                    </div>
+                  ) : null
+                ) : (
+                  <img src={project.cover_image} alt={project.title} className="block w-full h-auto" />
+                )}
+                {project.cover_video_url && (
+                  <button
+                    type="button"
+                    onClick={() => setIsPlaying((p) => !p)}
+                    className="absolute bottom-3 right-3 z-10 h-12 w-12 rounded-full bg-white/85 text-black flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+                    aria-label={isPlaying ? 'Pause cover video' : 'Play cover video'}
+                  >
+                    {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Testimonials directly under cover */}
+            {project.testimonials && project.testimonials.length > 0 && (
+              <TestimonialsScroll testimonials={project.testimonials} />
+            )}
+
+            {/* Single (edge-to-edge) images in order */}
+            {singleItems.map((m) => (
+              <div key={m.id} className="w-full">
+                <img src={m.url} alt={project.title} className="block w-full h-auto" />
+              </div>
+            ))}
+
+            {/* Content-block videos as singles */}
+            {videoBlocks.map((b) => (
+              <div key={`vb-${b.id}`} className="w-full">
+                <video src={b.media_url!} className="w-full h-auto" controls playsInline />
+              </div>
+            ))}
+
+            {/* Content-block before/after as singles (use renderer for slider) */}
+            {normalizedBeforeAfterBlocks.map((b) => (
+              <div key={`ba-${b.id || b.display_order}`} className="w-full">
+                <ContentBlocksRenderer blocks={[b] as any} />
+              </div>
+            ))}
+
+            {/* Justified rows for masonry items and image-type content blocks */}
+            {(() => {
+              const items = [
+                ...masonryItems.map((m) => ({ id: m.id, url: m.url })),
+                ...blocks.flatMap((b) => (b.block_type === 'image' && b.media_url ? [{ id: `b-${b.id}`, url: b.media_url }] : [] as Array<{ id: string; url: string }>)),
+              ];
+              return <JustifiedGrid items={items} alt={project.title} />;
+            })()}
           </aside>
         </div>
-      </main>
+      </div>
 
     </div>
   );

@@ -61,7 +61,8 @@ interface EditProjectFormProps {
 export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProjectFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categoriesData, setCategoriesData] = useState<any[]>([]);
-  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  type GalleryItem = { url: string; layout: 'single' | 'masonry' };
+  const [galleryImages, setGalleryImages] = useState<GalleryItem[]>([]);
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([]);
   const [testimonials, setTestimonials] = useState<string[]>([]);
 
@@ -86,12 +87,12 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
       // Load gallery images
       const { data: mediaData } = await supabase
         .from('media')
-        .select('*')
+        .select('id, url, media_type, display_order, layout')
         .eq('project_id', project.id)
         .order('display_order');
       
       if (mediaData) {
-        setGalleryImages(mediaData.map(m => m.url));
+        setGalleryImages(mediaData.map((m: any) => ({ url: m.url, layout: (m.layout as any) || 'masonry' })));
       }
 
       // Load testimonials
@@ -262,10 +263,11 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
       await supabase.from('media').delete().eq('project_id', project.id);
       if (galleryImages.length > 0) {
         await supabase.from('media').insert(
-          galleryImages.map((url, index) => ({
+          galleryImages.map((item, index) => ({
             project_id: project.id,
             media_type: 'image',
-            url: url,
+            url: item.url,
+            layout: item.layout,
             display_order: index,
           }))
         );
@@ -649,17 +651,36 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                 <div className="space-y-2">
                   <Label>Gallery Images</Label>
                   <div className="grid gap-4 md:grid-cols-2">
-                    {galleryImages.map((img, index) => (
+                    {galleryImages.map((item, index) => (
                       <div key={index} className="space-y-2">
                         <ImageUpload
-                          value={img}
+                          value={item.url}
                           onChange={(url) => {
-                            const newImages = [...galleryImages];
-                            newImages[index] = url;
-                            setGalleryImages(newImages);
+                            const next = [...galleryImages];
+                            next[index] = { ...next[index], url };
+                            setGalleryImages(next);
                           }}
                           bucket="media"
                         />
+                        <div className="flex items-center gap-2">
+                          <Label className="text-xs">Layout</Label>
+                          <Select
+                            value={item.layout}
+                            onValueChange={(value: 'single' | 'masonry') => {
+                              const next = [...galleryImages];
+                              next[index] = { ...next[index], layout: value };
+                              setGalleryImages(next);
+                            }}
+                          >
+                            <SelectTrigger className="h-8 w-36">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="single">Single</SelectItem>
+                              <SelectItem value="masonry">Masonry</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                         <Button
                           type="button"
                           variant="outline"
@@ -675,7 +696,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setGalleryImages([...galleryImages, ''])}
+                    onClick={() => setGalleryImages([...galleryImages, { url: '', layout: 'masonry' }])}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Gallery Image
