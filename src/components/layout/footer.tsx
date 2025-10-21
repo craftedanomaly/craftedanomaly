@@ -1,16 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Globe, Mail, Instagram, Twitter, Linkedin, Youtube, Phone, Palette, Dribbble } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { Mail, Instagram, Twitter, Linkedin, Youtube, Phone, Palette, Dribbble } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 
 export function Footer() {
   const locale = 'en';
-  const router = useRouter();
-  const pathname = usePathname();
   const [settings, setSettings] = useState<any>({});
 
   useEffect(() => {
@@ -93,22 +88,15 @@ export function Footer() {
     },
   ].filter(link => link.show);
 
-  const footerLinks = [
-    { label: 'Films', href: '/films' },
-    { label: 'Spatial Design', href: '/mekan-tasarimi' },
-    { label: 'Visual Design', href: '/gorsel-tasarim' },
-    { label: 'Games', href: '/games' },
-    { label: 'Books', href: '/books' },
-    { label: 'Contact', href: '/contact' },
-  ];
+  // Removed explore links; keep footer minimal
 
   return (
     <footer className="border-t border-border bg-card dark:bg-card light:bg-white light:border-slate-200">
       <div className="container mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
-        <div className="py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="py-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Brand */}
-            <div className="lg:col-span-2">
+            <div>
               <h3 className="text-lg font-semibold text-foreground mb-4">
                 {settings.company_name || 'crafted anomaly'}
               </h3>
@@ -137,27 +125,7 @@ export function Footer() {
                 })}
               </div>
             </div>
-
-            {/* Quick Links */}
-            <div>
-              <h4 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wider">
-                {settings.footer_explore_title || 'explore'}
-              </h4>
-              <ul className="space-y-3">
-                {footerLinks.map((link, index) => (
-                  <li key={index}>
-                    <Link
-                      href={link.href}
-                      className="text-sm text-muted-foreground hover:text-accent transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Contact & Language */}
+            {/* Contact */}
             <div>
               <h4 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wider">
                 {settings.footer_contact_title || 'contact'}
@@ -186,28 +154,13 @@ export function Footer() {
                     {settings.contact_address}
                   </p>
                 )}
-                {/* Language Toggle */}
-                <div className="pt-4">
-                  <div className="flex items-center space-x-3">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      English
-                    </span>
-                  </div>
-                  <Switch
-                    checked={false}
-                    onCheckedChange={toggleLanguage}
-                    className="data-[state=checked]:bg-accent"
-                    disabled
-                  />
-                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-border py-6">
+        <div className="border-t border-border py-4">
           <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
             <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} {settings.company_name || 'crafted anomaly'}. {settings.footer_copyright_text || 'all rights reserved'}.

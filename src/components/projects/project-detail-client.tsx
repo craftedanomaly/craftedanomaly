@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { TestimonialsScroll } from './testimonials-scroll';
 import { ContentBlocksRenderer } from './content-blocks-renderer';
 import { CustomVideoPlayer } from '@/components/ui/custom-video-player';
-import { Footer } from '@/components/layout/footer';
+// Footer overlay removed; use global footer only
 
 interface ProjectDetailClientProps {
   project: {
@@ -174,12 +174,13 @@ function JustifiedGrid({ items, alt }: { items: Array<{ id: string; url: string 
     <div ref={containerRef} className="w-full">
       <div className="flex flex-wrap gap-0">
         {layout.map((it) => (
-          <AnimatedImage 
+          <div 
             key={it.id} 
-            src={it.url} 
-            alt={alt} 
             style={{ width: it.width, height: it.height }} 
-          />
+            className="relative border-r border-b border-orange-500 dark:border-white"
+          >
+            <AnimatedImage src={it.url} alt={alt} style={{ width: '100%', height: '100%' }} />
+          </div>
         ))}
       </div>
     </div>
@@ -237,105 +238,33 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
     return blocks.filter((b) => b.block_type === 'video' && !!b.media_url);
   }, [blocks]);
 
-  // Right panel ref to coordinate scroll
+  // Refs for left and right panels to coordinate scroll
+  const leftRef = useRef<HTMLDivElement>(null);
   const rightRef = useRef<HTMLDivElement>(null);
-  const [footerVisible, setFooterVisible] = useState(false);
-  const [footerReveal, setFooterReveal] = useState(0); // 0 hidden -> 1 fully visible (footer height)
-  const FOOTER_HEIGHT = 460; // approximate height of footer overlay
+  // Footer overlay logic removed
 
   useEffect(() => {
-    const el = rightRef.current;
-    if (!el) return;
-
-    const routeWheelToRight = (e: WheelEvent) => {
-      if (window.innerWidth < 1024) return; // only lg+
-      const atTop = el.scrollTop <= 0;
-      const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
-      e.preventDefault();
-      // Always route to right panel and never bubble to page; keep left fixed
-      if (e.deltaY < 0 && atTop) {
-        el.scrollTop = 0;
-      } else if (e.deltaY > 0 && atBottom) {
-        // keep at bottom; reveal handled by onScroll
-      } else {
-        el.scrollTop += e.deltaY;
-      }
-    };
-
-    let lastTouchY = 0;
-    const onTouchStart = (e: TouchEvent) => {
-      if (window.innerWidth < 1024) return;
-      lastTouchY = e.touches[0]?.clientY ?? 0;
-    };
-    const onTouchMove = (e: TouchEvent) => {
-      if (window.innerWidth < 1024) return;
-      const currentY = e.touches[0]?.clientY ?? lastTouchY;
-      const deltaY = lastTouchY - currentY;
-      lastTouchY = currentY;
-      const atTop = el.scrollTop <= 0;
-      const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
-      e.preventDefault();
-      if (atTop && deltaY < 0) {
-        el.scrollTop = 0;
-      } else if (atBottom && deltaY > 0) {
-        // keep at bottom; reveal handled by onScroll
-      } else {
-        el.scrollTop += deltaY;
-      }
-    };
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (window.innerWidth < 1024) return;
-      const keyScrollAmount = el.clientHeight * 0.9;
-      if (['PageDown', 'PageUp', 'ArrowDown', 'ArrowUp', 'Space'].includes(e.code)) {
-        const atTop = el.scrollTop <= 0;
-        const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
-        let delta = 0;
-        if (e.code === 'PageDown' || (e.code === 'Space' && !e.shiftKey) || e.code === 'ArrowDown') delta = keyScrollAmount;
-        if (e.code === 'PageUp' || (e.code === 'Space' && e.shiftKey) || e.code === 'ArrowUp') delta = -keyScrollAmount;
-        if (delta !== 0) {
-          e.preventDefault();
-          if (atTop && delta < 0) {
-            el.scrollTop = 0;
-          } else if (atBottom && delta > 0) {
-            // keep at bottom; reveal handled by onScroll
-          } else {
-            el.scrollTop += delta;
-          }
-        }
-      }
-    };
-
-    window.addEventListener('wheel', routeWheelToRight, { passive: false });
-    window.addEventListener('touchstart', onTouchStart, { passive: false });
-    window.addEventListener('touchmove', onTouchMove, { passive: false });
-    window.addEventListener('keydown', onKeyDown, { passive: false });
-    return () => {
-      window.removeEventListener('wheel', routeWheelToRight as any);
-      window.removeEventListener('touchstart', onTouchStart as any);
-      window.removeEventListener('touchmove', onTouchMove as any);
-      window.removeEventListener('keydown', onKeyDown as any);
-    };
+    // Independent scroll for left and right; no global routing
   }, []);
 
-  const onRightScroll = () => {
-    const el = rightRef.current;
-    if (!el) return;
-    const maxScrollTop = el.scrollHeight - el.clientHeight;
-    const gap = Math.max(0, maxScrollTop - el.scrollTop);
-    // Start revealing when within FOOTER_HEIGHT of the bottom
-    const reveal = Math.max(0, Math.min(1, (FOOTER_HEIGHT - gap) / FOOTER_HEIGHT));
-    setFooterReveal(reveal);
-    setFooterVisible(reveal > 0.01);
-  };
+  // onRightScroll removed
+
+  // Build grid items for justified rows (no lightbox)
+  const gridItems = useMemo(() => {
+    const items = [
+      ...masonryItems.map((m) => ({ id: m.id, url: m.url })),
+      ...blocks.flatMap((b) => (b.block_type === 'image' && b.media_url ? [{ id: `b-${b.id}`, url: b.media_url }] : [] as Array<{ id: string; url: string }>)),
+    ];
+    return items;
+  }, [masonryItems, blocks]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="w-full lg:h-screen lg:overflow-hidden" style={{ paddingLeft: '1%', paddingRight: '1%' }}>
         <div className="flex flex-col lg:flex-row lg:h-full gap-0">
-          {/* Left fixed info panel */}
-          <section className="shrink-0 w-full lg:w-[40%] xl:w-[40%] lg:h-full overflow-hidden lg:border-r border-border/40">
-            <div className="h-full flex flex-col py-8 pr-6">
+          {/* Left info panel (scrollable) */}
+          <section className="shrink-0 w-full lg:w-[40%]">
+            <div ref={leftRef} className="h-[calc(100vh-4rem)] lg:h-full lg:min-h-0 overflow-y-auto flex flex-col py-8 pr-6">
               <Link
                 href={categorySlug ? `/${categorySlug}` : '/'}
                 className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-foreground mb-6"
@@ -450,9 +379,12 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
             </div>
           </section>
 
+          {/* Vertical divider between columns */}
+          <div className="hidden lg:block w-px bg-orange-500 dark:bg-white" />
+
           {/* Right scrollable column */}
-          <aside ref={rightRef} onScroll={onRightScroll} className="flex-1 lg:min-h-0 lg:h-full lg:overflow-y-auto scrollbar-hide relative">
-            <div style={{ paddingBottom: FOOTER_HEIGHT }}>
+          <aside ref={rightRef} className="w-full lg:w-[60%] lg:min-h-0 lg:h-full lg:overflow-y-auto scrollbar-hide relative">
+            <div className="divide-y divide-orange-500 dark:divide-white">
             {/* Cover at top, edge-to-edge */}
             {project.cover_image && (
               <div className="relative">
@@ -505,21 +437,20 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
               );
             })}
 
-            {/* Content-block videos as singles */}
+            {/* Content-block videos as singles (use renderer to support YouTube/Vimeo) */}
             {videoBlocks.map((b) => {
               const ref = useRef(null);
               const isInView = useInView(ref, { once: true, margin: '-100px' });
-              
               return (
-                <motion.div 
-                  key={`vb-${b.id}`} 
+                <motion.div
+                  key={`vb-${b.id}`}
                   ref={ref}
                   className="w-full"
                   initial={{ opacity: 0, y: 50 }}
                   animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
                   transition={{ duration: 0.6, ease: 'easeOut' }}
                 >
-                  {b.media_url && <CustomVideoPlayer src={b.media_url} className="w-full h-auto" />}
+                  <ContentBlocksRenderer blocks={[b] as any} />
                 </motion.div>
               );
             })}
@@ -545,11 +476,7 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
 
             {/* Justified rows for masonry items and image-type content blocks */}
             {(() => {
-              const items = [
-                ...masonryItems.map((m) => ({ id: m.id, url: m.url })),
-                ...blocks.flatMap((b) => (b.block_type === 'image' && b.media_url ? [{ id: `b-${b.id}`, url: b.media_url }] : [] as Array<{ id: string; url: string }>)),
-              ];
-              return <JustifiedGrid items={items} alt={project.title} />;
+              return <JustifiedGrid items={gridItems} alt={project.title} />;
             })()}
             </div>
 
@@ -557,10 +484,7 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
         </div>
       </div>
 
-      {/* Full-width Footer Overlay */}
-      <div className={`fixed bottom-0 left-0 right-0 z-50`} style={{ transform: `translateY(${(1 - footerReveal) * 100}%)`, transition: 'transform 250ms ease-out' }}>
-        <Footer />
-      </div>
+      {/* Lightbox removed intentionally */}
     </div>
   );
 }

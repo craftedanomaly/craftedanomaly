@@ -110,9 +110,9 @@ export function ContentBlocksRenderer({ blocks }: ContentBlocksRendererProps) {
 
       case 'gallery':
         return (
-          <motion.div {...baseAnimation} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <motion.div {...baseAnimation} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0">
             {block.media_urls?.map((url, idx) => (
-              <div key={idx} className="relative aspect-square rounded-lg overflow-hidden">
+              <div key={idx} className="relative aspect-square overflow-hidden border-r border-b border-orange-500 dark:border-white">
                 <Image
                   src={url}
                   alt=""
@@ -125,28 +125,102 @@ export function ContentBlocksRenderer({ blocks }: ContentBlocksRendererProps) {
         );
 
       case 'video':
-        return (
-          <motion.div {...baseAnimation} className="relative aspect-video rounded-lg overflow-hidden bg-black">
-            {block.media_url && (
+        if (block.media_url) {
+          const raw = String(block.media_url || '').trim();
+          const url = raw;
+          const lower = url.toLowerCase();
+          const isYouTube = lower.includes('youtu'); // covers youtube.com, youtu.be, shorts
+          const isVimeo = lower.includes('vimeo.com');
+
+          if (isYouTube) {
+            const getYouTubeId = (u: string) => {
+              try {
+                const parsed = new URL(u);
+                const host = parsed.hostname.toLowerCase();
+                if (host.includes('youtu.be')) {
+                  // /<id>
+                  const seg = parsed.pathname.split('/').filter(Boolean)[0];
+                  if (seg && seg.length === 11) return seg;
+                }
+                if (parsed.pathname.startsWith('/watch')) {
+                  const v = parsed.searchParams.get('v');
+                  if (v && v.length === 11) return v;
+                }
+                // /embed/<id>, /v/<id>, /shorts/<id>
+                const parts = parsed.pathname.split('/').filter(Boolean);
+                const idx = parts.findIndex(p => ['embed', 'v', 'shorts'].includes(p));
+                if (idx !== -1 && parts[idx + 1] && parts[idx + 1].length === 11) return parts[idx + 1];
+              } catch {}
+              // Regex fallback
+              const regExp = /^.*(?:youtu\.be\/|shorts\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]{11}).*/;
+              const match = u.match(regExp);
+              return match ? match[1] : null;
+            };
+            const id = getYouTubeId(url);
+            if (id) {
+              return (
+                <motion.div {...baseAnimation} className="relative aspect-video rounded-lg overflow-hidden">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${id}?rel=0`}
+                    title="YouTube video player"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                </motion.div>
+              );
+            }
+          }
+
+          if (isVimeo) {
+            const getVimeoId = (u: string) => {
+              const m = u.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+              return m ? m[1] : null;
+            };
+            const id = getVimeoId(url);
+            if (id) {
+              return (
+                <motion.div {...baseAnimation} className="relative aspect-video rounded-lg overflow-hidden">
+                  <iframe
+                    src={`https://player.vimeo.com/video/${id}`}
+                    title="Vimeo video player"
+                    frameBorder="0"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                </motion.div>
+              );
+            }
+          }
+
+          // Fallback to direct video
+          return (
+            <motion.div {...baseAnimation} className="relative aspect-video rounded-lg overflow-hidden bg-black">
               <video
                 controls
                 className="w-full h-full"
                 poster={block.content || undefined}
               >
-                <source src={block.media_url} type="video/mp4" />
+                <source src={url} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
-            )}
-          </motion.div>
-        );
+            </motion.div>
+          );
+        }
+        return null;
 
       case 'embed':
         // Handle YouTube embeds
         if (block.content?.includes('youtube.com') || block.content?.includes('youtu.be')) {
           const getYouTubeId = (url: string) => {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            // Support shorts and other URL patterns, capture exactly 11-char ID
+            const regExp = /^.*(?:youtu\.be\/|shorts\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]{11}).*/;
             const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
+            return match ? match[1] : null;
           };
 
           const videoId = getYouTubeId(block.content);
@@ -155,10 +229,36 @@ export function ContentBlocksRenderer({ blocks }: ContentBlocksRendererProps) {
             return (
               <motion.div {...baseAnimation} className="relative aspect-video rounded-lg overflow-hidden">
                 <iframe
-                  src={`https://www.youtube.com/embed/${videoId}`}
+                  src={`https://www.youtube.com/embed/${videoId}?rel=0`}
                   title="YouTube video player"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                  className="w-full h-full"
+                />
+              </motion.div>
+            );
+          }
+        }
+
+        // Handle Vimeo embeds
+        if (block.content?.includes('vimeo.com')) {
+          const getVimeoId = (url: string) => {
+            // Matches vimeo.com/123456789 or player.vimeo.com/video/123456789
+            const m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+            return m ? m[1] : null;
+          };
+          const vimeoId = getVimeoId(block.content);
+          if (vimeoId) {
+            return (
+              <motion.div {...baseAnimation} className="relative aspect-video rounded-lg overflow-hidden">
+                <iframe
+                  src={`https://player.vimeo.com/video/${vimeoId}`}
+                  title="Vimeo video player"
+                  frameBorder="0"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  referrerPolicy="strict-origin-when-cross-origin"
                   allowFullScreen
                   className="w-full h-full"
                 />
@@ -200,7 +300,11 @@ export function ContentBlocksRenderer({ blocks }: ContentBlocksRendererProps) {
         if (beforeUrl && afterUrl) {
           return (
             <motion.div {...baseAnimation}>
-              <CompareSlider beforeUrl={beforeUrl} afterUrl={afterUrl} description={block.content} />
+              <CompareSlider 
+                beforeUrl={beforeUrl} 
+                afterUrl={afterUrl} 
+                description={block.content && block.content !== '__before_after__' ? block.content : undefined} 
+              />
             </motion.div>
           );
         }

@@ -13,26 +13,32 @@ export function TestimonialsScroll({ testimonials }: TestimonialsScrollProps) {
     const el = scrollRef.current;
     if (!el || testimonials.length === 0) return;
 
-    let rafId: number;
     let isDragging = false;
     let startX = 0;
     let startScrollLeft = 0;
-    const speed = 0.5; // px per frame
+    let hoverActive = false;
+    let hoverX = 0;
+    let panRaf = 0;
 
-    const getSingleWidth = () => el.scrollWidth / 2; // duplicated content => half is one loop
-
-    const tick = () => {
-      if (!isDragging) {
-        el.scrollLeft += speed;
-        const single = getSingleWidth();
-        if (el.scrollLeft >= single) el.scrollLeft -= single;
+    const updateScales = () => {
+      const containerRect = el.getBoundingClientRect();
+      const centerX = containerRect.left + containerRect.width / 2;
+      const items = Array.from(el.querySelectorAll('[data-t-item="1"]')) as HTMLDivElement[];
+      for (const item of items) {
+        const r = item.getBoundingClientRect();
+        const itemCenter = r.left + r.width / 2;
+        const dist = Math.abs(itemCenter - centerX);
+        const maxDist = containerRect.width / 2;
+        const t = Math.max(0, 1 - dist / maxDist); // 1 at center -> 0 at far edge
+        const scale = 0.6 + 0.4 * t; // 0.6..1.0
+        const opacity = 0.5 + 0.5 * t; // 0.5..1
+        item.style.transform = `scale(${scale})`;
+        item.style.opacity = `${opacity}`;
       }
-      rafId = requestAnimationFrame(tick);
     };
 
-    rafId = requestAnimationFrame(tick);
-
     const onPointerDown = (e: PointerEvent) => {
+      e.preventDefault();
       isDragging = true;
       startX = e.clientX;
       startScrollLeft = el.scrollLeft;
@@ -40,12 +46,11 @@ export function TestimonialsScroll({ testimonials }: TestimonialsScrollProps) {
       el.style.cursor = 'grabbing';
     };
     const onPointerMove = (e: PointerEvent) => {
+      hoverX = e.clientX;
       if (!isDragging) return;
       const dx = e.clientX - startX;
       el.scrollLeft = startScrollLeft - dx;
-      const single = getSingleWidth();
-      if (el.scrollLeft >= single) el.scrollLeft -= single;
-      if (el.scrollLeft < 0) el.scrollLeft += single;
+      updateScales();
     };
     const onPointerUp = (e: PointerEvent) => {
       isDragging = false;
@@ -55,25 +60,60 @@ export function TestimonialsScroll({ testimonials }: TestimonialsScrollProps) {
     const onWheel = (e: WheelEvent) => {
       const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
       el.scrollLeft += delta;
-      const single = getSingleWidth();
-      if (el.scrollLeft >= single) el.scrollLeft -= single;
-      if (el.scrollLeft < 0) el.scrollLeft += single;
+      updateScales();
       e.preventDefault();
     };
+    const onScroll = () => updateScales();
+    const onResize = () => updateScales();
+
+    const onPointerEnter = () => { hoverActive = true; };
+    const onPointerLeave = () => { hoverActive = false; };
+
+    const edgePanTick = () => {
+      if (hoverActive && !isDragging) {
+        const rect = el.getBoundingClientRect();
+        const margin = Math.max(40, rect.width * 0.15);
+        let speed = 0;
+        if (hoverX < rect.left + margin) {
+          const ratio = (rect.left + margin - hoverX) / margin; // 0..1
+          speed = -6 * ratio; // px/frame
+        } else if (hoverX > rect.right - margin) {
+          const ratio = (hoverX - (rect.right - margin)) / margin;
+          speed = 6 * ratio;
+        }
+        if (speed !== 0) {
+          el.scrollLeft += speed;
+          updateScales();
+        }
+      }
+      panRaf = requestAnimationFrame(edgePanTick);
+    };
+    panRaf = requestAnimationFrame(edgePanTick);
 
     el.addEventListener('pointerdown', onPointerDown);
     el.addEventListener('pointermove', onPointerMove);
     el.addEventListener('pointerup', onPointerUp);
     el.addEventListener('pointercancel', onPointerUp);
     el.addEventListener('wheel', onWheel, { passive: false });
+    el.addEventListener('scroll', onScroll, { passive: true });
+    el.addEventListener('pointerenter', onPointerEnter);
+    el.addEventListener('pointerleave', onPointerLeave);
+    window.addEventListener('resize', onResize);
+
+    // initial
+    updateScales();
 
     return () => {
-      cancelAnimationFrame(rafId);
+      cancelAnimationFrame(panRaf);
       el.removeEventListener('pointerdown', onPointerDown);
       el.removeEventListener('pointermove', onPointerMove);
       el.removeEventListener('pointerup', onPointerUp);
       el.removeEventListener('pointercancel', onPointerUp);
       el.removeEventListener('wheel', onWheel as any);
+      el.removeEventListener('scroll', onScroll as any);
+      el.removeEventListener('pointerenter', onPointerEnter as any);
+      el.removeEventListener('pointerleave', onPointerLeave as any);
+      window.removeEventListener('resize', onResize);
     };
   }, [testimonials]);
 
@@ -81,8 +121,7 @@ export function TestimonialsScroll({ testimonials }: TestimonialsScrollProps) {
     return null;
   }
 
-  // Duplicate testimonials for seamless infinite scroll
-  const duplicatedTestimonials = [...testimonials, ...testimonials];
+  const list = testimonials;
 
   return (
     <section className="py-6">
@@ -94,15 +133,18 @@ export function TestimonialsScroll({ testimonials }: TestimonialsScrollProps) {
         className="flex gap-8 overflow-x-auto items-center py-2 scrollbar-hide cursor-grab select-none"
         style={{ scrollBehavior: 'auto' }}
       >
-        {duplicatedTestimonials.map((testimonial, index) => (
+        {list.map((testimonial, index) => (
           <div
             key={`${testimonial}-${index}`}
-            className="flex-shrink-0 h-16 flex items-center justify-center"
+            className="flex-shrink-0 h-16 flex items-center justify-center transition-transform duration-150 will-change-transform"
+            data-t-item="1"
           >
             <img
               src={testimonial}
-              alt={`Award ${(index % testimonials.length) + 1}`}
+              alt={`Award ${index + 1}`}
               className="max-h-16 object-contain"
+              draggable={false}
+              onDragStart={(e) => e.preventDefault()}
             />
           </div>
         ))}
