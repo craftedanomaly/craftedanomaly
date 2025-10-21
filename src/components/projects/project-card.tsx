@@ -147,8 +147,26 @@ export function ProjectCard({ project, index, variant = 'default' }: ProjectCard
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
+          {/* Full-card hover media overlay (cover image spans entire card area) */}
+          {project.cover_image && (
+            <div className={`pointer-events-none absolute inset-0 z-40 transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+              <img src={project.cover_image} alt={title} className="w-full h-full object-cover" />
+            </div>
+          )}
+
+          {/* Full-card gradient + CTA overlay */}
+          <div className={`pointer-events-none absolute inset-0 z-50 transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+            <div className="absolute bottom-4 left-4 right-4">
+              <h3 className="text-lg font-bold text-white mb-3 font-heading">{title}</h3>
+              <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+                View Project
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+          </div>
           {/* Cover Image section */}
-          <div className="relative aspect-[4/3] overflow-hidden">
+          <div className="relative aspect-[4/3] overflow-hidden z-0">
             {project.cover_image && !project.cover_image.startsWith('blob:') ? (
               <Image
                 {...getOptimizedImageProps(
@@ -168,33 +186,17 @@ export function ProjectCard({ project, index, variant = 'default' }: ProjectCard
               </div>
             )}
 
-            {/* Hover overlay UI (title and CTA) */}
-            <div className={`absolute inset-0 z-20 bg-gradient-to-t from-black/90 via-black/30 to-transparent transition-opacity duration-500 ${
-              isHovered ? 'opacity-100' : 'opacity-0'
-            }`}>
-              <div className="absolute bottom-4 left-4 right-4">
-                <h3 className="text-lg font-bold text-white mb-3 font-heading">
-                  {title}
-                </h3>
-                <Button 
-                  size="sm"
-                  className="bg-accent text-accent-foreground hover:bg-accent/90"
-                >
-                  View Project
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
-            </div>
+            
 
             {/* View Count */}
-            <div className="absolute top-3 right-3 z-30 bg-background/80 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
+            <div className="absolute top-3 right-3 z-[60] bg-background/80 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
               <Eye className="h-3 w-3 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">{project.view_count}</span>
             </div>
           </div>
 
-          {/* Content fades on hover but keeps height to let video overlay cover full card area */}
-          <div className={`p-6 transition-all duration-300 ${isHovered ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}>
+          {/* Content fades quickly on hover but keeps height so overlay covers full card */}
+          <div className={`p-6 transition-all duration-150 ${isHovered ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}>
             <div className="mb-4">
               <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-accent transition-colors font-heading">
                 {title}
