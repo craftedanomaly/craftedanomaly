@@ -615,40 +615,85 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Label>Testimonial Images</Label>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {testimonials.map((img, index) => (
-                      <div key={index} className="space-y-2">
-                        <ImageUpload
-                          value={img}
-                          onChange={(url) => {
-                            const newImages = [...testimonials];
-                            newImages[index] = url;
-                            setTestimonials(newImages);
-                          }}
-                          bucket="media"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                          onClick={() => setTestimonials(testimonials.filter((_, i) => i !== index))}
-                        >
-                          Remove Image
-                        </Button>
+                  
+                  {/* Multiple file upload */}
+                  <div className="space-y-4">
+                    <div className="border-2 border-dashed border-border rounded-lg p-6">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*,.gif"
+                        onChange={async (e) => {
+                          const files = Array.from(e.target.files || []);
+                          if (files.length === 0) return;
+                          
+                          const uploadPromises = files.map(async (file) => {
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            
+                            try {
+                              const response = await fetch('/api/upload', {
+                                method: 'POST',
+                                body: formData,
+                              });
+                              
+                              if (response.ok) {
+                                const data = await response.json();
+                                return data.url;
+                              }
+                            } catch (error) {
+                              console.error('Upload error:', error);
+                            }
+                            return null;
+                          });
+                          
+                          const uploadedUrls = await Promise.all(uploadPromises);
+                          const validUrls = uploadedUrls.filter(Boolean);
+                          
+                          if (validUrls.length > 0) {
+                            setTestimonials([...testimonials, ...validUrls]);
+                          }
+                        }}
+                        className="w-full"
+                      />
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Select multiple images (PNG, JPG, GIF supported)
+                        </p>
                       </div>
-                    ))}
+                    </div>
+                    
+                    {/* Display uploaded testimonials */}
+                    {testimonials.length > 0 && (
+                      <div className="grid gap-4 md:grid-cols-3">
+                        {testimonials.map((img, index) => (
+                          <div key={index} className="space-y-2">
+                            <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
+                              {img && (
+                                <img 
+                                  src={img} 
+                                  alt={`Testimonial ${index + 1}`}
+                                  className="w-full h-full object-contain"
+                                />
+                              )}
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => setTestimonials(testimonials.filter((_, i) => i !== index))}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setTestimonials([...testimonials, ''])}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Testimonial Image
-                  </Button>
+                  
                   <p className="text-xs text-muted-foreground">
-                    Add laurel images or testimonial graphics. These will scroll horizontally on the project page.
+                    Add laurel images or testimonial graphics. These will scroll horizontally on the project page with orange overlay.
                   </p>
                 </div>
               </div>

@@ -2,6 +2,9 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { CategoryPageClient } from '@/components/category/category-page-client';
 
+// Ensure newly created projects appear immediately without a full rebuild
+export const dynamic = 'force-dynamic';
+
 // Revalidate every 60 seconds - ISR strategy
 export const revalidate = 60;
 
@@ -107,15 +110,19 @@ async function getCategoryData(slug: string) {
         title,
         blurb,
         cover_image,
+        cover_video_url,
         year,
         role_en,
         role_tr,
         client,
         published_at,
-        view_count
+        view_count,
+        project_categories!inner(
+          category_id
+        )
       `)
-      .eq('category_id', category.id)
       .eq('status', 'published')
+      .eq('project_categories.category_id', category.id)
       .order('published_at', { ascending: false });
 
     // Get all tags for projects in this category

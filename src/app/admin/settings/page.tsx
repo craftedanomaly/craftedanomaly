@@ -307,6 +307,12 @@ export default function SettingsPage() {
           upsertKV('social_behance', (settings as any).social_behance),
           upsertKV('social_dribbble', (settings as any).social_dribbble),
           upsertKV('social_youtube', (settings as any).social_youtube),
+          // Branding keys
+          upsertKV('logo_url', settings.logo_url),
+          upsertKV('logo_light_url', settings.logo_light_url),
+          upsertKV('logo_dark_url', settings.logo_dark_url),
+          upsertKV('logo_alt', settings.logo_alt),
+          upsertKV('favicon_url', settings.favicon_url),
         ]);
       }
 

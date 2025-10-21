@@ -2,8 +2,8 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import ProjectDetailClient from '@/components/projects/project-detail-client';
 
-// Revalidate every 60 seconds - ISR strategy
-export const revalidate = 60;
+// Always resolve slugs at request time so new projects are immediately available
+export const dynamic = 'force-dynamic';
 
 interface ProjectPageProps {
   params: Promise<{
@@ -11,28 +11,7 @@ interface ProjectPageProps {
   }>;
 }
 
-// Generate static params for known projects
-export async function generateStaticParams() {
-  try {
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabaseServer = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-
-    const { data: projects } = await supabaseServer
-      .from('projects')
-      .select('slug')
-      .eq('status', 'published');
-
-    if (!projects) return [];
-
-    return projects.map(project => ({ slug: project.slug }));
-  } catch (error) {
-    console.error('Error generating static params:', error);
-    return [];
-  }
-}
+// No static params; page is fully dynamic
 
 // Generate metadata for the project page
 export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {

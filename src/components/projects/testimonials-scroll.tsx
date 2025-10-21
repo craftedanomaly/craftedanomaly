@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import Image from 'next/image';
 
 interface TestimonialsScrollProps {
   testimonials: string[];
@@ -11,49 +10,70 @@ export function TestimonialsScroll({ testimonials }: TestimonialsScrollProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const scrollContainer = scrollRef.current;
-    if (!scrollContainer || testimonials.length === 0) return;
+    const el = scrollRef.current;
+    if (!el || testimonials.length === 0) return;
 
-    let animationId: number;
-    let scrollPosition = 0;
-    const scrollSpeed = 0.5; // pixels per frame
+    let rafId: number;
+    let isDragging = false;
+    let startX = 0;
+    let startScrollLeft = 0;
+    const speed = 0.5; // px per frame
 
-    const animate = () => {
-      scrollPosition += scrollSpeed;
-      
-      // Reset position when we've scrolled past the first set of images
-      const itemWidth = 200; // approximate width including gap
-      const totalWidth = testimonials.length * itemWidth;
-      
-      if (scrollPosition >= totalWidth) {
-        scrollPosition = 0;
+    const getSingleWidth = () => el.scrollWidth / 2; // duplicated content => half is one loop
+
+    const tick = () => {
+      if (!isDragging) {
+        el.scrollLeft += speed;
+        const single = getSingleWidth();
+        if (el.scrollLeft >= single) el.scrollLeft -= single;
       }
-      
-      if (scrollContainer) {
-        scrollContainer.scrollLeft = scrollPosition;
-      }
-      
-      animationId = requestAnimationFrame(animate);
+      rafId = requestAnimationFrame(tick);
     };
 
-    animationId = requestAnimationFrame(animate);
+    rafId = requestAnimationFrame(tick);
 
-    // Pause on hover
-    const handleMouseEnter = () => {
-      cancelAnimationFrame(animationId);
+    const onPointerDown = (e: PointerEvent) => {
+      isDragging = true;
+      startX = e.clientX;
+      startScrollLeft = el.scrollLeft;
+      el.setPointerCapture(e.pointerId);
+      el.style.cursor = 'grabbing';
+    };
+    const onPointerMove = (e: PointerEvent) => {
+      if (!isDragging) return;
+      const dx = e.clientX - startX;
+      el.scrollLeft = startScrollLeft - dx;
+      const single = getSingleWidth();
+      if (el.scrollLeft >= single) el.scrollLeft -= single;
+      if (el.scrollLeft < 0) el.scrollLeft += single;
+    };
+    const onPointerUp = (e: PointerEvent) => {
+      isDragging = false;
+      el.style.cursor = '';
+      try { el.releasePointerCapture(e.pointerId); } catch {}
+    };
+    const onWheel = (e: WheelEvent) => {
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      el.scrollLeft += delta;
+      const single = getSingleWidth();
+      if (el.scrollLeft >= single) el.scrollLeft -= single;
+      if (el.scrollLeft < 0) el.scrollLeft += single;
+      e.preventDefault();
     };
 
-    const handleMouseLeave = () => {
-      animationId = requestAnimationFrame(animate);
-    };
-
-    scrollContainer.addEventListener('mouseenter', handleMouseEnter);
-    scrollContainer.addEventListener('mouseleave', handleMouseLeave);
+    el.addEventListener('pointerdown', onPointerDown);
+    el.addEventListener('pointermove', onPointerMove);
+    el.addEventListener('pointerup', onPointerUp);
+    el.addEventListener('pointercancel', onPointerUp);
+    el.addEventListener('wheel', onWheel, { passive: false });
 
     return () => {
-      cancelAnimationFrame(animationId);
-      scrollContainer.removeEventListener('mouseenter', handleMouseEnter);
-      scrollContainer.removeEventListener('mouseleave', handleMouseLeave);
+      cancelAnimationFrame(rafId);
+      el.removeEventListener('pointerdown', onPointerDown);
+      el.removeEventListener('pointermove', onPointerMove);
+      el.removeEventListener('pointerup', onPointerUp);
+      el.removeEventListener('pointercancel', onPointerUp);
+      el.removeEventListener('wheel', onWheel as any);
     };
   }, [testimonials]);
 
@@ -65,24 +85,24 @@ export function TestimonialsScroll({ testimonials }: TestimonialsScrollProps) {
   const duplicatedTestimonials = [...testimonials, ...testimonials];
 
   return (
-    <section className="py-8 bg-background">
+    <section className="py-6">
+      <div className="mb-3">
+        <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/80">Awards & Recognition</h3>
+      </div>
       <div
         ref={scrollRef}
-        className="flex gap-8 overflow-x-hidden items-center"
+        className="flex gap-8 overflow-x-auto items-center py-2 scrollbar-hide cursor-grab select-none"
         style={{ scrollBehavior: 'auto' }}
       >
         {duplicatedTestimonials.map((testimonial, index) => (
           <div
             key={`${testimonial}-${index}`}
-            className="flex-shrink-0 w-48 h-24 relative flex items-center justify-center"
+            className="flex-shrink-0 h-16 flex items-center justify-center"
           >
-            <Image
+            <img
               src={testimonial}
               alt={`Award ${(index % testimonials.length) + 1}`}
-              fill
-              className="object-contain"
-              sizes="(max-width: 768px) 192px, 192px"
-              priority={index < 4}
+              className="max-h-16 object-contain"
             />
           </div>
         ))}

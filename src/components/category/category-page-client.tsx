@@ -22,6 +22,7 @@ interface Project {
   title: string;
   blurb: string;
   cover_image: string;
+  cover_video_url?: string;
   year: number;
   role_en: string;
   role_tr: string;
@@ -137,7 +138,7 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
 
   return (
     <div className="min-h-screen">
-      <div className="container mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-20">
+      <div className="w-full py-20" style={{ paddingLeft: '1%', paddingRight: '1%' }}>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -301,7 +302,7 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
         >
           {filteredProjects.length > 0 ? (
             viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
                 {filteredProjects.map((project, index) => (
                   <ProjectCard
                     key={project.id}
@@ -311,9 +312,9 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
                 ))}
               </div>
             ) : viewMode === 'masonry' ? (
-              <div className="columns-1 md:columns-2 lg:columns-3 gap-6">
+              <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-2">
                 {filteredProjects.map((project, index) => (
-                  <div key={project.id} className="break-inside-avoid mb-6">
+                  <div key={project.id} className="break-inside-avoid mb-2">
                     <ProjectCard
                       project={project}
                       index={index}

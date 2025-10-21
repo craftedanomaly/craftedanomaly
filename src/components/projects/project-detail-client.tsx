@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useInView } from 'framer-motion';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Calendar, User, ExternalLink, Play, Pause } from 'lucide-react';
@@ -8,6 +9,8 @@ import { getEmbedInfo } from '@/lib/video-utils';
 import { Badge } from '@/components/ui/badge';
 import { TestimonialsScroll } from './testimonials-scroll';
 import { ContentBlocksRenderer } from './content-blocks-renderer';
+import { CustomVideoPlayer } from '@/components/ui/custom-video-player';
+import { Footer } from '@/components/layout/footer';
 
 interface ProjectDetailClientProps {
   project: {
@@ -58,6 +61,24 @@ interface ProjectDetailClientProps {
     media_urls?: string[] | null;
     display_order: number;
   }>;
+}
+
+function AnimatedImage({ src, alt, style }: { src: string; alt: string; style?: CSSProperties }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: '-100px' });
+  
+  return (
+    <motion.img 
+      ref={ref}
+      src={src} 
+      alt={alt} 
+      style={style}
+      className="block"
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+    />
+  );
 }
 
 function JustifiedGrid({ items, alt }: { items: Array<{ id: string; url: string }>; alt: string }) {
@@ -153,7 +174,12 @@ function JustifiedGrid({ items, alt }: { items: Array<{ id: string; url: string 
     <div ref={containerRef} className="w-full">
       <div className="flex flex-wrap gap-0">
         {layout.map((it) => (
-          <img key={it.id} src={it.url} alt={alt} style={{ width: it.width, height: it.height }} className="block" />
+          <AnimatedImage 
+            key={it.id} 
+            src={it.url} 
+            alt={alt} 
+            style={{ width: it.width, height: it.height }} 
+          />
         ))}
       </div>
     </div>
@@ -213,30 +239,102 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
 
   // Right panel ref to coordinate scroll
   const rightRef = useRef<HTMLDivElement>(null);
+  const [footerVisible, setFooterVisible] = useState(false);
+  const [footerReveal, setFooterReveal] = useState(0); // 0 hidden -> 1 fully visible (footer height)
+  const FOOTER_HEIGHT = 460; // approximate height of footer overlay
 
   useEffect(() => {
     const el = rightRef.current;
     if (!el) return;
-    const onWheel = (e: WheelEvent) => {
+
+    const routeWheelToRight = (e: WheelEvent) => {
       if (window.innerWidth < 1024) return; // only lg+
       const atTop = el.scrollTop <= 0;
       const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
-      if ((e.deltaY < 0 && atTop) || (e.deltaY > 0 && atBottom)) {
-        return; // allow default to bubble to page
-      }
       e.preventDefault();
-      el.scrollTop += e.deltaY;
+      // Always route to right panel and never bubble to page; keep left fixed
+      if (e.deltaY < 0 && atTop) {
+        el.scrollTop = 0;
+      } else if (e.deltaY > 0 && atBottom) {
+        // keep at bottom; reveal handled by onScroll
+      } else {
+        el.scrollTop += e.deltaY;
+      }
     };
-    window.addEventListener('wheel', onWheel, { passive: false });
-    return () => window.removeEventListener('wheel', onWheel as any);
+
+    let lastTouchY = 0;
+    const onTouchStart = (e: TouchEvent) => {
+      if (window.innerWidth < 1024) return;
+      lastTouchY = e.touches[0]?.clientY ?? 0;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (window.innerWidth < 1024) return;
+      const currentY = e.touches[0]?.clientY ?? lastTouchY;
+      const deltaY = lastTouchY - currentY;
+      lastTouchY = currentY;
+      const atTop = el.scrollTop <= 0;
+      const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+      e.preventDefault();
+      if (atTop && deltaY < 0) {
+        el.scrollTop = 0;
+      } else if (atBottom && deltaY > 0) {
+        // keep at bottom; reveal handled by onScroll
+      } else {
+        el.scrollTop += deltaY;
+      }
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (window.innerWidth < 1024) return;
+      const keyScrollAmount = el.clientHeight * 0.9;
+      if (['PageDown', 'PageUp', 'ArrowDown', 'ArrowUp', 'Space'].includes(e.code)) {
+        const atTop = el.scrollTop <= 0;
+        const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+        let delta = 0;
+        if (e.code === 'PageDown' || (e.code === 'Space' && !e.shiftKey) || e.code === 'ArrowDown') delta = keyScrollAmount;
+        if (e.code === 'PageUp' || (e.code === 'Space' && e.shiftKey) || e.code === 'ArrowUp') delta = -keyScrollAmount;
+        if (delta !== 0) {
+          e.preventDefault();
+          if (atTop && delta < 0) {
+            el.scrollTop = 0;
+          } else if (atBottom && delta > 0) {
+            // keep at bottom; reveal handled by onScroll
+          } else {
+            el.scrollTop += delta;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('wheel', routeWheelToRight, { passive: false });
+    window.addEventListener('touchstart', onTouchStart, { passive: false });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('keydown', onKeyDown, { passive: false });
+    return () => {
+      window.removeEventListener('wheel', routeWheelToRight as any);
+      window.removeEventListener('touchstart', onTouchStart as any);
+      window.removeEventListener('touchmove', onTouchMove as any);
+      window.removeEventListener('keydown', onKeyDown as any);
+    };
   }, []);
+
+  const onRightScroll = () => {
+    const el = rightRef.current;
+    if (!el) return;
+    const maxScrollTop = el.scrollHeight - el.clientHeight;
+    const gap = Math.max(0, maxScrollTop - el.scrollTop);
+    // Start revealing when within FOOTER_HEIGHT of the bottom
+    const reveal = Math.max(0, Math.min(1, (FOOTER_HEIGHT - gap) / FOOTER_HEIGHT));
+    setFooterReveal(reveal);
+    setFooterVisible(reveal > 0.01);
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="w-full lg:h-screen lg:overflow-hidden" style={{ paddingLeft: '1%', paddingRight: '1%' }}>
         <div className="flex flex-col lg:flex-row lg:h-full gap-0">
           {/* Left fixed info panel */}
-          <section className="shrink-0 w-full lg:w-[32%] xl:w-[30%] lg:h-full overflow-hidden lg:border-r border-border/40">
+          <section className="shrink-0 w-full lg:w-[40%] xl:w-[40%] lg:h-full overflow-hidden lg:border-r border-border/40">
             <div className="h-full flex flex-col py-8 pr-6">
               <Link
                 href={categorySlug ? `/${categorySlug}` : '/'}
@@ -342,17 +440,25 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
                 )}
               </div>
             )}
+
+            {/* Testimonials in left column below description */}
+            {project.testimonials && project.testimonials.length > 0 && (
+              <div className="mt-8">
+                <TestimonialsScroll testimonials={project.testimonials} />
+              </div>
+            )}
             </div>
           </section>
 
           {/* Right scrollable column */}
-          <aside ref={rightRef} className="flex-1 lg:min-h-0 lg:h-full lg:overflow-y-auto scrollbar-hide overscroll-contain">
+          <aside ref={rightRef} onScroll={onRightScroll} className="flex-1 lg:min-h-0 lg:h-full lg:overflow-y-auto scrollbar-hide relative">
+            <div style={{ paddingBottom: FOOTER_HEIGHT }}>
             {/* Cover at top, edge-to-edge */}
             {project.cover_image && (
               <div className="relative">
                 {isPlaying && project.cover_video_url ? (
-                  embedInfo.kind === 'direct' ? (
-                    <video className="w-full h-auto bg-black" src={embedInfo.embedUrl} autoPlay muted playsInline />
+                  embedInfo.kind === 'direct' && embedInfo.embedUrl ? (
+                    <CustomVideoPlayer src={embedInfo.embedUrl} className="w-full h-auto bg-black" autoPlay muted loop />
                   ) : embedInfo.embedUrl ? (
                     <div className="w-full aspect-video">
                       <iframe
@@ -380,31 +486,62 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
               </div>
             )}
 
-            {/* Testimonials directly under cover */}
-            {project.testimonials && project.testimonials.length > 0 && (
-              <TestimonialsScroll testimonials={project.testimonials} />
-            )}
-
             {/* Single (edge-to-edge) images in order */}
-            {singleItems.map((m) => (
-              <div key={m.id} className="w-full">
-                <img src={m.url} alt={project.title} className="block w-full h-auto" />
-              </div>
-            ))}
+            {singleItems.map((m) => {
+              const ref = useRef(null);
+              const isInView = useInView(ref, { once: true, margin: '-100px' });
+              
+              return (
+                <motion.div 
+                  key={m.id} 
+                  ref={ref}
+                  className="w-full"
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                >
+                  <img src={m.url} alt={project.title} className="block w-full h-auto" />
+                </motion.div>
+              );
+            })}
 
             {/* Content-block videos as singles */}
-            {videoBlocks.map((b) => (
-              <div key={`vb-${b.id}`} className="w-full">
-                <video src={b.media_url!} className="w-full h-auto" controls playsInline />
-              </div>
-            ))}
+            {videoBlocks.map((b) => {
+              const ref = useRef(null);
+              const isInView = useInView(ref, { once: true, margin: '-100px' });
+              
+              return (
+                <motion.div 
+                  key={`vb-${b.id}`} 
+                  ref={ref}
+                  className="w-full"
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                >
+                  {b.media_url && <CustomVideoPlayer src={b.media_url} className="w-full h-auto" />}
+                </motion.div>
+              );
+            })}
 
             {/* Content-block before/after as singles (use renderer for slider) */}
-            {normalizedBeforeAfterBlocks.map((b) => (
-              <div key={`ba-${b.id || b.display_order}`} className="w-full">
-                <ContentBlocksRenderer blocks={[b] as any} />
-              </div>
-            ))}
+            {normalizedBeforeAfterBlocks.map((b) => {
+              const ref = useRef(null);
+              const isInView = useInView(ref, { once: true, margin: '-100px' });
+              
+              return (
+                <motion.div 
+                  key={`ba-${b.id || b.display_order}`} 
+                  ref={ref}
+                  className="w-full"
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                >
+                  <ContentBlocksRenderer blocks={[b] as any} />
+                </motion.div>
+              );
+            })}
 
             {/* Justified rows for masonry items and image-type content blocks */}
             {(() => {
@@ -414,10 +551,16 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
               ];
               return <JustifiedGrid items={items} alt={project.title} />;
             })()}
+            </div>
+
           </aside>
         </div>
       </div>
 
+      {/* Full-width Footer Overlay */}
+      <div className={`fixed bottom-0 left-0 right-0 z-50`} style={{ transform: `translateY(${(1 - footerReveal) * 100}%)`, transition: 'transform 250ms ease-out' }}>
+        <Footer />
+      </div>
     </div>
   );
 }

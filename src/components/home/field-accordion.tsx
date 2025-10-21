@@ -15,7 +15,7 @@ interface Project {
   slug: string;
   title: string;
   cover_image: string;
-  category_id: string;
+  category_id?: string;
 }
 
 interface Category {

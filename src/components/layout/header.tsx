@@ -32,16 +32,41 @@ export function Header() {
 
   const fetchLogoSettings = async () => {
     try {
-      const { data } = await supabase
+      // Try column-based approach first
+      const { data: columnData } = await supabase
         .from('site_settings')
-        .select('logo_light_url, logo_dark_url, logo_alt')
+        .select('logo_light_url, logo_dark_url, logo_url, logo_alt')
+        .order('id', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
+
+      if (columnData && (columnData.logo_light_url || columnData.logo_dark_url || columnData.logo_url)) {
+        setLogoSettings({
+          logo_light_url: columnData.logo_light_url || columnData.logo_url || '/Anomaly.png',
+          logo_dark_url: columnData.logo_dark_url || columnData.logo_url || '/Anomaly.png',
+          logo_alt: columnData.logo_alt || 'Crafted Anomaly'
+        });
+        return;
+      }
+
+      // Fallback to key-value approach
+      const { data: kvData } = await supabase
+        .from('site_settings')
+        .select('id, setting_key, setting_value')
+        .in('setting_key', ['logo_light_url', 'logo_dark_url', 'logo_url', 'logo_alt'])
+        .order('id', { ascending: false });
+
+      const settings: Record<string, string> = {};
+      kvData?.forEach((row: any) => {
+        if (row.setting_key && settings[row.setting_key] == null) {
+          settings[row.setting_key] = row.setting_value;
+        }
+      });
 
       setLogoSettings({
-        logo_light_url: data?.logo_light_url || '/Anomaly.png',
-        logo_dark_url: data?.logo_dark_url || '/Anomaly.png',
-        logo_alt: data?.logo_alt || 'Crafted Anomaly'
+        logo_light_url: settings.logo_light_url || settings.logo_url || '/Anomaly.png',
+        logo_dark_url: settings.logo_dark_url || settings.logo_url || '/Anomaly.png',
+        logo_alt: settings.logo_alt || 'Crafted Anomaly'
       });
     } catch (error) {
       console.error('Error fetching logo settings:', error);
@@ -97,7 +122,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:bg-background/95 light:bg-white/95 light:backdrop-blur-sm light:border-slate-200">
-      <div className="container mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+      <div className="w-full" style={{ paddingLeft: '1%', paddingRight: '1%' }}>
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">
