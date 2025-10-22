@@ -121,17 +121,17 @@ export function Header() {
 
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:bg-background/95 light:bg-white/95 light:backdrop-blur-sm light:border-slate-200">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="w-full" style={{ paddingLeft: '1%', paddingRight: '1%' }}>
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-20 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <div className="relative h-10 w-auto">
+            <div className="relative h-[53px] w-auto">
               <Image 
                 src={resolvedTheme === 'dark' ? logoSettings.logo_dark_url : logoSettings.logo_light_url} 
                 alt={logoSettings.logo_alt} 
-                width={200} 
-                height={80} 
+                width={265} 
+                height={106} 
                 className="h-full w-auto object-contain"
                 priority
               />
@@ -190,7 +190,6 @@ export function Header() {
                     <nav className="flex-1">
                       <ul className="space-y-1">
                         {menuItems.map((item, index) => {
-                          const IconComponent = item.icon;
                           return (
                             <li key={index}>
                               <Link
@@ -198,9 +197,6 @@ export function Header() {
                                 onClick={() => setIsOpen(false)}
                                 className="group flex items-center gap-4 py-4 px-5 rounded-2xl text-base font-medium text-foreground/80 hover:text-foreground hover:bg-accent/8 border border-transparent hover:border-accent/20 transition-all duration-300 hover:shadow-sm dark:text-foreground/80 light:text-slate-700 light:hover:text-violet-700 light:hover:bg-violet-50 light:hover:border-violet-200"
                               >
-                                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-accent/5 group-hover:bg-accent/15 transition-all duration-300 dark:bg-accent/5 light:bg-violet-100 light:group-hover:bg-violet-200">
-                                  <IconComponent className="h-5 w-5 text-muted-foreground group-hover:text-accent transition-colors duration-300 dark:text-muted-foreground light:text-violet-600 light:group-hover:text-violet-700" />
-                                </div>
                                 <span className="flex-1 group-hover:translate-x-1 transition-transform duration-300">
                                   {item.label}
                                 </span>

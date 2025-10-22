@@ -110,18 +110,21 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
           return (
             <motion.div
               key={category.id}
-              className="relative overflow-hidden"
+              className="relative overflow-hidden flex-1 will-change-transform"
+              style={{
+                transformOrigin: index === categories.length - 1 ? 'right center' : 'left center'
+              }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ 
                 opacity: 1, 
                 y: 0,
-                width: isHovered ? '60%' : isOtherHovered ? '10%' : '25%',
-                x: isOtherHovered && index > categories.findIndex(c => c.id === hoveredCategory) ? '0%' : '0%'
+                flexGrow: isHovered ? 6 : isOtherHovered ? 0.5 : 1,
+                flexShrink: isHovered ? 0 : isOtherHovered ? 1 : 1
               }}
               transition={{ 
                 delay: index * 0.05, 
                 duration: 0.6,
-                ease: [0.25, 0.46, 0.45, 0.94]
+                ease: [0.25, 0.1, 0.25, 1]
               }}
               onMouseEnter={() => {
                 setHoveredCategory(category.id);
@@ -169,11 +172,11 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
                       </div>
                     )}
                     
-                    {/* Overlay gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+                    {/* Overlay gradient - dark mode only */}
+                    <div className="absolute inset-0 z-0 hidden dark:block bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
                     
-                    {/* Bottom gradient for text readability */}
-                    <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background via-background/70 via-background/40 to-transparent" />
+                    {/* Bottom gradient for text readability - dark mode only */}
+                    <div className="absolute bottom-0 left-0 right-0 h-32 z-10 hidden dark:block bg-gradient-to-t from-background/90 to-transparent" />
                   </div>
 
                   {/* Video Area - Only visible when hovered and is direct video */}
@@ -241,8 +244,8 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
                     }}
                     transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
                   >
-                    {/* Background gradient for text readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
+                    {/* Background gradient for text readability - dark mode only */}
+                    <div className="absolute inset-0 z-0 hidden dark:block bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
                     
                     <div className="relative max-w-sm z-10">
                       <h3 className="text-xl lg:text-2xl font-heading text-foreground mb-2">
@@ -316,10 +319,10 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
                         <span className="text-muted-foreground text-sm">No Image</span>
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+                    <div className="absolute inset-0 z-0 bg-gradient-to-t from-transparent to-transparent dark:from-background/80 dark:via-background/20 dark:to-transparent" />
                     
                     {/* Card content */}
-                    <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                    <div className="absolute inset-0 p-6 flex flex-col justify-end z-10">
                       <h3 className="text-xl font-heading text-foreground mb-2">{category.name}</h3>
                       {category.description && (
                         <p className="text-sm text-muted-foreground/90 mb-3 line-clamp-2">{category.description}</p>

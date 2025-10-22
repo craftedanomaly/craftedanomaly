@@ -264,7 +264,7 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
         <div className="flex flex-col lg:flex-row lg:h-full gap-0">
           {/* Left info panel (scrollable) */}
           <section className="shrink-0 w-full lg:w-[40%]">
-            <div ref={leftRef} className="h-[calc(100vh-4rem)] lg:h-full lg:min-h-0 overflow-y-auto flex flex-col py-8 pr-6">
+            <div ref={leftRef} className="h-[calc(100vh-5rem)] lg:h-full lg:min-h-0 overflow-y-auto flex flex-col py-8 pr-6">
               <Link
                 href={categorySlug ? `/${categorySlug}` : '/'}
                 className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-foreground mb-6"
