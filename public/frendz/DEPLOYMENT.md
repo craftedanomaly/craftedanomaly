@@ -133,9 +133,22 @@ Bu proje tamamen statik, build gerektirmiyor:
 
 ## Troubleshooting
 
-### 404 Hatası
-- `vercel.json` dosyasının root'ta olduğundan emin olun
+### 404 Hatası veya Beyaz Ekran
+- **ÇÖZÜM 1:** `vercel.json` dosyasının **proje root'unda** olduğundan emin olun (public/frendz içinde değil!)
+- **ÇÖZÜM 2:** `index.html` içindeki dosya yollarının mutlak yol olduğundan emin olun:
+  - ✅ `/frendz/styles/tailwind-extra.css`
+  - ✅ `/frendz/scripts/app.js`
+  - ❌ `./styles/tailwind-extra.css` (göreceli yol kullanmayın)
 - Rewrites doğru yapılandırılmış mı kontrol edin
+
+### Console'da 404 Hataları
+Eğer şu hatayı görüyorsanız:
+```
+GET https://craftedanomaly.com/styles/tailwind-extra.css 404 (Not Found)
+GET https://craftedanomaly.com/scripts/app.js 404 (Not Found)
+```
+**Neden:** Dosya yolları göreceli (`./ ile başlayan`) ve Vercel'de çalışmıyor.
+**Çözüm:** `index.html` içindeki tüm yolları `/frendz/` ile başlayacak şekilde güncelleyin.
 
 ### Görseller Yüklenmiyor
 - `/images` ve `/icons` klasörlerinin repo'da olduğundan emin olun
