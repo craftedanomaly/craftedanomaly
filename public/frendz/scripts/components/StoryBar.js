@@ -42,7 +42,7 @@ export function createStoryBar({ stories = [], seenMap, onOpenStory }) {
     ].join(' ');
 
     const avatar = document.createElement('img');
-    avatar.src = story.user?.avatar ?? './images/avatars/placeholder.jpg';
+    avatar.src = story.user?.avatar ?? '/frendz/images/avatars/placeholder.jpg';
     avatar.alt = `${story.user?.name ?? 'Story'} avatar`;
     avatar.className = 'w-16 h-16 rounded-full object-cover border-4 border-white dark:border-slate-900';
 

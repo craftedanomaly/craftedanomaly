@@ -161,9 +161,9 @@ function ensureShell() {
 
 async function loadData() {
   const [posts, stories, messages] = await Promise.all([
-    fetch('./data/posts.json').then((res) => res.json()),
-    fetch('./data/stories.json').then((res) => res.json()),
-    fetch('./data/messages.json').then((res) => res.json()),
+    fetch('/frendz/data/posts.json').then((res) => res.json()),
+    fetch('/frendz/data/stories.json').then((res) => res.json()),
+    fetch('/frendz/data/messages.json').then((res) => res.json()),
   ]);
 
   const customPosts = store.getCustomPosts();

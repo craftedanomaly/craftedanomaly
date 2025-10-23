@@ -54,7 +54,7 @@ export function createMessagesPage({ threads = [], onSelectThread }) {
       ].join(' ');
 
       button.innerHTML = `
-        <img src="${thread.user?.avatar ?? './images/avatars/placeholder.jpg'}" alt="${thread.user?.name ?? 'User'}" class="h-12 w-12 rounded-full object-cover" />
+        <img src="${thread.user?.avatar ?? '/frendz/images/avatars/placeholder.jpg'}" alt="${thread.user?.name ?? 'User'}" class="h-12 w-12 rounded-full object-cover" />
         <div class="flex-1 min-w-0">
           <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">${thread.user?.name ?? 'Unknown'}</p>
           <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${thread.messages?.[thread.messages.length - 1]?.text ?? 'Say hi!'}</p>
@@ -107,14 +107,14 @@ export function createMessagesPage({ threads = [], onSelectThread }) {
     header.className = 'px-5 py-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur';
     header.innerHTML = `
       <div class="flex items-center gap-3">
-        <img src="${thread.user?.avatar ?? './images/avatars/placeholder.jpg'}" alt="${thread.user?.name ?? 'User'}" class="h-12 w-12 rounded-full object-cover" />
+        <img src="${thread.user?.avatar ?? '/frendz/images/avatars/placeholder.jpg'}" alt="${thread.user?.name ?? 'User'}" class="h-12 w-12 rounded-full object-cover" />
         <div>
           <p class="text-sm font-semibold text-slate-900 dark:text-white">${thread.user?.name ?? 'Unknown'}</p>
           <p class="text-xs text-slate-500 dark:text-slate-400">Active now</p>
         </div>
       </div>
       <button type="button" class="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-        <img src="./icons/more.svg" alt="Thread options" class="h-5 w-5" />
+        <img src="/frendz/icons/more.svg" alt="Thread options" class="h-5 w-5" />
       </button>
     `;
 

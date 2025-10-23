@@ -111,8 +111,8 @@ export function createSearchPage({
     const meta = document.createElement('div');
     meta.className = 'p-3 text-xs text-white flex w-full items-center justify-between';
     meta.innerHTML = `
-      <span class="inline-flex items-center gap-1"><img src="./icons/heart.svg" alt="Likes" class="h-4 w-4" />${post.likes}</span>
-      ${post.type === 'video' ? '<span class="inline-flex items-center gap-1"><img src="./icons/reels.svg" alt="Video" class="h-4 w-4" />Video</span>' : ''}
+      <span class="inline-flex items-center gap-1"><img src="/frendz/icons/heart.svg" alt="Likes" class="h-4 w-4" />${post.likes}</span>
+      ${post.type === 'video' ? '<span class="inline-flex items-center gap-1"><img src="/frendz/icons/reels.svg" alt="Video" class="h-4 w-4" />Video</span>' : ''}
     `;
 
     overlay.appendChild(meta);

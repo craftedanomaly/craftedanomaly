@@ -6,12 +6,12 @@ export function mountSplash({ container = document.body, duration = 1600, onCont
   ].join(' ');
 
   const logo = document.createElement('img');
-  logo.src = './images/logo.png';
+  logo.src = '/frendz/images/logo.png';
   logo.alt = 'Frendz';
   logo.className = 'w-28 h-28 object-contain splash-logo drop-shadow-lg';
 
   const wordmark = document.createElement('img');
-  wordmark.src = './images/wordmark.svg';
+  wordmark.src = '/frendz/images/wordmark.svg';
   wordmark.alt = 'Frendz marque';
   wordmark.className = 'h-8 object-contain opacity-80';
 
