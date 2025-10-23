@@ -4,7 +4,7 @@
     "user": {
       "id": "u2",
       "name": "charlie",
-      "avatar": "/images/avatars/a2.jpg"
+      "avatar": "/frendz/images/avatars/a2.jpg"
     },
     "messages": [
       {
@@ -39,7 +39,7 @@
     "user": {
       "id": "u3",
       "name": "studio",
-      "avatar": "/images/avatars/a3.jpg"
+      "avatar": "/frendz/images/avatars/a3.jpg"
     },
     "messages": [
       {
@@ -68,7 +68,7 @@
     "user": {
       "id": "u5",
       "name": "maya_creates",
-      "avatar": "/images/avatars/a5.jpg"
+      "avatar": "/frendz/images/avatars/a5.jpg"
     },
     "messages": [
       {
@@ -109,7 +109,7 @@
     "user": {
       "id": "u6",
       "name": "designdaily",
-      "avatar": "/images/avatars/a6.jpg"
+      "avatar": "/frendz/images/avatars/a6.jpg"
     },
     "messages": [
       {
@@ -150,7 +150,7 @@
     "user": {
       "id": "u8",
       "name": "urban_lens",
-      "avatar": "/images/avatars/a8.jpg"
+      "avatar": "/frendz/images/avatars/a8.jpg"
     },
     "messages": [
       {

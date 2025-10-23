@@ -4,10 +4,10 @@
     "user": {
       "id": "u1",
       "name": "anomaly",
-      "avatar": "/images/avatars/a1.jpg"
+      "avatar": "/frendz/images/avatars/a1.jpg"
     },
     "type": "image",
-    "src": "/images/posts/p1.jpg",
+    "src": "/frendz/images/posts/p1.jpg",
     "caption": "first look at our new boardgame prototype ✨ been working on this for months",
     "likes": 128,
     "time": "2025-10-21T10:00:00Z",
@@ -18,11 +18,11 @@
     "user": {
       "id": "u3",
       "name": "studio",
-      "avatar": "/images/avatars/a3.jpg"
+      "avatar": "/frendz/images/avatars/a3.jpg"
     },
     "type": "video",
-    "src": "/images/posts/p2.mp4",
-    "poster": "/images/posts/p2.jpg",
+    "src": "/frendz/images/posts/p2.mp4",
+    "poster": "/frendz/images/posts/p2.jpg",
     "caption": "color tests for the new character lineup 🎨",
     "likes": 342,
     "time": "2025-10-22T19:00:00Z",
@@ -33,10 +33,10 @@
     "user": {
       "id": "u2",
       "name": "charlie",
-      "avatar": "/images/avatars/a2.jpg"
+      "avatar": "/frendz/images/avatars/a2.jpg"
     },
     "type": "image",
-    "src": "/images/posts/p3.jpg",
+    "src": "/frendz/images/posts/p3.jpg",
     "caption": "morning coffee ritual ☕️",
     "likes": 89,
     "time": "2025-10-22T08:30:00Z",
@@ -47,10 +47,10 @@
     "user": {
       "id": "u4",
       "name": "pixel_art",
-      "avatar": "/images/avatars/a4.jpg"
+      "avatar": "/frendz/images/avatars/a4.jpg"
     },
     "type": "image",
-    "src": "/images/posts/p4.jpg",
+    "src": "/frendz/images/posts/p4.jpg",
     "caption": "16x16 tileset practice. loving these retro vibes 🕹️",
     "likes": 215,
     "time": "2025-10-21T16:45:00Z",
@@ -61,11 +61,11 @@
     "user": {
       "id": "u5",
       "name": "maya_creates",
-      "avatar": "/images/avatars/a5.jpg"
+      "avatar": "/frendz/images/avatars/a5.jpg"
     },
     "type": "video",
-    "src": "/images/posts/p5.mp4",
-    "poster": "/images/posts/p5.jpg",
+    "src": "/frendz/images/posts/p5.mp4",
+    "poster": "/frendz/images/posts/p5.jpg",
     "caption": "quick timelapse of today's illustration 🖌️",
     "likes": 567,
     "time": "2025-10-22T21:15:00Z",
@@ -76,10 +76,10 @@
     "user": {
       "id": "u1",
       "name": "anomaly",
-      "avatar": "/images/avatars/a1.jpg"
+      "avatar": "/frendz/images/avatars/a1.jpg"
     },
     "type": "image",
-    "src": "/images/posts/p6.jpg",
+    "src": "/frendz/images/posts/p6.jpg",
     "caption": "workspace setup for the week ahead 💻",
     "likes": 94,
     "time": "2025-10-20T14:20:00Z",
@@ -90,10 +90,10 @@
     "user": {
       "id": "u6",
       "name": "designdaily",
-      "avatar": "/images/avatars/a6.jpg"
+      "avatar": "/frendz/images/avatars/a6.jpg"
     },
     "type": "image",
-    "src": "/images/posts/p7.jpg",
+    "src": "/frendz/images/posts/p7.jpg",
     "caption": "logo exploration for a new client. which one do you prefer? 1, 2, or 3?",
     "likes": 421,
     "time": "2025-10-22T11:00:00Z",
@@ -104,10 +104,10 @@
     "user": {
       "id": "u7",
       "name": "codelife",
-      "avatar": "/images/avatars/a7.jpg"
+      "avatar": "/frendz/images/avatars/a7.jpg"
     },
     "type": "image",
-    "src": "/images/posts/p8.jpg",
+    "src": "/frendz/images/posts/p8.jpg",
     "caption": "finally shipped v2.0 🚀 team effort paid off",
     "likes": 178,
     "time": "2025-10-21T18:30:00Z",
@@ -118,11 +118,11 @@
     "user": {
       "id": "u3",
       "name": "studio",
-      "avatar": "/images/avatars/a3.jpg"
+      "avatar": "/frendz/images/avatars/a3.jpg"
     },
     "type": "video",
-    "src": "/images/posts/p9.mp4",
-    "poster": "/images/posts/p9.jpg",
+    "src": "/frendz/images/posts/p9.mp4",
+    "poster": "/frendz/images/posts/p9.jpg",
     "caption": "behind the scenes: motion graphics workflow ✨",
     "likes": 612,
     "time": "2025-10-22T15:45:00Z",
@@ -133,10 +133,10 @@
     "user": {
       "id": "u8",
       "name": "urban_lens",
-      "avatar": "/images/avatars/a8.jpg"
+      "avatar": "/frendz/images/avatars/a8.jpg"
     },
     "type": "image",
-    "src": "/images/posts/p10.jpg",
+    "src": "/frendz/images/posts/p10.jpg",
     "caption": "golden hour in the city 🌆",
     "likes": 834,
     "time": "2025-10-22T19:50:00Z",
@@ -147,10 +147,10 @@
     "user": {
       "id": "u2",
       "name": "charlie",
-      "avatar": "/images/avatars/a2.jpg"
+      "avatar": "/frendz/images/avatars/a2.jpg"
     },
     "type": "image",
-    "src": "/images/posts/p11.jpg",
+    "src": "/frendz/images/posts/p11.jpg",
     "caption": "weekend project: custom keyboard build ⌨️",
     "likes": 267,
     "time": "2025-10-21T12:00:00Z",
@@ -161,10 +161,10 @@
     "user": {
       "id": "u9",
       "name": "sketch_daily",
-      "avatar": "/images/avatars/a9.jpg"
+      "avatar": "/frendz/images/avatars/a9.jpg"
     },
     "type": "image",
-    "src": "/images/posts/p12.jpg",
+    "src": "/frendz/images/posts/p12.jpg",
     "caption": "character concept for upcoming game project 🎮",
     "likes": 445,
     "time": "2025-10-22T09:30:00Z",
@@ -175,10 +175,10 @@
     "user": {
       "id": "u10",
       "name": "minimal_studio",
-      "avatar": "/images/avatars/a10.jpg"
+      "avatar": "/frendz/images/avatars/a10.jpg"
     },
     "type": "image",
-    "src": "/images/posts/p13.jpg",
+    "src": "/frendz/images/posts/p13.jpg",
     "caption": "less is more. new poster series 🖼️",
     "likes": 523,
     "time": "2025-10-21T20:15:00Z",
@@ -189,11 +189,11 @@
     "user": {
       "id": "u4",
       "name": "pixel_art",
-      "avatar": "/images/avatars/a4.jpg"
+      "avatar": "/frendz/images/avatars/a4.jpg"
     },
     "type": "video",
-    "src": "/images/posts/p14.mp4",
-    "poster": "/images/posts/p14.jpg",
+    "src": "/frendz/images/posts/p14.mp4",
+    "poster": "/frendz/images/posts/p14.jpg",
     "caption": "animated idle sprite for the main character 🎮",
     "likes": 389,
     "time": "2025-10-22T13:20:00Z",
@@ -204,10 +204,10 @@
     "user": {
       "id": "u1",
       "name": "anomaly",
-      "avatar": "/images/avatars/a1.jpg"
+      "avatar": "/frendz/images/avatars/a1.jpg"
     },
     "type": "image",
-    "src": "/images/posts/p15.jpg",
+    "src": "/frendz/images/posts/p15.jpg",
     "caption": "playtesting session went great! lots of good feedback 🎲",
     "likes": 156,
     "time": "2025-10-22T17:00:00Z",
@@ -218,10 +218,10 @@
     "user": {
       "id": "u5",
       "name": "maya_creates",
-      "avatar": "/images/avatars/a5.jpg"
+      "avatar": "/frendz/images/avatars/a5.jpg"
     },
     "type": "image",
-    "src": "/images/posts/p16.jpg",
+    "src": "/frendz/images/posts/p16.jpg",
     "caption": "commissioned portrait finished! client loved it 💙",
     "likes": 712,
     "time": "2025-10-21T22:30:00Z",
@@ -232,10 +232,10 @@
     "user": {
       "id": "u6",
       "name": "designdaily",
-      "avatar": "/images/avatars/a6.jpg"
+      "avatar": "/frendz/images/avatars/a6.jpg"
     },
     "type": "image",
-    "src": "/images/posts/p17.jpg",
+    "src": "/frendz/images/posts/p17.jpg",
     "caption": "typography experiment with variable fonts 🔤",
     "likes": 298,
     "time": "2025-10-22T10:45:00Z",
@@ -246,10 +246,10 @@
     "user": {
       "id": "u7",
       "name": "codelife",
-      "avatar": "/images/avatars/a7.jpg"
+      "avatar": "/frendz/images/avatars/a7.jpg"
     },
     "type": "image",
-    "src": "/images/posts/p18.jpg",
+    "src": "/frendz/images/posts/p18.jpg",
     "caption": "refactored the entire codebase. feels so clean now ✨",
     "likes": 134,
     "time": "2025-10-21T15:10:00Z",
@@ -260,11 +260,11 @@
     "user": {
       "id": "u8",
       "name": "urban_lens",
-      "avatar": "/images/avatars/a8.jpg"
+      "avatar": "/frendz/images/avatars/a8.jpg"
     },
     "type": "video",
-    "src": "/images/posts/p19.mp4",
-    "poster": "/images/posts/p19.jpg",
+    "src": "/frendz/images/posts/p19.mp4",
+    "poster": "/frendz/images/posts/p19.jpg",
     "caption": "street photography montage from last week 📸",
     "likes": 921,
     "time": "2025-10-22T20:30:00Z",
@@ -275,10 +275,10 @@
     "user": {
       "id": "u9",
       "name": "sketch_daily",
-      "avatar": "/images/avatars/a9.jpg"
+      "avatar": "/frendz/images/avatars/a9.jpg"
     },
     "type": "image",
-    "src": "/images/posts/p20.jpg",
+    "src": "/frendz/images/posts/p20.jpg",
     "caption": "environment study. trying to nail that atmospheric perspective 🌄",
     "likes": 378,
     "time": "2025-10-22T12:00:00Z",

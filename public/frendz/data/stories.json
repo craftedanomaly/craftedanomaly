@@ -4,18 +4,18 @@
     "user": {
       "id": "u1",
       "name": "anomaly",
-      "avatar": "/images/avatars/a1.jpg"
+      "avatar": "/frendz/images/avatars/a1.jpg"
     },
     "items": [
       {
         "type": "image",
-        "src": "/images/stories/s1_1.jpg",
+        "src": "/frendz/images/stories/s1_1.jpg",
         "duration": 5000
       },
       {
         "type": "video",
-        "src": "/images/stories/s1_2.mp4",
-        "poster": "/images/stories/s1_2.jpg",
+        "src": "/frendz/images/stories/s1_2.mp4",
+        "poster": "/frendz/images/stories/s1_2.jpg",
         "duration": 8000,
         "autoplay": true
       }
@@ -27,12 +27,12 @@
     "user": {
       "id": "u2",
       "name": "charlie",
-      "avatar": "/images/avatars/a2.jpg"
+      "avatar": "/frendz/images/avatars/a2.jpg"
     },
     "items": [
       {
         "type": "image",
-        "src": "/images/stories/s2_1.jpg",
+        "src": "/frendz/images/stories/s2_1.jpg",
         "duration": 5000
       }
     ],
@@ -43,19 +43,19 @@
     "user": {
       "id": "u3",
       "name": "studio",
-      "avatar": "/images/avatars/a3.jpg"
+      "avatar": "/frendz/images/avatars/a3.jpg"
     },
     "items": [
       {
         "type": "video",
-        "src": "/images/stories/s3_1.mp4",
-        "poster": "/images/stories/s3_1.jpg",
+        "src": "/frendz/images/stories/s3_1.mp4",
+        "poster": "/frendz/images/stories/s3_1.jpg",
         "duration": 10000,
         "autoplay": true
       },
       {
         "type": "image",
-        "src": "/images/stories/s3_2.jpg",
+        "src": "/frendz/images/stories/s3_2.jpg",
         "duration": 5000
       }
     ],
@@ -66,22 +66,22 @@
     "user": {
       "id": "u4",
       "name": "pixel_art",
-      "avatar": "/images/avatars/a4.jpg"
+      "avatar": "/frendz/images/avatars/a4.jpg"
     },
     "items": [
       {
         "type": "image",
-        "src": "/images/stories/s4_1.jpg",
+        "src": "/frendz/images/stories/s4_1.jpg",
         "duration": 5000
       },
       {
         "type": "image",
-        "src": "/images/stories/s4_2.jpg",
+        "src": "/frendz/images/stories/s4_2.jpg",
         "duration": 5000
       },
       {
         "type": "image",
-        "src": "/images/stories/s4_3.jpg",
+        "src": "/frendz/images/stories/s4_3.jpg",
         "duration": 5000
       }
     ],
@@ -92,13 +92,13 @@
     "user": {
       "id": "u5",
       "name": "maya_creates",
-      "avatar": "/images/avatars/a5.jpg"
+      "avatar": "/frendz/images/avatars/a5.jpg"
     },
     "items": [
       {
         "type": "video",
-        "src": "/images/stories/s5_1.mp4",
-        "poster": "/images/stories/s5_1.jpg",
+        "src": "/frendz/images/stories/s5_1.mp4",
+        "poster": "/frendz/images/stories/s5_1.jpg",
         "duration": 7000,
         "autoplay": true
       }
@@ -110,17 +110,17 @@
     "user": {
       "id": "u6",
       "name": "designdaily",
-      "avatar": "/images/avatars/a6.jpg"
+      "avatar": "/frendz/images/avatars/a6.jpg"
     },
     "items": [
       {
         "type": "image",
-        "src": "/images/stories/s6_1.jpg",
+        "src": "/frendz/images/stories/s6_1.jpg",
         "duration": 5000
       },
       {
         "type": "image",
-        "src": "/images/stories/s6_2.jpg",
+        "src": "/frendz/images/stories/s6_2.jpg",
         "duration": 5000
       }
     ],
@@ -131,12 +131,12 @@
     "user": {
       "id": "u7",
       "name": "codelife",
-      "avatar": "/images/avatars/a7.jpg"
+      "avatar": "/frendz/images/avatars/a7.jpg"
     },
     "items": [
       {
         "type": "image",
-        "src": "/images/stories/s7_1.jpg",
+        "src": "/frendz/images/stories/s7_1.jpg",
         "duration": 5000
       }
     ],
@@ -147,19 +147,19 @@
     "user": {
       "id": "u8",
       "name": "urban_lens",
-      "avatar": "/images/avatars/a8.jpg"
+      "avatar": "/frendz/images/avatars/a8.jpg"
     },
     "items": [
       {
         "type": "video",
-        "src": "/images/stories/s8_1.mp4",
-        "poster": "/images/stories/s8_1.jpg",
+        "src": "/frendz/images/stories/s8_1.mp4",
+        "poster": "/frendz/images/stories/s8_1.jpg",
         "duration": 9000,
         "autoplay": true
       },
       {
         "type": "image",
-        "src": "/images/stories/s8_2.jpg",
+        "src": "/frendz/images/stories/s8_2.jpg",
         "duration": 5000
       }
     ],
@@ -170,12 +170,12 @@
     "user": {
       "id": "u9",
       "name": "sketch_daily",
-      "avatar": "/images/avatars/a9.jpg"
+      "avatar": "/frendz/images/avatars/a9.jpg"
     },
     "items": [
       {
         "type": "image",
-        "src": "/images/stories/s9_1.jpg",
+        "src": "/frendz/images/stories/s9_1.jpg",
         "duration": 5000
       }
     ],
@@ -186,18 +186,18 @@
     "user": {
       "id": "u10",
       "name": "minimal_studio",
-      "avatar": "/images/avatars/a10.jpg"
+      "avatar": "/frendz/images/avatars/a10.jpg"
     },
     "items": [
       {
         "type": "image",
-        "src": "/images/stories/s10_1.jpg",
+        "src": "/frendz/images/stories/s10_1.jpg",
         "duration": 5000
       },
       {
         "type": "video",
-        "src": "/images/stories/s10_2.mp4",
-        "poster": "/images/stories/s10_2.jpg",
+        "src": "/frendz/images/stories/s10_2.mp4",
+        "poster": "/frendz/images/stories/s10_2.jpg",
         "duration": 6000,
         "autoplay": true
       }
