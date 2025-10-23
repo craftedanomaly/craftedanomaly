@@ -1,0 +1,28 @@
+This folder contains SVG icons used throughout the app.
+
+Required icons (all SVG format):
+- home.svg
+- search.svg
+- plus.svg
+- reels.svg
+- profile.svg
+- heart.svg
+- heart-filled.svg
+- comment.svg
+- share.svg
+- save.svg
+- save-filled.svg
+- dm.svg
+- more.svg
+- close.svg
+- send.svg
+- muted.svg
+- volume.svg
+- sun.svg
+- moon.svg
+- auto.svg
+- grid.svg
+- tag.svg
+
+You can use any icon library (Heroicons, Lucide, Feather, etc.) or create custom SVGs.
+All icons should be monochrome and work with CSS color/fill properties.
