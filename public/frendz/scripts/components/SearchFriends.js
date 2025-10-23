@@ -1,15 +1,15 @@
 // Örnek kullanıcı verileri - bu listeyi değiştirebilirsiniz
 const SAMPLE_USERS = [
-  { id: 'u1', name: 'anomaly', avatar: '/images/avatars/a1.jpg' },
-  { id: 'u2', name: 'charlie', avatar: '/images/avatars/a2.jpg' },
-  { id: 'u3', name: 'studio', avatar: '/images/avatars/a3.jpg' },
-  { id: 'u4', name: 'pixel_art', avatar: '/images/avatars/a4.jpg' },
-  { id: 'u5', name: 'maya_creates', avatar: '/images/avatars/a5.jpg' },
-  { id: 'u6', name: 'designdaily', avatar: '/images/avatars/a6.jpg' },
-  { id: 'u7', name: 'codelife', avatar: '/images/avatars/a7.jpg' },
-  { id: 'u8', name: 'urban_lens', avatar: '/images/avatars/a8.jpg' },
-  { id: 'u9', name: 'sketch_daily', avatar: '/images/avatars/a9.jpg' },
-  { id: 'u10', name: 'minimal_studio', avatar: '/images/avatars/a10.jpg' },
+  { id: 'u1', name: 'anomaly', avatar: './images/avatars/a1.jpg' },
+  { id: 'u2', name: 'charlie', avatar: './images/avatars/a2.jpg' },
+  { id: 'u3', name: 'studio', avatar: './images/avatars/a3.jpg' },
+  { id: 'u4', name: 'pixel_art', avatar: './images/avatars/a4.jpg' },
+  { id: 'u5', name: 'maya_creates', avatar: './images/avatars/a5.jpg' },
+  { id: 'u6', name: 'designdaily', avatar: './images/avatars/a6.jpg' },
+  { id: 'u7', name: 'codelife', avatar: './images/avatars/a7.jpg' },
+  { id: 'u8', name: 'urban_lens', avatar: './images/avatars/a8.jpg' },
+  { id: 'u9', name: 'sketch_daily', avatar: './images/avatars/a9.jpg' },
+  { id: 'u10', name: 'minimal_studio', avatar: './images/avatars/a10.jpg' },
 ];
 
 export function createSearchPage({ value = '', onNavigate }) {

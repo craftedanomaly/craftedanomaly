@@ -33,7 +33,7 @@ export function mountStoryViewer({
   header.className = 'absolute top-10 left-4 right-4 z-20 flex items-center justify-between';
   header.innerHTML = `
     <div class="flex items-center gap-3">
-      <img src="${story.user?.avatar ?? '/images/avatars/placeholder.jpg'}" alt="${story.user?.name ?? 'User'}" class="h-10 w-10 rounded-full object-cover border-2 border-white/30" />
+      <img src="${story.user?.avatar ?? './images/avatars/placeholder.jpg'}" alt="${story.user?.name ?? 'User'}" class="h-10 w-10 rounded-full object-cover border-2 border-white/30" />
       <div>
         <p class="text-sm font-semibold">${story.user?.name ?? 'Unknown'}</p>
         <p class="text-xs text-white/70">${seen ? 'Viewed' : 'Just now'}</p>
@@ -41,10 +41,10 @@ export function mountStoryViewer({
     </div>
     <div class="flex items-center gap-2">
       <button type="button" class="h-9 w-9 rounded-full bg-white/10 backdrop-blur flex items-center justify-center active:scale-95 transition" data-action="mute">
-        <img src="${muted ? '/icons/muted.svg' : '/icons/volume.svg'}" alt="Toggle audio" class="h-4 w-4" />
+        <img src="${muted ? './icons/muted.svg' : './icons/volume.svg'}" alt="Toggle audio" class="h-4 w-4" />
       </button>
       <button type="button" class="h-9 w-9 rounded-full bg-white/10 backdrop-blur flex items-center justify-center active:scale-95 transition" data-action="close">
-        <img src="/icons/close.svg" alt="Close" class="h-4 w-4" />
+        <img src="./icons/close.svg" alt="Close" class="h-4 w-4" />
       </button>
     </div>
   `;
@@ -238,7 +238,7 @@ export function mountStoryViewer({
   const muteButton = header.querySelector('[data-action="mute"]');
   muteButton.addEventListener('click', () => {
     muted = !muted;
-    muteButton.innerHTML = `<img src="${muted ? '/icons/muted.svg' : '/icons/volume.svg'}" alt="Toggle audio" class="h-4 w-4" />`;
+    muteButton.innerHTML = `<img src="${muted ? './icons/muted.svg' : './icons/volume.svg'}" alt="Toggle audio" class="h-4 w-4" />`;
     if (currentMedia && currentMedia.tagName === 'VIDEO') {
       currentMedia.muted = muted;
       if (!muted) {

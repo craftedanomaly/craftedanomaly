@@ -1,9 +1,9 @@
 const NAV_ITEMS = [
-  { id: '/home', label: 'Home', icon: '/icons/home.svg', hash: '#/home' },
-  { id: '/search', label: 'Search', icon: '/icons/search.svg', hash: '#/search' },
-  { id: '/create', label: 'Create', icon: '/icons/plus.svg', hash: '#/home' },
-  { id: '/reels', label: 'Reels', icon: '/icons/reels.svg', hash: '#/home' },
-  { id: '/profile', label: 'Profile', icon: '/icons/profile.svg', hash: '#/profile' },
+  { id: '/home', label: 'Home', icon: './icons/home.svg', hash: '#/home' },
+  { id: '/search', label: 'Search', icon: './icons/search.svg', hash: '#/search' },
+  { id: '/create', label: 'Create', icon: './icons/plus.svg', hash: '#/home' },
+  { id: '/reels', label: 'Reels', icon: './icons/reels.svg', hash: '#/home' },
+  { id: '/profile', label: 'Profile', icon: './icons/profile.svg', hash: '#/profile' },
 ];
 
 export function createBottomNav({ current, onNavigate, onOpenCreate }) {

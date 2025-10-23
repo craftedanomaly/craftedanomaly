@@ -28,12 +28,12 @@ function createMedia({ post, muted, priority, onToggleMuted }) {
     const toggleButton = document.createElement('button');
     toggleButton.type = 'button';
     toggleButton.className = 'absolute bottom-3 right-3 h-9 w-9 rounded-full bg-black/60 text-white flex items-center justify-center active:scale-95 transition';
-    toggleButton.innerHTML = `<img src="${muted ? '/icons/muted.svg' : '/icons/volume.svg'}" alt="Toggle audio" class="h-4 w-4" />`;
+    toggleButton.innerHTML = `<img src="${muted ? './icons/muted.svg' : './icons/volume.svg'}" alt="Toggle audio" class="h-4 w-4" />`;
     toggleButton.addEventListener('click', (event) => {
       event.stopPropagation();
       const currentlyMuted = video.muted;
       video.muted = !currentlyMuted;
-      toggleButton.innerHTML = `<img src="${video.muted ? '/icons/muted.svg' : '/icons/volume.svg'}" alt="Toggle audio" class="h-4 w-4" />`;
+      toggleButton.innerHTML = `<img src="${video.muted ? './icons/muted.svg' : './icons/volume.svg'}" alt="Toggle audio" class="h-4 w-4" />`;
       onToggleMuted?.(video.muted);
       if (!video.muted) {
         video.play().catch(() => {});
@@ -90,7 +90,7 @@ export function createPostCard({
   userButton.type = 'button';
   userButton.className = 'flex items-center gap-3 active:scale-95 transition focus:outline-none';
   userButton.innerHTML = `
-    <img src="${post.user?.avatar ?? '/images/avatars/placeholder.jpg'}" alt="${post.user?.name ?? 'User'}" class="h-10 w-10 rounded-full object-cover" />
+    <img src="${post.user?.avatar ?? './images/avatars/placeholder.jpg'}" alt="${post.user?.name ?? 'User'}" class="h-10 w-10 rounded-full object-cover" />
     <div class="text-left">
       <p class="text-sm font-semibold text-slate-900 dark:text-white">${post.user?.name ?? 'Unknown'}</p>
       <p class="text-xs text-slate-500 dark:text-slate-400">${formatRelativeTime(post.time)}</p>
@@ -102,7 +102,7 @@ export function createPostCard({
   const menuButton = document.createElement('button');
   menuButton.type = 'button';
   menuButton.className = 'p-2 rounded-full active:scale-95 transition text-slate-400 hover:text-slate-600 dark:hover:text-slate-200';
-  menuButton.innerHTML = '<img src="/icons/more.svg" alt="More options" class="h-5 w-5" />';
+  menuButton.innerHTML = '<img src="./icons/more.svg" alt="More options" class="h-5 w-5" />';
   menuButton.addEventListener('click', () => alert('Options coming soon'));
 
   header.append(userButton, menuButton);
@@ -112,7 +112,7 @@ export function createPostCard({
   const likeButton = document.createElement('button');
   likeButton.type = 'button';
   likeButton.className = 'h-9 w-9 flex items-center justify-center rounded-full active:scale-95 transition';
-  likeButton.innerHTML = `<img src="${liked ? '/icons/heart-filled.svg' : '/icons/heart.svg'}" alt="Like" class="h-6 w-6" />`;
+  likeButton.innerHTML = `<img src="${liked ? './icons/heart-filled.svg' : './icons/heart.svg'}" alt="Like" class="h-6 w-6" />`;
 
   likeButton.addEventListener('click', () => {
     onToggleLike?.();
@@ -121,13 +121,13 @@ export function createPostCard({
   const commentButton = document.createElement('button');
   commentButton.type = 'button';
   commentButton.className = 'h-9 w-9 flex items-center justify-center rounded-full active:scale-95 transition';
-  commentButton.innerHTML = '<img src="/icons/comment.svg" alt="Comments" class="h-6 w-6" />';
+  commentButton.innerHTML = '<img src="./icons/comment.svg" alt="Comments" class="h-6 w-6" />';
   commentButton.addEventListener('click', () => onOpenComments?.());
 
   const shareButton = document.createElement('button');
   shareButton.type = 'button';
   shareButton.className = 'h-9 w-9 flex items-center justify-center rounded-full active:scale-95 transition';
-  shareButton.innerHTML = '<img src="/icons/share.svg" alt="Share" class="h-6 w-6" />';
+  shareButton.innerHTML = '<img src="./icons/share.svg" alt="Share" class="h-6 w-6" />';
   shareButton.addEventListener('click', () => alert('Share coming soon'));
 
   const actionsLeft = document.createElement('div');
@@ -137,7 +137,7 @@ export function createPostCard({
   const saveButton = document.createElement('button');
   saveButton.type = 'button';
   saveButton.className = 'h-9 w-9 flex items-center justify-center rounded-full active:scale-95 transition';
-  saveButton.innerHTML = `<img src="${saved ? '/icons/save-filled.svg' : '/icons/save.svg'}" alt="Save" class="h-6 w-6" />`;
+  saveButton.innerHTML = `<img src="${saved ? './icons/save-filled.svg' : './icons/save.svg'}" alt="Save" class="h-6 w-6" />`;
   saveButton.addEventListener('click', () => onToggleSave?.());
 
   const actions = document.createElement('div');
@@ -175,7 +175,7 @@ export function createPostCard({
 
   const heartOverlay = document.createElement('span');
   heartOverlay.className = 'pointer-events-none select-none absolute inset-0 flex items-center justify-center opacity-0';
-  heartOverlay.innerHTML = '<img src="/icons/heart-filled.svg" alt="Liked" class="h-20 w-20 text-white drop-shadow-lg" />';
+  heartOverlay.innerHTML = '<img src="./icons/heart-filled.svg" alt="Liked" class="h-20 w-20 text-white drop-shadow-lg" />';
 
   const mediaWrapper = document.createElement('div');
   mediaWrapper.className = 'relative';

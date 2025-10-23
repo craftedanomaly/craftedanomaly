@@ -23,7 +23,7 @@ export function mountPostModal({
   const closeButton = document.createElement('button');
   closeButton.type = 'button';
   closeButton.className = 'absolute top-4 right-4 h-10 w-10 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur';
-  closeButton.innerHTML = '<img src="/icons/close.svg" alt="Close" class="h-5 w-5" />';
+  closeButton.innerHTML = '<img src="./icons/close.svg" alt="Close" class="h-5 w-5" />';
   closeButton.addEventListener('click', () => onClose?.());
 
   const mediaWrapper = document.createElement('div');
@@ -54,14 +54,14 @@ export function mountPostModal({
   header.className = 'flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-800';
   header.innerHTML = `
     <div class="flex items-center gap-3">
-      <img src="${post.user?.avatar ?? '/images/avatars/placeholder.jpg'}" alt="${post.user?.name ?? 'User'}" class="h-10 w-10 rounded-full object-cover" />
+      <img src="${post.user?.avatar ?? './images/avatars/placeholder.jpg'}" alt="${post.user?.name ?? 'User'}" class="h-10 w-10 rounded-full object-cover" />
       <div>
         <p class="text-sm font-semibold text-slate-900 dark:text-white">${post.user?.name ?? 'Unknown'}</p>
         <p class="text-xs text-slate-500 dark:text-slate-400">${formatRelativeTime(post.time)}</p>
       </div>
     </div>
     <button type="button" class="p-2 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-      <img src="/icons/more.svg" alt="Options" class="h-5 w-5" />
+      <img src="./icons/more.svg" alt="Options" class="h-5 w-5" />
     </button>
   `;
 
@@ -73,19 +73,19 @@ export function mountPostModal({
   const likeButton = document.createElement('button');
   likeButton.type = 'button';
   likeButton.className = 'h-10 w-10 rounded-full flex items-center justify-center active:scale-95 transition';
-  likeButton.innerHTML = `<img src="${liked ? '/icons/heart-filled.svg' : '/icons/heart.svg'}" alt="Like" class="h-6 w-6" />`;
+  likeButton.innerHTML = `<img src="${liked ? './icons/heart-filled.svg' : './icons/heart.svg'}" alt="Like" class="h-6 w-6" />`;
   likeButton.addEventListener('click', () => onToggleLike?.());
 
   const commentButton = document.createElement('button');
   commentButton.type = 'button';
   commentButton.className = 'h-10 w-10 rounded-full flex items-center justify-center active:scale-95 transition';
-  commentButton.innerHTML = '<img src="/icons/comment.svg" alt="Comments" class="h-6 w-6" />';
+  commentButton.innerHTML = '<img src="./icons/comment.svg" alt="Comments" class="h-6 w-6" />';
   commentButton.addEventListener('click', () => alert('Comments coming soon'));
 
   const shareButton = document.createElement('button');
   shareButton.type = 'button';
   shareButton.className = 'h-10 w-10 rounded-full flex items-center justify-center active:scale-95 transition';
-  shareButton.innerHTML = '<img src="/icons/share.svg" alt="Share" class="h-6 w-6" />';
+  shareButton.innerHTML = '<img src="./icons/share.svg" alt="Share" class="h-6 w-6" />';
   shareButton.addEventListener('click', () => alert('Share coming soon'));
 
   leftActions.append(likeButton, commentButton, shareButton);
@@ -93,7 +93,7 @@ export function mountPostModal({
   const saveButton = document.createElement('button');
   saveButton.type = 'button';
   saveButton.className = 'h-10 w-10 rounded-full flex items-center justify-center active:scale-95 transition';
-  saveButton.innerHTML = `<img src="${saved ? '/icons/save-filled.svg' : '/icons/save.svg'}" alt="Save" class="h-6 w-6" />`;
+  saveButton.innerHTML = `<img src="${saved ? './icons/save-filled.svg' : './icons/save.svg'}" alt="Save" class="h-6 w-6" />`;
   saveButton.addEventListener('click', () => onToggleSave?.());
 
   actions.append(leftActions, saveButton);

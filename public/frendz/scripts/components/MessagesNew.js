@@ -88,7 +88,7 @@ export function createMessagesPage({ threads = [], onSelectThread }) {
       ].join(' ');
 
       button.innerHTML = `
-        <img src="${thread.user?.avatar ?? '/images/avatars/placeholder.jpg'}" alt="${thread.user?.name ?? 'User'}" class="h-14 w-14 rounded-full object-cover" />
+        <img src="${thread.user?.avatar ?? './images/avatars/placeholder.jpg'}" alt="${thread.user?.name ?? 'User'}" class="h-14 w-14 rounded-full object-cover" />
         <div class="flex-1 min-w-0">
           <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">${thread.user?.name ?? 'Unknown'}</p>
           <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${thread.messages?.[thread.messages.length - 1]?.text ?? 'Say hi!'}</p>
@@ -138,16 +138,16 @@ export function createMessagesPage({ threads = [], onSelectThread }) {
     header.innerHTML = `
       <div class="flex items-center gap-3">
         <button type="button" class="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center sm:hidden" data-action="back">
-          <img src="/icons/close.svg" alt="Back" class="h-5 w-5" />
+          <img src="./icons/close.svg" alt="Back" class="h-5 w-5" />
         </button>
-        <img src="${thread.user?.avatar ?? '/images/avatars/placeholder.jpg'}" alt="${thread.user?.name ?? 'User'}" class="h-12 w-12 rounded-full object-cover" />
+        <img src="${thread.user?.avatar ?? './images/avatars/placeholder.jpg'}" alt="${thread.user?.name ?? 'User'}" class="h-12 w-12 rounded-full object-cover" />
         <div>
           <p class="text-sm font-semibold text-slate-900 dark:text-white">${thread.user?.name ?? 'Unknown'}</p>
           <p class="text-xs text-slate-500 dark:text-slate-400">Active now</p>
         </div>
       </div>
       <button type="button" class="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hidden sm:flex" data-action="close">
-        <img src="/icons/close.svg" alt="Close" class="h-5 w-5" />
+        <img src="./icons/close.svg" alt="Close" class="h-5 w-5" />
       </button>
     `;
 
@@ -189,11 +189,11 @@ export function createMessagesPage({ threads = [], onSelectThread }) {
     form.className = 'px-4 py-3 flex items-center gap-3 border-t border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur';
     form.innerHTML = `
       <button type="button" class="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-        <img src="/icons/plus.svg" alt="Add" class="h-5 w-5" />
+        <img src="./icons/plus.svg" alt="Add" class="h-5 w-5" />
       </button>
       <input type="text" placeholder="Message..." class="flex-1 h-10 rounded-full bg-slate-100 dark:bg-slate-800 px-4 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
       <button type="submit" class="h-10 w-10 rounded-full bg-brand text-white flex items-center justify-center">
-        <img src="/icons/send.svg" alt="Send" class="h-4 w-4" />
+        <img src="./icons/send.svg" alt="Send" class="h-4 w-4" />
       </button>
     `;
 

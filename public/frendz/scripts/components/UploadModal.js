@@ -15,7 +15,7 @@ export function mountCreateModal({ posts = [], onAddPost, onClose }) {
   header.innerHTML = `
     <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Create new post</h2>
     <button type="button" class="h-9 w-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center" data-action="close">
-      <img src="/icons/close.svg" alt="Close" class="h-5 w-5" />
+      <img src="./icons/close.svg" alt="Close" class="h-5 w-5" />
     </button>
   `;
 
@@ -39,7 +39,7 @@ export function mountCreateModal({ posts = [], onAddPost, onClose }) {
     'hover:border-brand hover:bg-brand/5 transition'
   ].join(' ');
   fileLabel.innerHTML = `
-    <img src="/icons/plus.svg" alt="Upload" class="h-12 w-12 mb-3 opacity-50" />
+    <img src="./icons/plus.svg" alt="Upload" class="h-12 w-12 mb-3 opacity-50" />
     <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Select photo or video</p>
     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">or drag and drop</p>
   `;
@@ -53,7 +53,7 @@ export function mountCreateModal({ posts = [], onAddPost, onClose }) {
   const removeButton = document.createElement('button');
   removeButton.type = 'button';
   removeButton.className = 'absolute top-3 right-3 h-9 w-9 rounded-full bg-black/60 text-white flex items-center justify-center backdrop-blur';
-  removeButton.innerHTML = '<img src="/icons/close.svg" alt="Remove" class="h-5 w-5" />';
+  removeButton.innerHTML = '<img src="./icons/close.svg" alt="Remove" class="h-5 w-5" />';
 
   preview.append(previewMedia, removeButton);
 
@@ -127,7 +127,7 @@ export function mountCreateModal({ posts = [], onAddPost, onClose }) {
       user: {
         id: 'me',
         name: 'anomaly',
-        avatar: '/images/avatars/me.jpg',
+        avatar: './images/avatars/me.jpg',
       },
       type: isVideo ? 'video' : 'image',
       src: previewURL,

@@ -1,13 +1,13 @@
 // Placeholder yorumlar - bu listeyi değiştirebilirsiniz
 const PLACEHOLDER_COMMENTS = [
-  { user: 'charlie', avatar: '/images/avatars/a2.jpg', text: 'Amazing work! 🔥' },
-  { user: 'studio', avatar: '/images/avatars/a3.jpg', text: 'Love the colors!' },
-  { user: 'maya_creates', avatar: '/images/avatars/a5.jpg', text: 'This is so inspiring ✨' },
-  { user: 'pixel_art', avatar: '/images/avatars/a4.jpg', text: 'Great composition!' },
-  { user: 'designdaily', avatar: '/images/avatars/a6.jpg', text: 'Can\'t wait to see more' },
-  { user: 'urban_lens', avatar: '/images/avatars/a8.jpg', text: 'Absolutely stunning 📸' },
-  { user: 'sketch_daily', avatar: '/images/avatars/a9.jpg', text: 'Keep up the great work!' },
-  { user: 'codelife', avatar: '/images/avatars/a7.jpg', text: 'This is fire! 🚀' },
+  { user: 'charlie', avatar: './images/avatars/a2.jpg', text: 'Amazing work! 🔥' },
+  { user: 'studio', avatar: './images/avatars/a3.jpg', text: 'Love the colors!' },
+  { user: 'maya_creates', avatar: './images/avatars/a5.jpg', text: 'This is so inspiring ✨' },
+  { user: 'pixel_art', avatar: './images/avatars/a4.jpg', text: 'Great composition!' },
+  { user: 'designdaily', avatar: './images/avatars/a6.jpg', text: 'Can\'t wait to see more' },
+  { user: 'urban_lens', avatar: './images/avatars/a8.jpg', text: 'Absolutely stunning 📸' },
+  { user: 'sketch_daily', avatar: './images/avatars/a9.jpg', text: 'Keep up the great work!' },
+  { user: 'codelife', avatar: './images/avatars/a7.jpg', text: 'This is fire! 🚀' },
 ];
 
 function getRandomComments(postId) {
@@ -78,7 +78,7 @@ export function mountCommentsModal({ post, onClose }) {
   header.innerHTML = `
     <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Comments</h2>
     <button type="button" class="h-9 w-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center" data-action="close">
-      <img src="/icons/close.svg" alt="Close" class="h-5 w-5" />
+      <img src="./icons/close.svg" alt="Close" class="h-5 w-5" />
     </button>
   `;
 
@@ -121,7 +121,7 @@ export function mountCommentsModal({ post, onClose }) {
   const form = document.createElement('form');
   form.className = 'px-4 py-3 flex items-center gap-3 border-t border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur';
   form.innerHTML = `
-    <img src="/images/avatars/me.jpg" alt="You" class="h-10 w-10 rounded-full object-cover flex-shrink-0" />
+    <img src="./images/avatars/me.jpg" alt="You" class="h-10 w-10 rounded-full object-cover flex-shrink-0" />
     <input type="text" placeholder="Add a comment..." class="flex-1 h-10 rounded-full bg-slate-100 dark:bg-slate-800 px-4 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
     <button type="submit" class="h-10 px-5 rounded-full bg-brand text-white font-semibold text-sm active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed">
       Post
@@ -145,7 +145,7 @@ export function mountCommentsModal({ post, onClose }) {
     const newComment = {
       id: `comment-${post.id}-${Date.now()}`,
       user: 'anomaly',
-      avatar: '/images/avatars/me.jpg',
+      avatar: './images/avatars/me.jpg',
       text,
       timestamp: new Date().toISOString(),
     };

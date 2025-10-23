@@ -13,7 +13,7 @@ export function createProfilePage({
   const userInfo = document.createElement('div');
   userInfo.className = 'flex items-center gap-6 mb-6';
   userInfo.innerHTML = `
-    <img src="/images/avatars/me.jpg" alt="Your profile" class="h-24 w-24 rounded-full object-cover border-4 border-slate-200 dark:border-slate-800" />
+    <img src="./images/avatars/me.jpg" alt="Your profile" class="h-24 w-24 rounded-full object-cover border-4 border-slate-200 dark:border-slate-800" />
     <div class="flex-1">
       <h1 class="text-xl font-bold text-slate-900 dark:text-white mb-1">anomaly</h1>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">Creative studio • Design & Games</p>
@@ -44,13 +44,13 @@ export function createProfilePage({
   tabs.className = 'flex border-b border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-10';
   tabs.innerHTML = `
     <button type="button" class="flex-1 py-3 text-sm font-semibold border-b-2 border-brand text-brand" data-tab="posts">
-      <img src="/icons/grid.svg" alt="Posts" class="h-5 w-5 inline-block" />
+      <img src="./icons/grid.svg" alt="Posts" class="h-5 w-5 inline-block" />
     </button>
     <button type="button" class="flex-1 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 dark:text-slate-400" data-tab="reels">
-      <img src="/icons/reels.svg" alt="Reels" class="h-5 w-5 inline-block" />
+      <img src="./icons/reels.svg" alt="Reels" class="h-5 w-5 inline-block" />
     </button>
     <button type="button" class="flex-1 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 dark:text-slate-400" data-tab="tagged">
-      <img src="/icons/tag.svg" alt="Tagged" class="h-5 w-5 inline-block" />
+      <img src="./icons/tag.svg" alt="Tagged" class="h-5 w-5 inline-block" />
     </button>
   `;
 
@@ -105,11 +105,11 @@ export function createProfilePage({
       overlay.className = 'absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-4 text-white text-sm font-semibold';
       overlay.innerHTML = `
         <span class="inline-flex items-center gap-1">
-          <img src="${likes?.get(post.id) ? '/icons/heart-filled.svg' : '/icons/heart.svg'}" alt="Likes" class="h-5 w-5" />
+          <img src="${likes?.get(post.id) ? './icons/heart-filled.svg' : './icons/heart.svg'}" alt="Likes" class="h-5 w-5" />
           ${post.likes}
         </span>
         <span class="inline-flex items-center gap-1">
-          <img src="/icons/comment.svg" alt="Comments" class="h-5 w-5" />
+          <img src="./icons/comment.svg" alt="Comments" class="h-5 w-5" />
           0
         </span>
       `;

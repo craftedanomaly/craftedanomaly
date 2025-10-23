@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/frendz",
-      "destination": "/frendz/index.html"
+      "destination": "/public/frendz/index.html"
     },
     {
       "source": "/frendz/:path*",
-      "destination": "/frendz/:path*"
+      "destination": "/public/frendz/:path*"
     }
   ],
   "headers": [
