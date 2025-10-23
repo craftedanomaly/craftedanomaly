@@ -71,3 +71,21 @@
 .splash-logo {
   animation: splash-logo 1.2s ease-out forwards;
 }
+
+/* SVG icon colors for dark mode */
+.dark img[src$=".svg"] {
+  filter: brightness(0) invert(1);
+}
+
+/* Image optimization */
+img {
+  content-visibility: auto;
+}
+
+/* Optimize image rendering */
+img[src*="/avatars/"],
+img[src*="/posts/"],
+img[src*="/stories/"] {
+  image-rendering: auto;
+  will-change: transform;
+}

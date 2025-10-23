@@ -42,7 +42,7 @@ const appState = {
   threadMessages: new Map(),
   customPosts: [],
   muted: true,
-  theme: 'system',
+  theme: 'light',
   searchTerm: '',
 };
 
@@ -91,7 +91,7 @@ const store = {
     localStorage.setItem(storageKey(LOCAL_KEYS.muted, 'global'), value ? 'true' : 'false');
   },
   getTheme() {
-    return localStorage.getItem(storageKey(LOCAL_KEYS.theme, 'global')) || 'system';
+    return localStorage.getItem(storageKey(LOCAL_KEYS.theme, 'global')) || 'light';
   },
   setTheme(value) {
     localStorage.setItem(storageKey(LOCAL_KEYS.theme, 'global'), value);
@@ -267,7 +267,7 @@ function renderHeader() {
 }
 
 function cycleTheme() {
-  const order = ['system', 'light', 'dark'];
+  const order = ['light', 'dark'];
   const currentIndex = order.indexOf(appState.theme);
   const next = order[(currentIndex + 1) % order.length];
   appState.theme = next;
@@ -527,7 +527,7 @@ function init() {
 
   splash = mountSplash({
     container: document.body,
-    duration: 1500,
+    duration: 3000,
     onContinue: () => navigate('#/home'),
   });
 

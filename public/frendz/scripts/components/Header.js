@@ -1,13 +1,11 @@
 const THEME_LABELS = {
-  system: 'System',
   light: 'Light',
   dark: 'Dark',
 };
 
 function themeIcon(mode) {
   if (mode === 'dark') return '/frendz/icons/moon.svg';
-  if (mode === 'light') return '/frendz/icons/sun.svg';
-  return '/frendz/icons/auto.svg';
+  return '/frendz/icons/sun.svg';
 }
 
 export function createHeader({ title, showDM, onLogoClick, onOpenMessages, themeMode, onThemeToggle, muted, onToggleMuted }) {
