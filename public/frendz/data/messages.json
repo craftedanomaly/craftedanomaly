@@ -1,0 +1,183 @@
+[
+  {
+    "id": "m1",
+    "user": {
+      "id": "u2",
+      "name": "charlie",
+      "avatar": "/images/avatars/a2.jpg"
+    },
+    "messages": [
+      {
+        "id": "msg1",
+        "from": "u2",
+        "text": "hey! check this out",
+        "ts": "2025-10-20T18:02:00Z"
+      },
+      {
+        "id": "msg2",
+        "from": "me",
+        "text": "looks great!",
+        "ts": "2025-10-20T18:05:00Z"
+      },
+      {
+        "id": "msg3",
+        "from": "u2",
+        "text": "thanks! been working on it all week",
+        "ts": "2025-10-20T18:06:00Z"
+      },
+      {
+        "id": "msg4",
+        "from": "me",
+        "text": "it shows. the details are 🔥",
+        "ts": "2025-10-20T18:08:00Z"
+      }
+    ],
+    "unread": 0
+  },
+  {
+    "id": "m2",
+    "user": {
+      "id": "u3",
+      "name": "studio",
+      "avatar": "/images/avatars/a3.jpg"
+    },
+    "messages": [
+      {
+        "id": "msg5",
+        "from": "u3",
+        "text": "meeting at 3pm tomorrow?",
+        "ts": "2025-10-22T14:30:00Z"
+      },
+      {
+        "id": "msg6",
+        "from": "me",
+        "text": "works for me!",
+        "ts": "2025-10-22T14:32:00Z"
+      },
+      {
+        "id": "msg7",
+        "from": "u3",
+        "text": "perfect, see you then",
+        "ts": "2025-10-22T14:33:00Z"
+      }
+    ],
+    "unread": 0
+  },
+  {
+    "id": "m3",
+    "user": {
+      "id": "u5",
+      "name": "maya_creates",
+      "avatar": "/images/avatars/a5.jpg"
+    },
+    "messages": [
+      {
+        "id": "msg8",
+        "from": "u5",
+        "text": "loved your latest post!",
+        "ts": "2025-10-22T20:15:00Z"
+      },
+      {
+        "id": "msg9",
+        "from": "me",
+        "text": "thank you! means a lot 💙",
+        "ts": "2025-10-22T20:18:00Z"
+      },
+      {
+        "id": "msg10",
+        "from": "u5",
+        "text": "we should collab sometime",
+        "ts": "2025-10-22T20:20:00Z"
+      },
+      {
+        "id": "msg11",
+        "from": "me",
+        "text": "absolutely! let's set something up",
+        "ts": "2025-10-22T20:22:00Z"
+      },
+      {
+        "id": "msg12",
+        "from": "u5",
+        "text": "awesome! i'll dm you some ideas",
+        "ts": "2025-10-22T20:25:00Z"
+      }
+    ],
+    "unread": 1
+  },
+  {
+    "id": "m4",
+    "user": {
+      "id": "u6",
+      "name": "designdaily",
+      "avatar": "/images/avatars/a6.jpg"
+    },
+    "messages": [
+      {
+        "id": "msg13",
+        "from": "u6",
+        "text": "quick question about the brand guidelines",
+        "ts": "2025-10-21T11:00:00Z"
+      },
+      {
+        "id": "msg14",
+        "from": "me",
+        "text": "sure, what's up?",
+        "ts": "2025-10-21T11:02:00Z"
+      },
+      {
+        "id": "msg15",
+        "from": "u6",
+        "text": "can i use the secondary color for backgrounds?",
+        "ts": "2025-10-21T11:03:00Z"
+      },
+      {
+        "id": "msg16",
+        "from": "me",
+        "text": "yeah totally! just keep it at 10% opacity",
+        "ts": "2025-10-21T11:05:00Z"
+      },
+      {
+        "id": "msg17",
+        "from": "u6",
+        "text": "perfect, thanks!",
+        "ts": "2025-10-21T11:06:00Z"
+      }
+    ],
+    "unread": 0
+  },
+  {
+    "id": "m5",
+    "user": {
+      "id": "u8",
+      "name": "urban_lens",
+      "avatar": "/images/avatars/a8.jpg"
+    },
+    "messages": [
+      {
+        "id": "msg18",
+        "from": "u8",
+        "text": "yo! wanna shoot together this weekend?",
+        "ts": "2025-10-22T16:45:00Z"
+      },
+      {
+        "id": "msg19",
+        "from": "me",
+        "text": "i'm down! what time?",
+        "ts": "2025-10-22T16:50:00Z"
+      },
+      {
+        "id": "msg20",
+        "from": "u8",
+        "text": "how about saturday morning? golden hour",
+        "ts": "2025-10-22T16:52:00Z"
+      },
+      {
+        "id": "msg21",
+        "from": "me",
+        "text": "sounds perfect 📸",
+        "ts": "2025-10-22T16:55:00Z"
+      }
+    ],
+    "unread": 0
+  }
+]

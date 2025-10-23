@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full" data-theme="system">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Frendz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/styles/tailwind-extra.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              DEFAULT: '#F2A2CE',
+              dark: '#7C9AA6',
+              light: '#D9D9D9',
+              darker: '#262626',
+              darkest: '#0D0D0D',
+            },
+          },
+        }
+      }
+    };
+  </script>
+</head>
+<body class="h-full bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+  <div id="app" class="h-full"></div>
+
+  <template id="skeleton-story-item">
+    <div class="flex flex-col items-center w-16 gap-2 animate-pulse">
+      <div class="w-16 h-16 rounded-full bg-slate-200 dark:bg-slate-800"></div>
+      <div class="w-12 h-2 rounded bg-slate-200 dark:bg-slate-800"></div>
+    </div>
+  </template>
+
+  <template id="skeleton-post-card">
+    <div class="rounded-xl bg-white dark:bg-slate-900 shadow-sm border border-slate-200/70 dark:border-slate-800 overflow-hidden animate-pulse">
+      <div class="flex items-center gap-3 px-4 py-3">
+        <div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800"></div>
+        <div class="flex-1">
+          <div class="h-2 w-24 bg-slate-200 dark:bg-slate-800 rounded"></div>
+          <div class="h-2 w-16 bg-slate-200 dark:bg-slate-800 rounded mt-2"></div>
+        </div>
+      </div>
+      <div class="aspect-[4/5] bg-slate-200 dark:bg-slate-800"></div>
+      <div class="p-4 space-y-3">
+        <div class="h-3 w-20 bg-slate-200 dark:bg-slate-800 rounded"></div>
+        <div class="h-3 w-full bg-slate-200 dark:bg-slate-800 rounded"></div>
+        <div class="h-3 w-3/4 bg-slate-200 dark:bg-slate-800 rounded"></div>
+      </div>
+    </div>
+  </template>
+
+  <script type="module" src="/scripts/app.js"></script>
+</body>
+</html>
