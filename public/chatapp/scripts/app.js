@@ -31,12 +31,32 @@ async function loadData() {
     try {
         ui.showLoading();
         
+        console.log('Loading data from:', window.location.origin);
+        
         const [users, chats, statuses, calls] = await Promise.all([
-            fetch('/chatapp/data/users.json').then(r => r.json()),
-            fetch('/chatapp/data/chats.json').then(r => r.json()),
-            fetch('/chatapp/data/statuses.json').then(r => r.json()),
-            fetch('/chatapp/data/calls.json').then(r => r.json())
+            fetch('/chatapp/data/users.json').then(r => {
+                console.log('Users response:', r.status);
+                if (!r.ok) throw new Error(`Users fetch failed: ${r.status}`);
+                return r.json();
+            }),
+            fetch('/chatapp/data/chats.json').then(r => {
+                console.log('Chats response:', r.status);
+                if (!r.ok) throw new Error(`Chats fetch failed: ${r.status}`);
+                return r.json();
+            }),
+            fetch('/chatapp/data/statuses.json').then(r => {
+                console.log('Statuses response:', r.status);
+                if (!r.ok) throw new Error(`Statuses fetch failed: ${r.status}`);
+                return r.json();
+            }),
+            fetch('/chatapp/data/calls.json').then(r => {
+                console.log('Calls response:', r.status);
+                if (!r.ok) throw new Error(`Calls fetch failed: ${r.status}`);
+                return r.json();
+            })
         ]);
+        
+        console.log('Data loaded successfully:', { users: users.length, chats: chats.length, statuses: statuses.length, calls: calls.length });
         
         appState.users = users;
         appState.chats = chats;
@@ -55,9 +75,25 @@ async function loadData() {
         ui.hideLoading();
         return true;
     } catch (error) {
-        console.error('Failed to load data:', error);
+        console.error('❌ Failed to load data:', error);
         ui.hideLoading();
-        ui.toast('Failed to load data. Using cached data.', 'error');
+        ui.toast('Failed to load data: ' + error.message, 'error');
+        
+        // Show error on screen
+        const app = document.getElementById('app');
+        if (app) {
+            app.innerHTML = `
+                <div class="flex items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
+                    <div class="text-center p-8">
+                        <h1 class="text-2xl font-bold text-red-600 mb-4">Failed to Load Data</h1>
+                        <p class="text-gray-700 dark:text-gray-300 mb-4">${error.message}</p>
+                        <button onclick="location.reload()" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+                            Retry
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
         return false;
     }
 }
