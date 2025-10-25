@@ -320,38 +320,56 @@ const router = new Router();
 
 async function init() {
     console.log('🚀 ChatApp initializing...');
+    console.log('User Agent:', navigator.userAgent);
+    console.log('Window location:', window.location.href);
+    console.log('Document ready state:', document.readyState);
     
     // Load data
-    await loadData();
+    const loaded = await loadData();
+    
+    if (!loaded) {
+        console.error('❌ Data loading failed, app cannot start');
+        return;
+    }
+    
+    console.log('✅ Data loaded, initializing router...');
     
     // Initialize router
     router.init();
     
-    // Register service worker (PWA)
+    console.log('✅ Router initialized');
+    
+    // Register service worker (PWA) - but don't block on mobile
     if ('serviceWorker' in navigator) {
-        try {
-            await navigator.serviceWorker.register('/chatapp/sw.js', {
-                scope: '/chatapp/'
-            });
+        navigator.serviceWorker.register('/chatapp/sw.js', {
+            scope: '/chatapp/'
+        }).then(() => {
             console.log('✅ Service Worker registered');
-        } catch (error) {
-            console.log('ℹ️ Service Worker registration failed:', error);
-        }
+        }).catch((error) => {
+            console.log('ℹ️ Service Worker registration failed (non-critical):', error);
+        });
     }
     
-    // Install prompt
+    // Install prompt - controlled
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent automatic banner
         e.preventDefault();
         deferredPrompt = e;
-        console.log('💡 Install prompt available');
+        console.log('💡 Install prompt captured (won\'t auto-show)');
+        
+        // You can show it later with deferredPrompt.prompt()
     });
     
     console.log('✅ ChatApp ready!');
 }
 
-// Start the app
-init();
+// Ensure DOM is ready before initializing
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
 
 // Export for use in components
 export { router, loadData };

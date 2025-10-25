@@ -1,5 +1,5 @@
 // Service Worker for ChatApp PWA
-const CACHE_NAME = 'chatapp-v3';
+const CACHE_NAME = 'chatapp-v4';
 const urlsToCache = [
   '/chatapp/',
   '/chatapp/index.html',
