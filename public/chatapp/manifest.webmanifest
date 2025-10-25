@@ -2,7 +2,7 @@
   "name": "ChatApp - WhatsApp Clone",
   "short_name": "ChatApp",
   "description": "A fully static WhatsApp-like chat wireframe",
-  "start_url": "/chatapp/",
+  "start_url": "/chatapp/index.html?source=pwa",
   "scope": "/chatapp/",
   "display": "standalone",
   "orientation": "portrait",

@@ -47,8 +47,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  let cacheKey = event.request;
+  if (requestUrl.pathname === '/chatapp/' || requestUrl.pathname === '/chatapp/index.html') {
+    cacheKey = '/chatapp/index.html';
+  }
+
   event.respondWith(
-    caches.match(event.request)
+    caches.match(cacheKey)
       .then((response) => {
         if (response) {
           return response;
@@ -66,7 +71,10 @@ self.addEventListener('fetch', (event) => {
 
             caches.open(CACHE_NAME)
               .then((cache) => {
-                cache.put(event.request, responseToCache);
+                const cacheStoreKey = (requestUrl.pathname === '/chatapp/' || requestUrl.pathname === '/chatapp/index.html')
+                  ? '/chatapp/index.html'
+                  : event.request;
+                cache.put(cacheStoreKey, responseToCache);
               });
 
             return networkResponse;

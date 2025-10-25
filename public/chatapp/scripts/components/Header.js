@@ -298,40 +298,13 @@ async function startVideoCall(chat) {
         setTimeout(() => {
             statusText.textContent = 'Connected';
             
-            // Try to load video named after the contact (e.g., Sam.mp4)
-            const contactVideoPath = `/chatapp/media/images/videocalls/${chat.user.name}.mp4`;
-            
-            // Fallback videos - use external CDN or smaller local videos
-            const fallbackVideos = [
-                // External video samples (always work)
-                'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-                'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-                'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-                // Local videos (if they exist and are small enough)
-                '/chatapp/media/images/videocalls/call1.mp4',
-                '/chatapp/media/images/videocalls/call2.mp4',
-                '/chatapp/media/images/videocalls/charlie.mp4'
-            ];
-            
-            // Try contact-specific video first
-            remoteVideo.src = contactVideoPath;
+            const placeholderVideo = 'https://res.cloudinary.com/dyjqfwwto/video/upload/v1761416848/charlie_xuyfew.mp4';
+            remoteVideo.src = placeholderVideo;
             remoteVideo.muted = false;
             
-            let fallbackAttempts = 0;
-            
-            // If it fails to load, try fallbacks
             remoteVideo.onerror = () => {
-                console.log(`Failed to load video: ${remoteVideo.src}`);
-                if (fallbackAttempts < fallbackVideos.length) {
-                    const nextVideo = fallbackVideos[fallbackAttempts];
-                    console.log(`Trying fallback video ${fallbackAttempts + 1}: ${nextVideo}`);
-                    remoteVideo.src = nextVideo;
-                    fallbackAttempts++;
-                } else {
-                    console.error('All video sources failed to load');
-                    statusText.textContent = 'Video unavailable';
-                    remoteVideo.onerror = null;
-                }
+                console.error('Failed to load placeholder video:', remoteVideo.src);
+                statusText.textContent = 'Video unavailable';
             };
             
             remoteVideo.play().catch(err => {
