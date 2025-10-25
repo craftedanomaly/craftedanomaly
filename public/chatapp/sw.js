@@ -1,5 +1,5 @@
 // Service Worker for ChatApp PWA
-const CACHE_NAME = 'chatapp-v4';
+const CACHE_NAME = 'chatapp-v5-final';
 const urlsToCache = [
   '/chatapp/',
   '/chatapp/index.html',
@@ -21,6 +21,7 @@ const urlsToCache = [
 
 // Install event - cache resources
 self.addEventListener('install', (event) => {
+  console.log('🔄 Installing new service worker version:', CACHE_NAME);
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -31,6 +32,7 @@ self.addEventListener('install', (event) => {
         console.error('Cache install failed:', error);
       })
   );
+  // Force immediate activation
   self.skipWaiting();
 });
 

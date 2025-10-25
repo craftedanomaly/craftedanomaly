@@ -343,8 +343,21 @@ async function init() {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/chatapp/sw.js', {
             scope: '/chatapp/'
-        }).then(() => {
+        }).then((registration) => {
             console.log('✅ Service Worker registered');
+            
+            // Auto-update when new version is available
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('🔄 New Service Worker found, updating...');
+                
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'activated') {
+                        console.log('✅ New Service Worker activated, reloading page...');
+                        window.location.reload();
+                    }
+                });
+            });
         }).catch((error) => {
             console.log('ℹ️ Service Worker registration failed (non-critical):', error);
         });
