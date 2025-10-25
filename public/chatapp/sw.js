@@ -1,5 +1,5 @@
 // Service Worker for ChatApp PWA
-const CACHE_NAME = 'chatapp-v1';
+const CACHE_NAME = 'chatapp-v3';
 const urlsToCache = [
   '/chatapp/',
   '/chatapp/index.html',
@@ -7,6 +7,11 @@ const urlsToCache = [
   '/chatapp/scripts/app.js',
   '/chatapp/scripts/store.js',
   '/chatapp/scripts/ui.js',
+  '/chatapp/scripts/initMessages.js',
+  '/chatapp/scripts/components/ChatView.js',
+  '/chatapp/scripts/components/ChatsList.js',
+  '/chatapp/scripts/components/StatusList.js',
+  '/chatapp/scripts/components/StatusViewer.js',
   '/chatapp/data/users.json',
   '/chatapp/data/chats.json',
   '/chatapp/data/statuses.json',
@@ -29,40 +34,45 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - serve from cache, fallback to network for same-origin GET requests only
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  const requestUrl = new URL(event.request.url);
+
+  // Only handle requests within our origin (avoid hijacking CDN or extension requests)
+  if (requestUrl.origin !== self.location.origin) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Cache hit - return response
         if (response) {
           return response;
         }
-        
-        // Clone the request
+
         const fetchRequest = event.request.clone();
-        
-        return fetch(fetchRequest).then((response) => {
-          // Check if valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-          
-          // Clone the response
-          const responseToCache = response.clone();
-          
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-          
-          return response;
-        });
+
+        return fetch(fetchRequest)
+          .then((networkResponse) => {
+            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+              return networkResponse;
+            }
+
+            const responseToCache = networkResponse.clone();
+
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
+              });
+
+            return networkResponse;
+          });
       })
-      .catch(() => {
-        // Return offline page if available
-        return caches.match('/chatapp/index.html');
-      })
+      .catch(() => caches.match('/chatapp/index.html'))
   );
 });
 
