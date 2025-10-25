@@ -64,8 +64,8 @@ self.addEventListener('fetch', (event) => {
   let cacheKey = event.request;
   if (isIndex) cacheKey = '/chatapp/index.html';
 
-  // Network-first for JS and JSON to avoid stale code/data
-  if (isJS || isJSON) {
+  // Network-first for JS, JSON, and index.html to avoid stale code/data
+  if (isJS || isJSON || isIndex) {
     event.respondWith(
       fetch(event.request.clone()).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
