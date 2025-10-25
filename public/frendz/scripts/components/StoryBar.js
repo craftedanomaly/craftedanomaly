@@ -10,11 +10,27 @@ export function createStoryBar({ stories = [], seenMap, onOpenStory }) {
   scroller.setAttribute('role', 'list');
   scroller.style.scrollbarWidth = 'none';
   scroller.style.msOverflowStyle = 'none';
+  // Mouse wheel horizontal scroll
   scroller.addEventListener('wheel', (event) => {
     if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
     scroller.scrollLeft += event.deltaY;
     event.preventDefault();
   }, { passive: false });
+
+  // Touch swipe support
+  let touchStartX = 0;
+  let scrollStartX = 0;
+  
+  scroller.addEventListener('touchstart', (event) => {
+    touchStartX = event.touches[0].clientX;
+    scrollStartX = scroller.scrollLeft;
+  }, { passive: true });
+  
+  scroller.addEventListener('touchmove', (event) => {
+    const touchX = event.touches[0].clientX;
+    const diff = touchStartX - touchX;
+    scroller.scrollLeft = scrollStartX + diff;
+  }, { passive: true });
 
   if (stories.length === 0) {
     const empty = document.createElement('div');

@@ -81,7 +81,7 @@ export function createPostCard({
   onOpenPost,
 }) {
   const card = document.createElement('article');
-  card.className = 'bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 rounded-xl shadow-sm mx-4';
+  card.className = 'bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 rounded-xl shadow-sm';
 
   const header = document.createElement('header');
   header.className = 'flex items-center justify-between px-4 py-3';

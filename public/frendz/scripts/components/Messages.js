@@ -127,11 +127,11 @@ export function createMessagesPage({ threads = [], onSelectThread }) {
     form.className = 'px-4 py-3 flex items-center gap-3 border-t border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur';
     form.innerHTML = `
       <button type="button" class="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-        <img src="./icons/plus.svg" alt="Add" class="h-5 w-5" />
+        <img src="/frendz/icons/plus.svg" alt="Add" class="h-5 w-5" />
       </button>
       <input type="text" placeholder="Message..." class="flex-1 h-10 rounded-full bg-slate-100 dark:bg-slate-800 px-4 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
       <button type="submit" class="h-10 w-10 rounded-full bg-brand text-white flex items-center justify-center">
-        <img src="./icons/send.svg" alt="Send" class="h-4 w-4" />
+        <img src="/frendz/icons/send.svg" alt="Send" class="h-4 w-4" />
       </button>
     `;
 

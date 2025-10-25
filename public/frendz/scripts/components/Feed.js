@@ -13,7 +13,7 @@ export function createFeed({
   onToggleMuted,
 }) {
   const container = document.createElement('section');
-  container.className = 'flex flex-col gap-4 pt-4 pb-24';
+  container.className = 'flex flex-col gap-4 pt-4 pb-24 px-4';
 
   const lazyObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {

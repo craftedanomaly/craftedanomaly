@@ -144,7 +144,7 @@ function getSystemTheme() {
 function ensureShell() {
   if (appShell) return;
   appShell = document.createElement('div');
-  appShell.className = 'h-full flex flex-col bg-slate-100 dark:bg-slate-950';
+  appShell.className = 'h-full flex flex-col bg-slate-100 dark:bg-slate-950 mx-auto max-w-2xl';
 
   headerSlot = document.createElement('div');
   headerSlot.className = 'sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm border-b border-slate-200/60 dark:border-slate-800';
@@ -236,7 +236,7 @@ function renderHeader() {
 
   switch (appState.route) {
     case '/home':
-      title = 'Home';
+      title = 'Frendz';
       showDM = true;
       break;
     case '/messages':
