@@ -301,28 +301,42 @@ async function startVideoCall(chat) {
             // Try to load video named after the contact (e.g., Sam.mp4)
             const contactVideoPath = `/chatapp/media/images/videocalls/${chat.user.name}.mp4`;
             
-            // Fallback videos if contact-specific video doesn't exist
+            // Fallback videos - use external CDN or smaller local videos
             const fallbackVideos = [
+                // External video samples (always work)
+                'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+                'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+                // Local videos (if they exist and are small enough)
                 '/chatapp/media/images/videocalls/call1.mp4',
                 '/chatapp/media/images/videocalls/call2.mp4',
-                '/chatapp/media/images/videocalls/call3.mp4',
-                '/chatapp/media/images/status2.mp4',
-                '/chatapp/media/images/status4.mp4',
-                '/chatapp/media/images/status5.mp4'
+                '/chatapp/media/images/videocalls/charlie.mp4'
             ];
             
             // Try contact-specific video first
             remoteVideo.src = contactVideoPath;
             remoteVideo.muted = false;
             
-            // If it fails to load, use fallback
+            let fallbackAttempts = 0;
+            
+            // If it fails to load, try fallbacks
             remoteVideo.onerror = () => {
-                const randomVideo = fallbackVideos[Math.floor(Math.random() * fallbackVideos.length)];
-                remoteVideo.src = randomVideo;
-                remoteVideo.onerror = null; // Prevent infinite loop
+                console.log(`Failed to load video: ${remoteVideo.src}`);
+                if (fallbackAttempts < fallbackVideos.length) {
+                    const nextVideo = fallbackVideos[fallbackAttempts];
+                    console.log(`Trying fallback video ${fallbackAttempts + 1}: ${nextVideo}`);
+                    remoteVideo.src = nextVideo;
+                    fallbackAttempts++;
+                } else {
+                    console.error('All video sources failed to load');
+                    statusText.textContent = 'Video unavailable';
+                    remoteVideo.onerror = null;
+                }
             };
             
-            remoteVideo.play();
+            remoteVideo.play().catch(err => {
+                console.error('Video play failed:', err);
+            });
         }, 10000);
     }, 1000);
     
