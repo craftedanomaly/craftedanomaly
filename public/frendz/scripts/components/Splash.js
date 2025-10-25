@@ -15,10 +15,6 @@ export function mountSplash({ container = document.body, duration = 1600, onCont
   wordmark.alt = 'Frendz marque';
   wordmark.className = 'h-8 object-contain opacity-80';
 
-  const hint = document.createElement('p');
-  hint.textContent = 'Tap to continue';
-  hint.className = 'text-sm tracking-wide uppercase text-slate-400 dark:text-slate-500 animate-pulse';
-
   const finish = () => {
     overlay.classList.add('opacity-0');
     setTimeout(() => {
@@ -49,7 +45,7 @@ export function mountSplash({ container = document.body, duration = 1600, onCont
   overlay.addEventListener('click', handleClick);
   window.addEventListener('keydown', handleKey, { passive: true });
 
-  overlay.append(logo, wordmark, hint);
+  overlay.append(logo, wordmark);
   container.appendChild(overlay);
 
   return {
