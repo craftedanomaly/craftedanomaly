@@ -298,18 +298,89 @@ async function startVideoCall(chat) {
         setTimeout(() => {
             statusText.textContent = 'Connected';
             
-            const placeholderVideo = 'https://res.cloudinary.com/dyjqfwwto/video/upload/v1761416848/charlie_xuyfew.mp4';
-            remoteVideo.src = placeholderVideo;
-            remoteVideo.muted = false;
+            // Prepare remote video element
+            remoteVideo.crossOrigin = 'anonymous';
+            remoteVideo.muted = true; // start muted to satisfy mobile autoplay policy
             
-            remoteVideo.onerror = () => {
-                console.error('Failed to load placeholder video:', remoteVideo.src);
-                statusText.textContent = 'Video unavailable';
+            // Candidate sources: Cloudinary first, then public sample videos
+            const sources = [
+                'https://res.cloudinary.com/dyjqfwwto/video/upload/v1761416848/charlie_xuyfew.mp4',
+                'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
+            ];
+            let idx = 0;
+            let playOverlay;
+            
+            const cleanupEvents = () => {
+                remoteVideo.onloadedmetadata = null;
+                remoteVideo.oncanplay = null;
+                remoteVideo.onerror = null;
             };
             
-            remoteVideo.play().catch(err => {
-                console.error('Video play failed:', err);
-            });
+            const showTapToPlay = () => {
+                if (playOverlay) return;
+                playOverlay = document.createElement('button');
+                playOverlay.className = 'absolute inset-0 flex items-center justify-center bg-black/50 text-white text-sm';
+                playOverlay.innerHTML = '<div class="px-4 py-2 rounded bg-white/10 border border-white/20">Tap to play</div>';
+                playOverlay.addEventListener('click', async () => {
+                    try {
+                        await remoteVideo.play();
+                        playOverlay.remove();
+                        playOverlay = null;
+                    } catch (e) {
+                        console.error('Manual play failed:', e);
+                    }
+                });
+                remoteVideo.parentElement.appendChild(playOverlay);
+            };
+            
+            const attachUnmuteButton = () => {
+                const unmuteBtn = document.createElement('button');
+                unmuteBtn.className = 'absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/20 text-white px-4 py-2 rounded-lg border border-white/30 backdrop-blur';
+                unmuteBtn.textContent = 'Tap for sound';
+                unmuteBtn.addEventListener('click', () => {
+                    remoteVideo.muted = false;
+                    unmuteBtn.remove();
+                });
+                remoteVideo.parentElement.appendChild(unmuteBtn);
+            };
+            
+            const trySource = () => {
+                const src = sources[idx];
+                console.log('Trying remote video source:', src);
+                cleanupEvents();
+                try {
+                    remoteVideo.pause();
+                } catch {}
+                remoteVideo.src = src;
+                remoteVideo.load();
+                
+                remoteVideo.onloadedmetadata = () => {
+                    // attempt to play when metadata is ready
+                    remoteVideo.play().then(() => {
+                        console.log('Remote video playing:', src);
+                        // Offer unmute
+                        attachUnmuteButton();
+                        if (playOverlay) { playOverlay.remove(); playOverlay = null; }
+                    }).catch((err) => {
+                        console.warn('Autoplay failed, showing tap-to-play overlay:', err);
+                        showTapToPlay();
+                    });
+                };
+                
+                remoteVideo.onerror = () => {
+                    console.error('Failed to load video source:', src);
+                    idx += 1;
+                    if (idx < sources.length) {
+                        trySource();
+                    } else {
+                        statusText.textContent = 'Video unavailable';
+                        cleanupEvents();
+                    }
+                };
+            };
+            
+            trySource();
         }, 10000);
     }, 1000);
     
