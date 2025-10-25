@@ -1,0 +1,58 @@
+[
+  {
+    "id": "call1",
+    "userId": "u2",
+    "type": "voice",
+    "direction": "outgoing",
+    "ts": "2025-10-25T13:05:00Z",
+    "duration": 180
+  },
+  {
+    "id": "call2",
+    "userId": "u3",
+    "type": "video",
+    "direction": "incoming",
+    "ts": "2025-10-25T11:30:00Z",
+    "duration": 420
+  },
+  {
+    "id": "call3",
+    "userId": "u5",
+    "type": "voice",
+    "direction": "missed",
+    "ts": "2025-10-25T09:15:00Z",
+    "duration": 0
+  },
+  {
+    "id": "call4",
+    "userId": "u4",
+    "type": "video",
+    "direction": "outgoing",
+    "ts": "2025-10-24T20:45:00Z",
+    "duration": 600
+  },
+  {
+    "id": "call5",
+    "userId": "u6",
+    "type": "voice",
+    "direction": "incoming",
+    "ts": "2025-10-24T16:20:00Z",
+    "duration": 240
+  },
+  {
+    "id": "call6",
+    "userId": "u7",
+    "type": "voice",
+    "direction": "outgoing",
+    "ts": "2025-10-24T14:10:00Z",
+    "duration": 150
+  },
+  {
+    "id": "call7",
+    "userId": "u8",
+    "type": "video",
+    "direction": "missed",
+    "ts": "2025-10-23T19:00:00Z",
+    "duration": 0
+  }
+]

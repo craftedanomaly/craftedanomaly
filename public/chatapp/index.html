@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#075E54">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>ChatApp - WhatsApp Clone</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="/chatapp/styles/app.css">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/chatapp/manifest.webmanifest">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/chatapp/media/logo.png">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'wa-green': '#075E54',
+                        'wa-green-light': '#128C7E',
+                        'wa-teal': '#25D366',
+                        'wa-blue': '#34B7F1',
+                        'wa-bg': '#ECE5DD',
+                        'wa-dark-bg': '#0D1418',
+                        'wa-dark-panel': '#111B21',
+                        'wa-dark-input': '#2A3942',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-wa-bg dark:bg-wa-dark-bg transition-colors duration-200">
+    <!-- App Container -->
+    <div id="app" class="h-screen flex flex-col overflow-hidden">
+        <!-- Header Component -->
+        <div id="header-container"></div>
+        
+        <!-- Main Content Area -->
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Desktop Sidebar (Chat List) -->
+            <div id="sidebar" class="w-full md:w-96 bg-white dark:bg-wa-dark-panel flex flex-col border-r border-gray-200 dark:border-gray-800">
+                <div id="sidebar-content"></div>
+            </div>
+            
+            <!-- Main View Area -->
+            <div id="main-view" class="hidden md:flex flex-1 flex-col bg-wa-bg dark:bg-wa-dark-bg">
+                <div id="main-content"></div>
+            </div>
+        </div>
+        
+        <!-- Mobile Bottom Tab Bar -->
+        <div id="tabbar-container" class="md:hidden"></div>
+    </div>
+    
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
+    
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-wa-dark-panel rounded-lg p-6 shadow-xl">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-wa-teal mx-auto"></div>
+            <p class="mt-4 text-gray-700 dark:text-gray-300">Loading...</p>
+        </div>
+    </div>
+    
+    <!-- Core Scripts -->
+    <script type="module" src="/chatapp/scripts/store.js"></script>
+    <script type="module" src="/chatapp/scripts/ui.js"></script>
+    <script type="module" src="/chatapp/scripts/components/Header.js"></script>
+    <script type="module" src="/chatapp/scripts/components/Tabbar.js"></script>
+    <script type="module" src="/chatapp/scripts/components/SearchBar.js"></script>
+    <script type="module" src="/chatapp/scripts/components/ChatsList.js"></script>
+    <script type="module" src="/chatapp/scripts/components/ChatView.js"></script>
+    <script type="module" src="/chatapp/scripts/components/Composer.js"></script>
+    <script type="module" src="/chatapp/scripts/components/StatusList.js"></script>
+    <script type="module" src="/chatapp/scripts/components/StatusViewer.js"></script>
+    <script type="module" src="/chatapp/scripts/components/Calls.js"></script>
+    <script type="module" src="/chatapp/scripts/components/Settings.js"></script>
+    <script type="module" src="/chatapp/scripts/app.js"></script>
+</body>
+</html>

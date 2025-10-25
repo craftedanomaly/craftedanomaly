@@ -7,11 +7,28 @@
     {
       "source": "/frendz/:path*",
       "destination": "/frendz/:path*"
+    },
+    {
+      "source": "/chatapp",
+      "destination": "/chatapp/index.html"
+    },
+    {
+      "source": "/chatapp/:path*",
+      "destination": "/chatapp/:path*"
     }
   ],
   "headers": [
     {
       "source": "/frendz/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/chatapp/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

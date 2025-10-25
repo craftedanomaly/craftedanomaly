@@ -1,0 +1,50 @@
+[
+  {
+    "id": "me",
+    "name": "You",
+    "avatar": "/chatapp/media/avatars/me.jpg",
+    "about": "Hey there! I am using ChatApp."
+  },
+  {
+    "id": "u2",
+    "name": "Charlie",
+    "avatar": "/chatapp/media/avatars/u2.jpg",
+    "about": "Living my best life 🌟"
+  },
+  {
+    "id": "u3",
+    "name": "Dana",
+    "avatar": "/chatapp/media/avatars/u3.jpg",
+    "about": "Coffee lover ☕"
+  },
+  {
+    "id": "u4",
+    "name": "Alex",
+    "avatar": "/chatapp/media/avatars/u4.jpg",
+    "about": "Adventure awaits 🏔️"
+  },
+  {
+    "id": "u5",
+    "name": "Sam",
+    "avatar": "/chatapp/media/avatars/u5.jpg",
+    "about": "Tech enthusiast 💻"
+  },
+  {
+    "id": "u6",
+    "name": "Jordan",
+    "avatar": "/chatapp/media/avatars/u6.jpg",
+    "about": "Music is life 🎵"
+  },
+  {
+    "id": "u7",
+    "name": "Taylor",
+    "avatar": "/chatapp/media/avatars/u7.jpg",
+    "about": "Fitness freak 💪"
+  },
+  {
+    "id": "u8",
+    "name": "Morgan",
+    "avatar": "/chatapp/media/avatars/u8.jpg",
+    "about": "Foodie at heart 🍕"
+  }
+]

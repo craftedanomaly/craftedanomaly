@@ -1,0 +1,135 @@
+[
+  {
+    "id": "c1",
+    "user": {
+      "id": "u2",
+      "name": "Charlie",
+      "avatar": "/chatapp/media/avatars/u2.jpg"
+    },
+    "pinned": true,
+    "muted": false,
+    "archived": false,
+    "lastMessage": {
+      "type": "text",
+      "text": "See you at 6!",
+      "ts": "2025-10-25T14:40:00Z",
+      "from": "u2",
+      "status": "read"
+    },
+    "unread": 2
+  },
+  {
+    "id": "c2",
+    "user": {
+      "id": "u3",
+      "name": "Dana",
+      "avatar": "/chatapp/media/avatars/u3.jpg"
+    },
+    "pinned": false,
+    "muted": false,
+    "archived": false,
+    "lastMessage": {
+      "type": "text",
+      "text": "Thanks for the help!",
+      "ts": "2025-10-25T13:20:00Z",
+      "from": "me",
+      "status": "read"
+    },
+    "unread": 0
+  },
+  {
+    "id": "c3",
+    "user": {
+      "id": "u4",
+      "name": "Alex",
+      "avatar": "/chatapp/media/avatars/u4.jpg"
+    },
+    "pinned": false,
+    "muted": true,
+    "archived": false,
+    "lastMessage": {
+      "type": "text",
+      "text": "Check out this photo!",
+      "ts": "2025-10-25T11:15:00Z",
+      "from": "u4",
+      "status": "delivered"
+    },
+    "unread": 5
+  },
+  {
+    "id": "c4",
+    "user": {
+      "id": "u5",
+      "name": "Sam",
+      "avatar": "/chatapp/media/avatars/u5.jpg"
+    },
+    "pinned": true,
+    "muted": false,
+    "archived": false,
+    "lastMessage": {
+      "type": "text",
+      "text": "Did you see the latest update?",
+      "ts": "2025-10-25T10:30:00Z",
+      "from": "u5",
+      "status": "read"
+    },
+    "unread": 1
+  },
+  {
+    "id": "c5",
+    "user": {
+      "id": "u6",
+      "name": "Jordan",
+      "avatar": "/chatapp/media/avatars/u6.jpg"
+    },
+    "pinned": false,
+    "muted": false,
+    "archived": false,
+    "lastMessage": {
+      "type": "text",
+      "text": "Let's meet tomorrow",
+      "ts": "2025-10-24T18:45:00Z",
+      "from": "me",
+      "status": "read"
+    },
+    "unread": 0
+  },
+  {
+    "id": "c6",
+    "user": {
+      "id": "u7",
+      "name": "Taylor",
+      "avatar": "/chatapp/media/avatars/u7.jpg"
+    },
+    "pinned": false,
+    "muted": false,
+    "archived": false,
+    "lastMessage": {
+      "type": "text",
+      "text": "Great workout today!",
+      "ts": "2025-10-24T16:20:00Z",
+      "from": "u7",
+      "status": "delivered"
+    },
+    "unread": 0
+  },
+  {
+    "id": "c7",
+    "user": {
+      "id": "u8",
+      "name": "Morgan",
+      "avatar": "/chatapp/media/avatars/u8.jpg"
+    },
+    "pinned": false,
+    "muted": false,
+    "archived": true,
+    "lastMessage": {
+      "type": "text",
+      "text": "That restaurant was amazing!",
+      "ts": "2025-10-23T19:30:00Z",
+      "from": "u8",
+      "status": "read"
+    },
+    "unread": 0
+  }
+]
