@@ -49,40 +49,54 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  let cacheKey = event.request;
-  if (requestUrl.pathname === '/chatapp/' || requestUrl.pathname === '/chatapp/index.html') {
-    cacheKey = '/chatapp/index.html';
+  const pathname = requestUrl.pathname;
+  const isIndex = (pathname === '/chatapp/' || pathname === '/chatapp/index.html');
+  const isJS = pathname.endsWith('.js');
+  const isJSON = pathname.endsWith('.json');
+  const isSW = pathname.endsWith('/sw.js') || pathname === '/chatapp/sw.js';
+  const isManifest = pathname.endsWith('.webmanifest');
+
+  // Never intercept SW or manifest requests; let network handle them directly
+  if (isSW || isManifest) {
+    return;
   }
 
-  event.respondWith(
-    caches.match(cacheKey)
-      .then((response) => {
-        if (response) {
-          return response;
-        }
+  let cacheKey = event.request;
+  if (isIndex) cacheKey = '/chatapp/index.html';
 
-        const fetchRequest = event.request.clone();
-
-        return fetch(fetchRequest)
-          .then((networkResponse) => {
-            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-              return networkResponse;
-            }
-
-            const responseToCache = networkResponse.clone();
-
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                const cacheStoreKey = (requestUrl.pathname === '/chatapp/' || requestUrl.pathname === '/chatapp/index.html')
-                  ? '/chatapp/index.html'
-                  : event.request;
-                cache.put(cacheStoreKey, responseToCache);
-              });
-
-            return networkResponse;
+  // Network-first for JS and JSON to avoid stale code/data
+  if (isJS || isJSON) {
+    event.respondWith(
+      fetch(event.request.clone()).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const copy = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            const storeKey = isIndex ? '/chatapp/index.html' : event.request;
+            cache.put(storeKey, copy);
           });
-      })
-      .catch(() => caches.match('/chatapp/index.html'))
+        }
+        return networkResponse;
+      }).catch(() => caches.match(cacheKey))
+    );
+    return;
+  }
+
+  // Cache-first for everything else (CSS, images, HTML)
+  event.respondWith(
+    caches.match(cacheKey).then((cached) => {
+      if (cached) return cached;
+      return fetch(event.request.clone()).then((networkResponse) => {
+        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+          return networkResponse;
+        }
+        const copy = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          const storeKey = isIndex ? '/chatapp/index.html' : event.request;
+          cache.put(storeKey, copy);
+        });
+        return networkResponse;
+      });
+    }).catch(() => caches.match('/chatapp/index.html'))
   );
 });
 

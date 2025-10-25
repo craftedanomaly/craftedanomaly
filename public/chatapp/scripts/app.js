@@ -11,6 +11,10 @@ import { renderCalls } from './components/Calls.js';
 import { renderSettings } from './components/Settings.js';
 import { initializeMessages } from './initMessages.js';
 
+// Build stamp for debugging deployments
+const APP_BUILD = '2025-10-25T21:55Z-v3';
+console.log('🧩 App build:', APP_BUILD);
+
 // App State
 export const appState = {
     users: [],
@@ -140,6 +144,7 @@ class Router {
     
     handleRoute() {
         const hash = window.location.hash.slice(1) || '/chats';
+        console.log('📍 handleRoute()', { hash });
         appState.currentRoute = hash;
         
         // Match route
@@ -147,12 +152,21 @@ class Router {
             const match = this.matchRoute(pattern, hash);
             if (match) {
                 this.params = match.params;
-                handler(match.params);
+                try {
+                    console.log('➡️ Route match', { pattern, params: match.params });
+                    handler(match.params);
+                    console.log('✅ Route rendered:', pattern);
+                } catch (err) {
+                    console.error('❌ Route render error:', err);
+                    const main = document.getElementById('main-content');
+                    if (main) main.innerHTML = `<div class="p-6 text-red-600">Render error: ${String(err)}</div>`;
+                }
                 return;
             }
         }
         
         // Default to chats
+        console.log('ℹ️ No route matched, navigating to /chats');
         this.navigate('/chats');
     }
     
@@ -324,6 +338,25 @@ async function init() {
     console.log('Window location:', window.location.href);
     console.log('Document ready state:', document.readyState);
     
+    // Debug: support nocache to unregister SW and clear caches quickly
+    try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.get('nocache') === '1' && 'serviceWorker' in navigator) {
+            console.log('🧹 nocache=1 detected, unregistering Service Workers and clearing caches...');
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(r => r.unregister()));
+            if (window.caches && caches.keys) {
+                const keys = await caches.keys();
+                await Promise.all(keys.map(k => caches.delete(k)));
+            }
+            // Reload clean
+            location.replace('/chatapp/');
+            return;
+        }
+    } catch (e) {
+        console.warn('nocache handling failed:', e);
+    }
+    
     // Load data
     const loaded = await loadData();
     
@@ -336,6 +369,26 @@ async function init() {
     
     // Initialize router
     router.init();
+    
+    // Ensure initial route renders even if 'load' already fired (mobile/PWA)
+    try {
+        console.log('➡️ Dispatching initial route render');
+        router.handleRoute();
+    } catch (e) {
+        console.error('Initial route render failed:', e);
+    }
+    
+    // Fallback: if nothing rendered after a short delay, force navigate
+    setTimeout(() => {
+        const sidebar = document.getElementById('sidebar-content');
+        const main = document.getElementById('main-content');
+        const sidebarEmpty = !sidebar || !sidebar.innerHTML.trim();
+        const mainEmpty = !main || !main.innerHTML.trim();
+        if (sidebarEmpty && mainEmpty) {
+            console.warn('⚠️ No UI rendered after init, forcing /chats navigation');
+            router.navigate('/chats');
+        }
+    }, 800);
     
     console.log('✅ Router initialized');
     
