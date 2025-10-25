@@ -1,6 +1,6 @@
 export function createStoryBar({ stories = [], seenMap, onOpenStory }) {
   const wrapper = document.createElement('section');
-  wrapper.className = 'pt-4 pb-3 border-b border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-20';
+  wrapper.className = 'pt-4 pb-3 border-b border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-20 lg:border lg:rounded-lg lg:mb-4';
 
   const scroller = document.createElement('div');
   scroller.className = [

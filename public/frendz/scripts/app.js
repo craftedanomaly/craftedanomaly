@@ -1,6 +1,7 @@
 import { mountSplash } from './components/Splash.js';
 import { createHeader } from './components/Header.js';
 import { createBottomNav } from './components/BottomNav.js';
+import { createSidebar } from './components/Sidebar.js';
 import { createStoryBar } from './components/StoryBar.js';
 import { createFeed } from './components/Feed.js';
 import { createMessagesPage } from './components/MessagesNew.js';
@@ -19,6 +20,7 @@ const LOCAL_KEYS = {
 
 const root = document.getElementById('app');
 let appShell;
+let sidebarSlot;
 let headerSlot;
 let mainSlot;
 let navSlot;
@@ -144,18 +146,39 @@ function getSystemTheme() {
 function ensureShell() {
   if (appShell) return;
   appShell = document.createElement('div');
-  appShell.className = 'h-full flex flex-col bg-slate-100 dark:bg-slate-950 mx-auto max-w-2xl';
+  appShell.className = 'h-full flex bg-slate-100 dark:bg-slate-950';
 
+  // Desktop: Sidebar (hidden on mobile)
+  const sidebar = document.createElement('aside');
+  sidebar.className = 'hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:left-0 lg:top-0 lg:h-full lg:border-r lg:border-slate-200 dark:lg:border-slate-800 lg:bg-white dark:lg:bg-slate-900 lg:px-3 lg:py-8';
+  
+  const sidebarHeader = document.createElement('div');
+  sidebarHeader.className = 'px-3 mb-8';
+  sidebarHeader.innerHTML = '<h1 class="text-2xl font-bold text-slate-900 dark:text-white">Frendz</h1>';
+  
+  sidebarSlot = document.createElement('div');
+  sidebarSlot.className = 'flex-1';
+  
+  sidebar.append(sidebarHeader, sidebarSlot);
+  
+  // Main content wrapper
+  const contentWrapper = document.createElement('div');
+  contentWrapper.className = 'flex-1 flex flex-col lg:ml-64 max-w-[935px] lg:mx-auto';
+
+  // Mobile header (hidden on desktop)
   headerSlot = document.createElement('div');
-  headerSlot.className = 'sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm border-b border-slate-200/60 dark:border-slate-800';
+  headerSlot.className = 'lg:hidden sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm border-b border-slate-200/60 dark:border-slate-800';
 
+  // Main content area
   mainSlot = document.createElement('main');
   mainSlot.className = 'flex-1 overflow-y-auto touch-pan-y';
 
+  // Mobile bottom nav (hidden on desktop)
   navSlot = document.createElement('div');
-  navSlot.className = 'sticky bottom-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-t border-slate-200/60 dark:border-slate-800';
+  navSlot.className = 'lg:hidden sticky bottom-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-t border-slate-200/60 dark:border-slate-800';
 
-  appShell.append(headerSlot, mainSlot, navSlot);
+  contentWrapper.append(headerSlot, mainSlot, navSlot);
+  appShell.append(sidebar, contentWrapper);
   root.appendChild(appShell);
 }
 
@@ -290,6 +313,15 @@ function toggleMuted(nextValue) {
     }
   });
   renderHeader();
+}
+
+function renderSidebar() {
+  const sidebar = createSidebar({
+    current: appState.route,
+    onNavigate: (target) => navigate(target),
+    onOpenCreate: handleOpenCreate,
+  });
+  sidebarSlot.replaceChildren(sidebar);
 }
 
 function renderNav() {
@@ -515,6 +547,7 @@ function handleOpenCreate() {
 
 function renderApp() {
   ensureShell();
+  renderSidebar();
   renderHeader();
   renderMain();
   renderNav();
