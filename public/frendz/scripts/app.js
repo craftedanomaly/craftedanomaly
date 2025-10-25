@@ -148,11 +148,15 @@ function getSystemTheme() {
 function ensureShell() {
   if (appShell) return;
   appShell = document.createElement('div');
-  appShell.className = 'h-full flex bg-slate-100 dark:bg-slate-950';
+  appShell.className = 'h-full overflow-y-auto bg-slate-100 dark:bg-slate-950';
+
+  // Inner container for proper layout
+  const innerContainer = document.createElement('div');
+  innerContainer.className = 'min-h-screen flex flex-col lg:flex-row';
 
   // Desktop: Left Sidebar (hidden on mobile)
   const sidebar = document.createElement('aside');
-  sidebar.className = 'hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:left-0 lg:top-0 lg:h-full lg:border-r lg:border-slate-200 dark:lg:border-slate-800 lg:bg-white dark:lg:bg-slate-900 lg:px-3 lg:py-8';
+  sidebar.className = 'hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:left-0 lg:top-0 lg:h-screen lg:border-r lg:border-slate-200 dark:lg:border-slate-800 lg:bg-white dark:lg:bg-slate-900 lg:px-3 lg:py-8 lg:overflow-y-auto';
   
   const sidebarHeader = document.createElement('div');
   sidebarHeader.className = 'px-3 mb-8';
@@ -173,18 +177,22 @@ function ensureShell() {
 
   // Main content area
   mainSlot = document.createElement('main');
-  mainSlot.className = 'flex-1 overflow-y-auto touch-pan-y';
+  mainSlot.className = 'flex-1 lg:overflow-visible overflow-y-auto touch-pan-y';
 
   // Mobile bottom nav (hidden on desktop)
   navSlot = document.createElement('div');
   navSlot.className = 'lg:hidden sticky bottom-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-t border-slate-200/60 dark:border-slate-800';
 
   // Desktop: Right Sidebar (hidden on mobile and tablet)
+  const rightSidebar = document.createElement('aside');
+  rightSidebar.className = 'hidden xl:block xl:w-80 xl:fixed xl:right-0 xl:top-0 xl:h-screen xl:overflow-y-auto';
+  
   rightSidebarSlot = document.createElement('div');
-  rightSidebarSlot.className = 'hidden xl:block';
+  rightSidebar.appendChild(rightSidebarSlot);
 
   contentWrapper.append(headerSlot, mainSlot, navSlot);
-  appShell.append(sidebar, contentWrapper, rightSidebarSlot);
+  innerContainer.append(sidebar, contentWrapper, rightSidebar);
+  appShell.appendChild(innerContainer);
   root.appendChild(appShell);
 }
 
