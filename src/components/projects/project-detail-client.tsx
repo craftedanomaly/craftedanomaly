@@ -26,6 +26,7 @@ interface ProjectDetailClientProps {
     role_en?: string | null;
     role_tr?: string | null;
     client?: string | null;
+    project_type?: string | null;
     live_url?: string | null;
     status: string;
     categories?: {
@@ -290,9 +291,20 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
                 </div>
               )}
 
-              <motion.h1 layout className="text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+              <motion.h1 layout className="text-4xl lg:text-5xl font-bold tracking-tight mb-3">
                 {project.title}
               </motion.h1>
+
+              {project.project_type && (
+                <div className="mb-6">
+                  <Badge 
+                    variant="secondary"
+                    className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wider"
+                  >
+                    {project.project_type}
+                  </Badge>
+                </div>
+              )}
 
               {project.blurb && (
                 <p className="text-base lg:text-lg leading-relaxed text-muted-foreground mb-8">

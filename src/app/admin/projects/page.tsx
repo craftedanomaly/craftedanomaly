@@ -117,6 +117,7 @@ export default function AdminProjectsPage() {
         year: project.year,
         role: project.role_en,
         client: project.client,
+        projectType: project.project_type,
         image: project.cover_image,
         status: project.status,
         date: new Date(project.created_at).toLocaleDateString('en-US', {
@@ -359,9 +360,16 @@ export default function AdminProjectsPage() {
                             sizes="48px"
                           />
                         </div>
-                        <span className="font-medium text-foreground">
-                          {project.title}
-                        </span>
+                        <div>
+                          <div className="font-medium text-foreground">
+                            {project.title}
+                          </div>
+                          {project.projectType && (
+                            <div className="text-xs text-amber-600 dark:text-amber-400 font-medium mt-0.5">
+                              {project.projectType}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="p-4">

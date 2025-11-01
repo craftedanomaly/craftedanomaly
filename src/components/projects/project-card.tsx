@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Calendar, User, Eye, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getOptimizedImageProps, imageSizes } from '@/lib/image-utils';
@@ -19,6 +20,7 @@ interface Project {
   role_en: string;
   role_tr: string;
   client: string;
+  project_type?: string;
   published_at: string;
   view_count: number;
 }
@@ -201,6 +203,14 @@ export function ProjectCard({ project, index, variant = 'default' }: ProjectCard
               <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-accent transition-colors font-heading">
                 {title}
               </h3>
+              {project.project_type && (
+                <Badge 
+                  variant="secondary"
+                  className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-xs font-semibold uppercase tracking-wider mb-2"
+                >
+                  {project.project_type}
+                </Badge>
+              )}
               <p className="text-sm text-muted-foreground line-clamp-2">
                 {blurb}
               </p>
