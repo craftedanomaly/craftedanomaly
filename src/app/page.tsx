@@ -64,19 +64,24 @@ async function getCategoriesWithProjects() {
   // Fetch 4 projects for each category using many-to-many relation
   const categoriesWithProjects = await Promise.all(
     (categories || []).map(async (category) => {
-      const { data: projects } = await supabase
-        .from('projects')
+      const { data: projectCategories } = await supabase
+        .from('project_categories')
         .select(`
-          id, 
-          slug, 
-          title, 
-          cover_image,
-          project_categories!inner(category_id)
+          display_order,
+          projects!inner(
+            id,
+            slug,
+            title,
+            cover_image,
+            status
+          )
         `)
-        .eq('project_categories.category_id', category.id)
-        .eq('status', 'published')
-        .order('created_at', { ascending: false })
+        .eq('category_id', category.id)
+        .eq('projects.status', 'published')
+        .order('display_order')
         .limit(4);
+
+      const projects = projectCategories?.map((pc: any) => pc.projects) || [];
 
       return {
         ...category,

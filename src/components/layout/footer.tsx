@@ -126,7 +126,7 @@ export function Footer() {
               </div>
             </div>
             {/* Contact */}
-            <div>
+            <div className="flex flex-col items-end text-right">
               <h4 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wider">
                 {settings.footer_contact_title || 'contact'}
               </h4>
@@ -134,19 +134,19 @@ export function Footer() {
                 {settings.contact_email && (
                   <a
                     href={`mailto:${settings.contact_email}`}
-                    className="text-sm text-muted-foreground hover:text-accent transition-colors flex items-center gap-2"
+                    className="text-sm text-muted-foreground hover:text-accent transition-colors flex items-center gap-2 justify-end"
                   >
-                    <Mail className="h-4 w-4" />
                     {settings.contact_email}
+                    <Mail className="h-4 w-4" />
                   </a>
                 )}
                 {settings.contact_phone && (
                   <a
                     href={`tel:${settings.contact_phone.replace(/\s/g, '')}`}
-                    className="text-sm text-muted-foreground hover:text-accent transition-colors flex items-center gap-2"
+                    className="text-sm text-muted-foreground hover:text-accent transition-colors flex items-center gap-2 justify-end"
                   >
-                    <Phone className="h-4 w-4" />
                     {settings.contact_phone}
+                    <Phone className="h-4 w-4" />
                   </a>
                 )}
                 {settings.contact_address && (

@@ -60,6 +60,18 @@ const nextConfig: NextConfig = {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,
   },
+  async rewrites() {
+    return [
+      {
+        source: '/chatapp',
+        destination: '/chatapp/index.html',
+      },
+      {
+        source: '/chatapp/:path*',
+        destination: '/chatapp/:path*',
+      },
+    ];
+  },
   async redirects() {
     return [
       {

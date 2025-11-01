@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { ModernRichTextEditor } from '@/components/ui/modern-rich-text-editor';
 import { ImageUpload } from '@/components/admin/image-upload';
 import { VideoUpload } from '@/components/admin/video-upload';
 import {
@@ -140,6 +140,19 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
     });
   };
 
+  const reorderGalleryImages = (blockId: string, fromIndex: number, toIndex: number) => {
+    const block = blocks.find(b => b.id === blockId);
+    if (!block || block.block_type !== 'gallery') return;
+    
+    const newUrls = [...(block.media_urls || [])];
+    const [removed] = newUrls.splice(fromIndex, 1);
+    newUrls.splice(toIndex, 0, removed);
+    
+    updateBlock(blockId, {
+      media_urls: newUrls
+    });
+  };
+
   const renderBlockEditor = (block: ContentBlock, index: number) => {
     const Icon = blockTypeIcons[block.block_type];
     const isExpanded = expandedBlock === block.id;
@@ -206,11 +219,10 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
             {block.block_type === 'text' && (
               <div className="space-y-2">
                 <Label>Content</Label>
-                <RichTextEditor
+                <ModernRichTextEditor
                   value={block.content}
-                  onChange={(content) => updateBlock(block.id, { content })}
+                  onChange={(content: string) => updateBlock(block.id, { content })}
                   placeholder="Enter rich text content..."
-                  rows={8}
                 />
               </div>
             )}
@@ -274,10 +286,31 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
             {/* Gallery Block */}
             {block.block_type === 'gallery' && (
               <div className="space-y-3">
-                <Label>Gallery Images</Label>
+                <Label>Gallery Images (drag to reorder)</Label>
                 <div className="grid gap-3 md:grid-cols-2">
                   {(block.media_urls || []).map((url, imgIndex) => (
-                    <div key={imgIndex} className="space-y-2">
+                    <div
+                      key={imgIndex}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', imgIndex.toString());
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                        reorderGalleryImages(block.id, fromIndex, imgIndex);
+                      }}
+                      className="space-y-2 p-3 border rounded-lg cursor-move hover:border-accent transition-colors"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <GripVertical className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">Image {imgIndex + 1}</span>
+                      </div>
                       <ImageUpload
                         value={url}
                         onChange={(newUrl) => updateGalleryImage(block.id, imgIndex, newUrl)}
@@ -296,6 +329,7 @@ export function ContentBlocksBuilder({ blocks, onChange }: ContentBlocksBuilderP
                         className="w-full"
                         onClick={() => removeGalleryImage(block.id, imgIndex)}
                       >
+                        <Trash2 className="h-4 w-4 mr-2" />
                         Remove Image
                       </Button>
                     </div>

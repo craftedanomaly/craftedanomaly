@@ -2,14 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { motion } from 'framer-motion';
-import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, ArrowUpDown, Filter, X } from 'lucide-react';
 import { AddProjectForm } from '@/components/admin/add-project-form';
 import { EditProjectForm } from '@/components/admin/edit-project-form';
 import { DeleteProjectDialog } from '@/components/admin/delete-project-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import Image from 'next/image';
 import { toast } from 'sonner';
 
@@ -44,7 +52,10 @@ const sampleProjects = [
 export default function AdminProjectsPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [projects, setProjects] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProject, setEditingProject] = useState<any | null>(null);
@@ -56,11 +67,26 @@ export default function AdminProjectsPage() {
       if (!session) {
         router.push('/admin');
       } else {
+        fetchCategories();
         fetchProjects();
       }
     };
     checkAuth();
   }, [router]);
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name, slug')
+        .order('name');
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
 
   const fetchProjects = async () => {
     try {
@@ -108,9 +134,20 @@ export default function AdminProjectsPage() {
     }
   };
 
-  const filteredProjects = projects.filter((project) =>
-    project.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProjects = projects.filter((project) => {
+    const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
+    const matchesCategory = categoryFilter === 'all' || project.categoryId === categoryFilter;
+    return matchesSearch && matchesStatus && matchesCategory;
+  });
+
+  const hasActiveFilters = statusFilter !== 'all' || categoryFilter !== 'all';
+
+  const clearFilters = () => {
+    setStatusFilter('all');
+    setCategoryFilter('all');
+    setSearchQuery('');
+  };
 
   const handleProjectAdded = (newProject: any) => {
     setProjects([newProject, ...projects]);
@@ -196,25 +233,81 @@ export default function AdminProjectsPage() {
               Manage your portfolio projects
             </p>
           </div>
-          <Button 
-            onClick={() => setShowAddForm(true)}
-            className="gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add New Project
-          </Button>
+          <div className="flex gap-2">
+            <Link href="/admin/projects/order">
+              <Button variant="outline" className="gap-2">
+                <ArrowUpDown className="h-4 w-4" />
+                Reorder Projects
+              </Button>
+            </Link>
+            <Button 
+              onClick={() => setShowAddForm(true)}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add New Project
+            </Button>
+          </div>
         </div>
 
-        {/* Search */}
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search projects..."
-            className="pl-10"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        {/* Filters */}
+        <div className="mb-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-medium">Filters</h3>
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="h-7 text-xs gap-1"
+              >
+                <X className="h-3 w-3" />
+                Clear filters
+              </Button>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search projects..."
+                className="pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            {/* Status Filter */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="published">Published</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Category Filter */}
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Projects Table */}

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Plus, X, ArrowLeft } from 'lucide-react';
+import { Plus, X, ArrowLeft, GripVertical, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +31,7 @@ const projectSchema = z.object({
   year: z.number().min(2000).max(new Date().getFullYear() + 1),
   role: z.string().optional(),
   client: z.string().optional(),
+  projectType: z.string().optional(),
   liveUrl: z.string().optional(),
   tags: z.string(),
   coverImage: z.string()
@@ -163,6 +164,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
       year: project.year || new Date().getFullYear(),
       role: project.role_en || project.role || '',
       client: project.client || '',
+      projectType: project.project_type || '',
       liveUrl: project.live_url || '',
       tags: '',
       coverImage: project.cover_image || '',
@@ -197,6 +199,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
           year: data.year,
           role_en: data.role || null,
           client: data.client || null,
+          project_type: data.projectType || null,
           status: data.status,
           published_at: data.status === 'published' && !project.published_at 
             ? new Date().toISOString() 
@@ -583,13 +586,24 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="client">Client</Label>
-                  <Input
-                    id="client"
-                    {...register('client')}
-                    placeholder="Company Name"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="client">Client</Label>
+                    <Input
+                      id="client"
+                      {...register('client')}
+                      placeholder="Company Name"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="projectType">Project Type</Label>
+                    <Input
+                      id="projectType"
+                      {...register('projectType')}
+                      placeholder="e.g., IN DEVELOPMENT, BOARDGAME"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -649,10 +663,36 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Gallery Images</Label>
+                  <Label>Gallery Images (drag to reorder)</Label>
                   <div className="grid gap-4 md:grid-cols-2">
                     {galleryImages.map((item, index) => (
-                      <div key={index} className="space-y-2">
+                      <div
+                        key={index}
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.effectAllowed = 'move';
+                          e.dataTransfer.setData('text/plain', index.toString());
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = 'move';
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                          if (fromIndex !== index) {
+                            const newImages = [...galleryImages];
+                            const [removed] = newImages.splice(fromIndex, 1);
+                            newImages.splice(index, 0, removed);
+                            setGalleryImages(newImages);
+                          }
+                        }}
+                        className="space-y-2 p-3 border rounded-lg cursor-move hover:border-accent transition-colors"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <GripVertical className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">Image {index + 1}</span>
+                        </div>
                         <ImageUpload
                           value={item.url}
                           onChange={(url) => {
@@ -688,6 +728,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                           className="w-full"
                           onClick={() => setGalleryImages(galleryImages.filter((_, i) => i !== index))}
                         >
+                          <Trash2 className="h-4 w-4 mr-2" />
                           Remove Image
                         </Button>
                       </div>

@@ -110,14 +110,21 @@ export function ContentBlocksRenderer({ blocks }: ContentBlocksRendererProps) {
 
       case 'gallery':
         return (
-          <motion.div {...baseAnimation} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0">
+          <motion.div
+            {...baseAnimation}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
             {block.media_urls?.map((url, idx) => (
-              <div key={idx} className="relative aspect-square overflow-hidden border-r border-b border-orange-500 dark:border-white">
+              <div
+                key={idx}
+                className="relative w-full h-[320px] rounded-lg overflow-hidden border border-orange-500 dark:border-white bg-background/30 dark:bg-background/60"
+              >
                 <Image
                   src={url}
                   alt=""
                   fill
-                  className="object-cover hover:scale-105 transition-transform duration-300"
+                  className="object-cover transition-transform duration-300 hover:scale-[1.03]"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw"
                 />
               </div>
             ))}

@@ -118,7 +118,7 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
               animate={{ 
                 opacity: 1, 
                 y: 0,
-                flexGrow: isHovered ? 6 : isOtherHovered ? 0.5 : 1,
+                flexGrow: isHovered ? 3.6 : isOtherHovered ? 0.5 : 1,
                 flexShrink: isHovered ? 0 : isOtherHovered ? 1 : 1
               }}
               transition={{ 
