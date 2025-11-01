@@ -115,6 +115,7 @@ async function getCategoryData(slug: string) {
         role_en,
         role_tr,
         client,
+        project_type,
         published_at,
         view_count,
         project_categories!inner(

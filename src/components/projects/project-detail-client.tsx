@@ -307,66 +307,74 @@ export default function ProjectDetailClient({ project, media, tags, blocks }: Pr
               )}
 
               {project.blurb && (
-                <p className="text-base lg:text-lg leading-relaxed text-muted-foreground mb-8">
+                <p className="text-base lg:text-lg leading-relaxed text-muted-foreground mb-6">
                   {project.blurb}
                 </p>
               )}
 
-            <dl className="grid gap-4 text-sm text-muted-foreground">
-              {project.client && (
-                <div>
-                  <dt className="font-semibold uppercase tracking-widest text-xs text-muted-foreground/80">Client</dt>
-                  <dd className="mt-1 text-foreground">{project.client}</dd>
-                </div>
-              )}
-              {project.year && (
-                <div>
-                  <dt className="font-semibold uppercase tracking-widest text-xs text-muted-foreground/80">Year</dt>
-                  <dd className="mt-1 inline-flex items-center gap-2 text-foreground">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    {project.year}
-                  </dd>
-                </div>
-              )}
-              {projectRole && (
-                <div>
-                  <dt className="font-semibold uppercase tracking-widest text-xs text-muted-foreground/80">Role</dt>
-                  <dd className="mt-1 inline-flex items-center gap-2 text-foreground">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    {projectRole}
-                  </dd>
-                </div>
-              )}
-              {project.live_url && (
-                <div>
-                  <dt className="font-semibold uppercase tracking-widest text-xs text-muted-foreground/80">Live Link</dt>
-                  <dd className="mt-1 inline-flex items-center gap-2 text-foreground">
-                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                    <a
-                      href={project.live_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline-offset-4 transition hover:underline"
-                    >
-                      Visit project
-                    </a>
-                  </dd>
-                </div>
-              )}
-            </dl>
+              {/* Divider after description */}
+              <div className="border-t border-border my-6" />
 
-            {tags.length > 0 && (
-              <div className="space-y-3">
-                <dt className="font-semibold uppercase tracking-widest text-xs text-muted-foreground/80">Tags</dt>
-                <dd className="flex flex-wrap gap-2">
-                  {tags.map((tag) => (
-                    <Badge key={tag.id} variant="outline" className="border-border/60 bg-background/60 text-xs uppercase tracking-wide">
-                      {tag.name}
-                    </Badge>
-                  ))}
-                </dd>
-              </div>
-            )}
+              {/* Project details in 2-column grid */}
+              <dl className="grid grid-cols-2 gap-x-8 gap-y-6 text-sm mb-6">
+                {project.client && (
+                  <div>
+                    <dt className="font-semibold uppercase tracking-widest text-xs text-muted-foreground/80 mb-2">Client</dt>
+                    <dd className="text-foreground">{project.client}</dd>
+                  </div>
+                )}
+                {project.year && (
+                  <div>
+                    <dt className="font-semibold uppercase tracking-widest text-xs text-muted-foreground/80 mb-2">Year</dt>
+                    <dd className="inline-flex items-center gap-2 text-foreground">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      {project.year}
+                    </dd>
+                  </div>
+                )}
+                {projectRole && (
+                  <div>
+                    <dt className="font-semibold uppercase tracking-widest text-xs text-muted-foreground/80 mb-2">Role</dt>
+                    <dd className="inline-flex items-center gap-2 text-foreground">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      {projectRole}
+                    </dd>
+                  </div>
+                )}
+                {tags.length > 0 && (
+                  <div>
+                    <dt className="font-semibold uppercase tracking-widest text-xs text-muted-foreground/80 mb-2">Tags</dt>
+                    <dd className="flex flex-wrap gap-2">
+                      {tags.map((tag) => (
+                        <Badge key={tag.id} variant="outline" className="border-border/60 bg-background/60 text-xs uppercase tracking-wide">
+                          {tag.name}
+                        </Badge>
+                      ))}
+                    </dd>
+                  </div>
+                )}
+                {project.live_url && (
+                  <div className="col-span-2">
+                    <dt className="font-semibold uppercase tracking-widest text-xs text-muted-foreground/80 mb-2">Live Link</dt>
+                    <dd className="inline-flex items-center gap-2 text-foreground">
+                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                      <a
+                        href={project.live_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline-offset-4 transition hover:underline"
+                      >
+                        Visit project
+                      </a>
+                    </dd>
+                  </div>
+                )}
+              </dl>
+
+              {/* Divider before content blocks */}
+              {(project.content || textBlocks.length > 0) && (
+                <div className="border-t border-border my-6" />
+              )}
             {(project.content || textBlocks.length > 0) && (
               <div className="space-y-8 mt-8 pr-2">
                 {project.content && (
