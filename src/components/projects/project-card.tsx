@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Calendar, User, Eye, ArrowRight } from 'lucide-react';
+import { Calendar, User, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
@@ -81,6 +81,25 @@ export function ProjectCard({ project, index, variant = 'default' }: ProjectCard
                 </div>
               )}
               
+              {/* Project Type Badge - Always visible (bottom right) */}
+              {project.project_type && (
+                <motion.div 
+                  className="absolute bottom-4 right-4 z-10"
+                  animate={{ 
+                    opacity: isHovered ? 0 : 1,
+                    y: isHovered ? 10 : 0
+                  }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Badge 
+                    variant="secondary"
+                    className="bg-amber-500/90 text-white border-amber-500/20 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm"
+                  >
+                    {project.project_type}
+                  </Badge>
+                </motion.div>
+              )}
+
               {/* Hover Overlay with sliding content */}
               <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-300 ${
                 isHovered ? 'opacity-100' : 'opacity-0'
@@ -94,6 +113,24 @@ export function ProjectCard({ project, index, variant = 'default' }: ProjectCard
                   >
                     {title}
                   </motion.h3>
+                  {project.project_type && (
+                    <motion.div
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ 
+                        y: isHovered ? 0 : 20, 
+                        opacity: isHovered ? 1 : 0 
+                      }}
+                      transition={{ duration: 0.3, delay: 0.05 }}
+                      className="mb-3"
+                    >
+                      <Badge 
+                        variant="secondary"
+                        className="bg-amber-500/90 text-white border-amber-500/20 text-xs font-semibold uppercase tracking-wider"
+                      >
+                        {project.project_type}
+                      </Badge>
+                    </motion.div>
+                  )}
                   <motion.div
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ 
@@ -187,14 +224,6 @@ export function ProjectCard({ project, index, variant = 'default' }: ProjectCard
                 <span className="text-muted-foreground">No Image</span>
               </div>
             )}
-
-            
-
-            {/* View Count */}
-            <div className="absolute top-3 right-3 z-[60] bg-background/80 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
-              <Eye className="h-3 w-3 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">{project.view_count}</span>
-            </div>
           </div>
 
           {/* Content fades quickly on hover but keeps height so overlay covers full card */}

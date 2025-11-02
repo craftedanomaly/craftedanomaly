@@ -248,13 +248,9 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
                     <div className="absolute inset-0 z-0 hidden dark:block bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
                     
                     <div className="relative max-w-sm z-10">
-                      <h3 className="text-xl lg:text-2xl font-heading text-foreground mb-2">
+                      <h3 className="text-xl lg:text-2xl font-heading text-foreground mb-4">
                         {category.name}
                       </h3>
-                      
-                      <div className="inline-flex items-center px-2 py-1 rounded-md bg-accent/80 backdrop-blur-sm text-xs text-accent-foreground font-medium mb-3">
-                        {(category.projects?.length || 0)} {(category.projects?.length === 1 ? 'project' : 'projects')}
-                      </div>
 
                       {/* Description - only visible when hovered */}
                       {isHovered && category.description && (
@@ -327,10 +323,7 @@ export function FieldAccordion({ categories /* locale kept for signature, site i
                       {category.description && (
                         <p className="text-sm text-muted-foreground/90 mb-3 line-clamp-2">{category.description}</p>
                       )}
-                      <div className="flex items-center justify-between">
-                        <div className="inline-flex items-center px-2 py-1 rounded-md bg-background/20 backdrop-blur-sm text-xs text-muted-foreground">
-                          {(category.projects?.length || 0)} {(category.projects?.length === 1 ? 'project' : 'projects')}
-                        </div>
+                      <div className="flex items-center justify-end">
                         <Button variant="ghost" size="sm" className="text-accent hover:text-accent hover:bg-accent/10 pointer-events-none">
                           explore
                           <ArrowRight className="h-4 w-4 ml-1" />
