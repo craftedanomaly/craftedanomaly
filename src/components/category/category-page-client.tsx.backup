@@ -1,0 +1,348 @@
+'use client';
+
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Grid, List, Columns2, Filter, Search, Calendar, User, Eye, X, Tag as TagIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { ProjectCard } from '@/components/projects/project-card';
+import { ProjectList } from '@/components/projects/project-list';
+
+interface Tag {
+  id: string;
+  slug: string;
+  name: string;
+}
+
+interface Project {
+  id: string;
+  slug: string;
+  title: string;
+  blurb: string;
+  cover_image: string;
+  cover_video_url?: string;
+  year: number;
+  role_en: string;
+  role_tr: string;
+  client: string;
+  published_at: string;
+  view_count: number;
+  tags?: Tag[];
+}
+
+interface Category {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+}
+
+interface CategoryPageClientProps {
+  category: Category;
+  projects: Project[];
+  availableTags?: Tag[];
+}
+
+export function CategoryPageClient({ category, projects, availableTags }: CategoryPageClientProps) {
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'masonry'>('grid');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState(projects);
+
+  const tagsList = availableTags ?? [];
+
+  // Get content
+  const categoryName = category.name;
+  const categoryDescription = category.description;
+
+  // Filter and sort projects
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    filterProjects(term, sortBy, selectedTags);
+  };
+
+  const handleSort = (sort: string) => {
+    setSortBy(sort);
+    filterProjects(searchTerm, sort, selectedTags);
+  };
+
+  const toggleTag = (tagId: string) => {
+    const newSelectedTags = selectedTags.includes(tagId)
+      ? selectedTags.filter(id => id !== tagId)
+      : [...selectedTags, tagId];
+    setSelectedTags(newSelectedTags);
+    filterProjects(searchTerm, sortBy, newSelectedTags);
+  };
+
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setSelectedTags([]);
+    filterProjects('', sortBy, []);
+  };
+
+  const filterProjects = (search: string, sort: string, tags: string[]) => {
+    let filtered = [...projects];
+
+    // Search filter
+    if (search) {
+      filtered = filtered.filter(project => {
+        const title = project.title;
+        const blurb = project.blurb;
+        const role = project.role_en;
+        
+        return (
+          title.toLowerCase().includes(search.toLowerCase()) ||
+          blurb.toLowerCase().includes(search.toLowerCase()) ||
+          role.toLowerCase().includes(search.toLowerCase()) ||
+          project.client.toLowerCase().includes(search.toLowerCase())
+        );
+      });
+    }
+
+    // Tag filter
+    if (tags.length > 0) {
+      filtered = filtered.filter(project => {
+        const projectTagIds = project.tags?.map(t => t.id) || [];
+        return tags.some(tagId => projectTagIds.includes(tagId));
+      });
+    }
+
+    // Sort
+    switch (sort) {
+      case 'newest':
+        filtered.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
+        break;
+      case 'oldest':
+        filtered.sort((a, b) => new Date(a.published_at).getTime() - new Date(b.published_at).getTime());
+        break;
+      case 'title':
+        filtered.sort((a, b) => {
+          const titleA = a.title;
+          const titleB = b.title;
+          return titleA.localeCompare(titleB);
+        });
+        break;
+      case 'year':
+        filtered.sort((a, b) => (b.year || 0) - (a.year || 0));
+        break;
+      case 'popular':
+        filtered.sort((a, b) => b.view_count - a.view_count);
+        break;
+    }
+
+    setFilteredProjects(filtered);
+  };
+
+  return (
+    <div className="min-h-screen">
+      <div className="w-full py-20" style={{ paddingLeft: '1%', paddingRight: '1%' }}>
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-16"
+        >
+          <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-4" style={{ fontFamily: 'BBH Sans Bartle, -apple-system, BlinkMacSystemFont, sans-serif' }}>
+            {categoryName}
+          </h1>
+          {categoryDescription && (
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              {categoryDescription}
+            </p>
+          )}
+          <div className="mt-8 flex items-center justify-center gap-4 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Filter className="h-4 w-4" />
+              {filteredProjects.length} of {projects.length} projects
+            </span>
+          </div>
+        </motion.div>
+
+        {/* Tag Filter Pills */}
+        {tagsList.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-6"
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <TagIcon className="h-4 w-4" />
+                <span className="font-medium">Filter by tag:</span>
+              </div>
+              {tagsList.map((tag) => (
+                <Badge
+                  key={tag.id}
+                  variant={selectedTags.includes(tag.id) ? 'default' : 'outline'}
+                  className="cursor-pointer hover:bg-accent/20 transition-colors"
+                  onClick={() => toggleTag(tag.id)}
+                >
+                  {tag.name}
+                  {selectedTags.includes(tag.id) && (
+                    <X className="ml-1 h-3 w-3" />
+                  )}
+                </Badge>
+              ))}
+              {selectedTags.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearAllFilters}
+                  className="h-7 text-xs"
+                >
+                  Clear all
+                </Button>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Controls */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-8"
+        >
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+            {/* Search */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search projects..."
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              {/* Sort */}
+              <Select value={sortBy} onValueChange={handleSort}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">
+                    Newest First
+                  </SelectItem>
+                  <SelectItem value="oldest">
+                    Oldest First
+                  </SelectItem>
+                  <SelectItem value="title">
+                    Title A-Z
+                  </SelectItem>
+                  <SelectItem value="year">
+                    Year
+                  </SelectItem>
+                  <SelectItem value="popular">
+                    Most Popular
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* View Mode */}
+              <div className="flex items-center border border-border rounded-lg p-1">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className="h-8 w-8 p-0"
+                  title="Grid View"
+                >
+                  <Grid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'masonry' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('masonry')}
+                  className="h-8 w-8 p-0"
+                  title="Masonry View"
+                >
+                  <Columns2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="h-8 w-8 p-0"
+                  title="List View"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Results Count */}
+        {(searchTerm || selectedTags.length > 0) && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-6"
+          >
+            <p className="text-sm text-muted-foreground">
+              Found {filteredProjects.length} projects
+              {searchTerm && ` matching "${searchTerm}"`}
+              {selectedTags.length > 0 && ` with ${selectedTags.length} tag${selectedTags.length > 1 ? 's' : ''}`}
+            </p>
+          </motion.div>
+        )}
+
+        {/* Projects */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          {filteredProjects.length > 0 ? (
+            viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
+                {filteredProjects.map((project, index) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    index={index}
+                  />
+                ))}
+              </div>
+            ) : viewMode === 'masonry' ? (
+              <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-2">
+                {filteredProjects.map((project, index) => (
+                  <div key={project.id} className="break-inside-avoid mb-2">
+                    <ProjectCard
+                      project={project}
+                      index={index}
+                      variant="masonry"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <ProjectList
+                projects={filteredProjects}
+              />
+            )
+          ) : (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                <Search className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                No projects found
+              </h3>
+              <p className="text-muted-foreground">
+                Try adjusting your search terms or filters.
+              </p>
+            </div>
+          )}
+        </motion.div>
+      </div>
+    </div>
+  );
+}

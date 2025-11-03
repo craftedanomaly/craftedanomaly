@@ -1,5 +1,6 @@
 import { Header } from './header';
-import { Footer } from './footer';
+import { FloatingInfoModal } from '@/components/ui/floating-info-modal';
+import { ScrollProgress } from '@/components/ui/scroll-progress';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -8,11 +9,12 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col">
+      <ScrollProgress />
       <Header />
       <main className="flex-1">
         {children}
       </main>
-      <Footer />
+      <FloatingInfoModal />
     </div>
   );
 }

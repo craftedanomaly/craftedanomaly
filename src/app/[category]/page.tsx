@@ -128,17 +128,25 @@ async function getCategoryData(slug: string) {
 
     // Get all tags for projects in this category
     const projectIds = projects?.map(p => p.id) || [];
-    const { data: projectTags } = await supabaseServer
-      .from('project_tags')
-      .select(`
-        project_id,
-        tags (
-          id,
-          slug,
-          name
-        )
-      `)
-      .in('project_id', projectIds);
+    let projectTags: any[] | null = [];
+    if (projectIds.length > 0) {
+      const { data } = await supabaseServer
+        .from('project_tags')
+        .select(`
+          project_id,
+          tags (
+            id,
+            slug,
+            name,
+            name_en,
+            name_tr
+          )
+        `)
+        .in('project_id', projectIds);
+      projectTags = data || [];
+    } else {
+      projectTags = [];
+    }
 
     // Build a map of project_id to tags
     const projectTagsMap = new Map<string, any[]>();
@@ -158,7 +166,13 @@ async function getCategoryData(slug: string) {
     // Get unique tags for the filter
     const allTags = Array.from(
       new Map(
-        projectTags?.map((pt: any) => pt.tags).filter(Boolean).map((tag: any) => [tag.id, tag])
+        (projectTags || [])
+          .map((pt: any) => pt.tags)
+          .filter(Boolean)
+          .map((tag: any) => {
+            const name = tag?.name || tag?.name_en || tag?.name_tr || tag?.slug || 'tag';
+            return [tag.id, { id: tag.id, slug: tag.slug, name }];
+          })
       ).values()
     );
 

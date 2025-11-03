@@ -383,3 +383,20 @@ h1, h2, h3, h4,
 .light .group-hover\:bg-accent\/60:hover {
   background-color: rgba(124, 58, 237, 0.6);
 }
+
+/* View Transitions API Support */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.5s;
+    animation-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+  }
+}
+
+/* Disable view transitions for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
