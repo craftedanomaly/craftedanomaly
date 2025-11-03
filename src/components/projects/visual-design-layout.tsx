@@ -52,11 +52,22 @@ export function VisualDesignLayout({ project, media, tags, blocks }: VisualDesig
   const wrapperRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
+  const contentBlocksRef = useRef<HTMLDivElement>(null);
+  const infoGroupRef = useRef<HTMLDivElement>(null);
+  const infoContainerRef = useRef<HTMLDivElement>(null);
+  const blurbRef = useRef<HTMLParagraphElement>(null);
   const [totalWidth, setTotalWidth] = useState(0);
   const [vw, setVw] = useState(0);
   const [vh, setVh] = useState(0);
   const [slideWidths, setSlideWidths] = useState<number[]>([]);
   const [showScrollHint, setShowScrollHint] = useState(true);
+  const [contentHasOverflow, setContentHasOverflow] = useState(false);
+  const [showFullContent, setShowFullContent] = useState(false);
+  const [safeInfoTop, setSafeInfoTop] = useState(96);
+  const [safeBlocksTop, setSafeBlocksTop] = useState(220);
+  const [collapsedBlocksTop, setCollapsedBlocksTop] = useState(0);
+  const [detailsHeight, setDetailsHeight] = useState(0);
+  const [blurbHeight, setBlurbHeight] = useState(0);
 
   // Hide scroll hint on first scroll
   useEffect(() => {
@@ -141,10 +152,16 @@ export function VisualDesignLayout({ project, media, tags, blocks }: VisualDesig
       combined.push({ type: 'image', data: img, order: img.display_order || idx });
     });
     
-    // Add text blocks (support multiple block types)
+    // Add overlay/content blocks (text, quotes, videos, before/after, testimonials) by order
     blocks.forEach((block) => {
-      // Include text, rich_text, and quote blocks
-      if ((block.block_type === 'text' || block.block_type === 'rich_text' || block.block_type === 'quote') && block.content) {
+      if (
+        block.block_type === 'text' ||
+        block.block_type === 'rich_text' ||
+        block.block_type === 'quote' ||
+        block.block_type === 'video' ||
+        block.block_type === 'before_after' ||
+        block.block_type === 'testimonial'
+      ) {
         combined.push({ type: 'text', data: block, order: block.display_order });
       }
     });
@@ -258,20 +275,8 @@ export function VisualDesignLayout({ project, media, tags, blocks }: VisualDesig
 
   const infoPanelWidth = Math.max(320, Math.round((vw || 0) * 0.25));
 
-  // Build project info HTML (will be sticky at top)
+  // Category info for link rendering
   const categoryInfo = project.project_categories?.[0]?.categories;
-  const projectInfoHtml = useMemo(() => `
-    ${project.project_type ? `<div class='text-[11.5px] uppercase tracking-[0.35em] opacity-90 mb-1.5'>${project.project_type}</div>` : ''}
-    <h1 class='m-0 text-[46px] md:text-[57.5px] font-black leading-tight'>${project.title || ''}</h1>
-    ${project.blurb ? `<p class='mt-3 opacity-90 text-[17.25px]'>${project.blurb}</p>` : ''}
-    <div class='mt-4 text-[13.8px] opacity-90 space-y-2'>
-      <div class='space-x-4'>
-        ${project.client ? `<span><b>Client:</b> ${project.client}</span>` : ''}
-        ${project.year ? `<span><b>Year:</b> ${project.year}</span>` : ''}
-        ${project.role_en ? `<span><b>Role:</b> ${project.role_en}</span>` : ''}
-      </div>
-    </div>
-  `, [project.project_type, project.title, project.blurb, project.client, project.year, project.role_en, categoryInfo]);
 
   // Build content blocks HTML for left panel (exclude videos, before_after, and testimonials)
   const contentBlocksHtml = useMemo(() => {
@@ -330,12 +335,68 @@ export function VisualDesignLayout({ project, media, tags, blocks }: VisualDesig
     return testimonials.join('');
   }, [overlaysBySlide, project]);
 
-  // Calculate scroll offset for project info (moves up)
-  const infoY = useTransform(smoothProgress, [0, 0.2], [0, -200]);
-  
+  // Detect overflow in left content blocks area to toggle "Read more"
+  useEffect(() => {
+    const checkOverflow = () => {
+      const el = contentBlocksRef.current;
+      if (!el) return;
+      const hasOverflow = el.scrollHeight - 2 > el.clientHeight;
+      setContentHasOverflow(hasOverflow);
+    };
+
+    checkOverflow();
+    const handleResize = () => checkOverflow();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [contentBlocksHtml, testimonialsHtml, showFullContent]);
+
+  // Compute safe top paddings based on logo and info heights
+  useEffect(() => {
+    const updateSafe = () => {
+      const viewportHeight = vh || (typeof window !== 'undefined' ? window.innerHeight : 0);
+      const viewportWidth = vw || (typeof window !== 'undefined' ? window.innerWidth : 0);
+      const logoTop = viewportWidth >= 768 ? 32 : 24; // md:top-8 else top-6
+      const logoH = 56; // h-14
+      const infoTop = Math.round(logoTop + logoH + viewportHeight * 0.03); // 3% below logo bottom
+      setSafeInfoTop(infoTop);
+
+      const measuredDetails = infoGroupRef.current?.getBoundingClientRect().height || 0;
+      const measuredBlurb = blurbRef.current?.getBoundingClientRect().height || 0;
+      setDetailsHeight(measuredDetails);
+      setBlurbHeight(measuredBlurb);
+
+      const gap = Math.max(32, Math.round(viewportHeight * 0.05));
+      setCollapsedBlocksTop(Math.round(infoTop + measuredDetails + gap));
+      setSafeBlocksTop(Math.round(infoTop + measuredDetails + measuredBlurb + gap));
+    };
+    updateSafe();
+    window.addEventListener('resize', updateSafe);
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined' && infoContainerRef.current) {
+      ro = new ResizeObserver(updateSafe);
+      ro.observe(infoContainerRef.current);
+    }
+    return () => {
+      window.removeEventListener('resize', updateSafe);
+      ro?.disconnect();
+    };
+  }, [vw, vh, project.title, project.blurb, tags?.length, showFullContent]);
+
+  // Calculate scroll offset for blocks reveal and blurb motion
+  const infoScale = useTransform(smoothProgress, [0, 0.2], [1, 0.85]);
+  const blurbOpacity = useTransform(smoothProgress, [0, 0.1, 0.2], [1, 0.8, 0]);
+  const blurbY = useTransform(smoothProgress, [0, 0.1, 0.2], [0, -8, -20]);
+
   // Content blocks appear from bottom as info moves up (15% higher)
-  const blocksY = useTransform(smoothProgress, [0, 0.15, 0.25], [-80, -50, -35]);
-  const blocksOpacity = useTransform(smoothProgress, [0, 0.15, 0.25], [0, 0.5, 1]);
+  const blockLift = Math.max(0, safeBlocksTop - collapsedBlocksTop);
+  const blocksY = useTransform(smoothProgress, (value) => {
+    if (showFullContent) return 0;
+    const startOffset = 90;
+    const progress = Math.min(Math.max((value - 0.18) / 0.17, 0), 1);
+    const eased = progress * progress * (3 - 2 * progress); // smoothstep ease
+    return startOffset * (1 - eased) - blockLift * eased;
+  });
+  const blocksOpacity = useTransform(smoothProgress, [0, 0.18, 0.3], [0, 0.4, 1]);
   
   // Testimonials appear later (more delay)
   const testimonialsOpacity = useTransform(smoothProgress, [0, 0.25, 0.35], [0, 0, 1]);
@@ -599,29 +660,93 @@ export function VisualDesignLayout({ project, media, tags, blocks }: VisualDesig
 
         {/* Fixed left panel with project info and content blocks */}
         <div className="fixed left-0 top-0 z-[50] h-screen pointer-events-auto overflow-hidden" style={{ width: infoPanelWidth, backgroundColor }}>
-          {/* Project info - moves up on scroll */}
-          <motion.div 
-            className="px-8 pt-24 pb-8 flex items-center z-40 pointer-events-auto"
-            style={{ y: infoY, height: '100vh', color: textColor }}
-          >
-            <div className="prose max-w-none pointer-events-auto" style={{ color: textColor }}>
-              <div dangerouslySetInnerHTML={{ __html: projectInfoHtml }} />
-              {categoryInfo ? (
-                <div className="mt-3 text-[13.8px]">
-                  <b>Category:</b>{' '}
-                  <Link href={`/${categoryInfo.slug}`} className="underline hover:opacity-80 pointer-events-auto">
-                    {categoryInfo.name}
-                  </Link>
-                </div>
-              ) : null}
-            </div>
-          </motion.div>
-          
-          {/* Content blocks - appear from bottom on scroll */}
-          <motion.div 
-            className="absolute inset-x-0 bottom-0 px-8 py-16 overflow-auto scrollbar-hide z-30 pointer-events-auto"
-            style={{ y: blocksY, opacity: blocksOpacity, maxHeight: 'calc(100vh - 120px)', color: textColor }}
-          >
+          <div className="relative h-full pointer-events-auto" style={{ color: textColor }}>
+            {/* Project info */}
+            <motion.div
+              className="absolute inset-x-8"
+              style={{
+                top: safeInfoTop,
+                opacity: showFullContent ? 0 : 1,
+                pointerEvents: showFullContent ? 'none' : 'auto'
+              }}
+            >
+              <div
+                ref={infoContainerRef}
+                className="flex flex-col gap-6 pr-2"
+                style={{ overflowY: showFullContent ? 'auto' : 'visible' }}
+              >
+                <motion.div
+                  ref={infoGroupRef}
+                  style={{ scale: infoScale, originX: 0, originY: 0 }}
+                  className="space-y-3"
+                >
+                  {project.project_type && (
+                    <div className="text-[11px] uppercase tracking-[0.32em] opacity-80">{project.project_type}</div>
+                  )}
+                  <h1 className="text-[46px] md:text-[57px] font-black leading-tight m-0">{project.title}</h1>
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[13.5px] opacity-90">
+                    {project.client && (
+                      <span><b>Client:</b> {project.client}</span>
+                    )}
+                    {project.year && (
+                      <span><b>Year:</b> {project.year}</span>
+                    )}
+                    {project.role_en && (
+                      <span><b>Role:</b> {project.role_en}</span>
+                    )}
+                    {categoryInfo && (
+                      <span>
+                        <b>Category:</b>{' '}
+                        <Link href={`/${categoryInfo.slug}`} className="underline hover:opacity-80 pointer-events-auto">
+                          {categoryInfo.name}
+                        </Link>
+                      </span>
+                    )}
+                  </div>
+                  {tags && tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {tags.map((tag) => (
+                        <span
+                          key={tag.id}
+                          className="rounded-full border border-current/30 px-3 py-1 text-xs uppercase tracking-wide opacity-80"
+                        >
+                          {tag.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+
+                {project.blurb && (
+                  <motion.p
+                    ref={blurbRef}
+                    className="text-[17px] leading-relaxed max-w-xl"
+                    style={{ opacity: showFullContent ? 0 : blurbOpacity, y: showFullContent ? -40 : blurbY }}
+                  >
+                    {project.blurb}
+                  </motion.p>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Content blocks */}
+            <motion.div
+              className="absolute inset-x-8 pb-12"
+              style={{
+                top: showFullContent ? safeInfoTop : safeBlocksTop,
+                height: `calc(100% - ${showFullContent ? safeInfoTop : safeBlocksTop}px)` ,
+                opacity: showFullContent ? 1 : blocksOpacity,
+                y: showFullContent ? 0 : blocksY
+              }}
+            >
+              {!showFullContent && (
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/45 to-transparent" />
+              )}
+              <div
+                ref={contentBlocksRef}
+                className={`relative h-full overflow-auto scrollbar-hide pr-2 ${showFullContent ? '' : 'pb-16'}`}
+                style={{ color: textColor }}
+              >
             {contentBlocksHtml && (
               <div className="prose prose-lg max-w-none mb-8" style={{ color: textColor }} dangerouslySetInnerHTML={{ __html: contentBlocksHtml }} />
             )}
@@ -660,7 +785,21 @@ export function VisualDesignLayout({ project, media, tags, blocks }: VisualDesig
                 </div>
               </motion.div>
             )}
-          </motion.div>
+
+            {(contentHasOverflow || showFullContent) && (
+              <div className="mt-10 flex">
+                <button
+                  type="button"
+                  onClick={() => setShowFullContent((prev) => !prev)}
+                  className="inline-flex items-center gap-2 rounded-full border border-current/40 px-5 py-2 text-xs uppercase tracking-[0.28em] transition hover:bg-current/10"
+                >
+                  {showFullContent ? 'Show less' : 'Read more'}
+                </button>
+              </div>
+            )}
+              </div>
+            </motion.div>
+          </div>
         </div>
 
         {/* Scroll hint animation - shows for 3 seconds */}
