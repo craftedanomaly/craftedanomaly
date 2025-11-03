@@ -32,9 +32,9 @@ export function ImageUpload({
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size must be less than 5MB');
+    // Validate file size (max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error('Image size must be less than 50MB');
       return;
     }
 
@@ -133,7 +133,7 @@ export function ImageUpload({
                   Click to upload image
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  PNG, JPG, GIF up to 5MB
+                  PNG, JPG, GIF up to 50MB
                 </p>
               </div>
             </>

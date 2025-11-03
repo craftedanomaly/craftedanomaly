@@ -33,6 +33,9 @@ const projectSchema = z.object({
   client: z.string().optional(),
   projectType: z.string().optional(),
   liveUrl: z.string().optional(),
+  layoutType: z.enum(['default', 'visual_design']),
+  backgroundColor: z.string().optional(),
+  textColor: z.string().optional(),
   tags: z.string(),
   coverImage: z.string()
     .min(1, 'Cover image is required')
@@ -94,6 +97,9 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
       status: 'draft',
       year: new Date().getFullYear(),
       categories: [],
+      layoutType: 'default',
+      backgroundColor: '#ffffff',
+      textColor: '#ffffff',
       title: '',
       slug: '',
       blurb: '',
@@ -106,6 +112,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
 
   const categoriesValue = watch('categories');
   const statusValue = watch('status');
+  const layoutTypeValue = watch('layoutType');
 
   const onSubmit = async (data: ProjectFormData) => {
     if (Object.keys(errors).length > 0) {
@@ -131,6 +138,9 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
             role_en: data.role || null,
             client: data.client || null,
             project_type: data.projectType || null,
+            layout_type: data.layoutType,
+            background_color: data.backgroundColor || '#ffffff',
+            text_color: data.textColor || '#ffffff',
             status: data.status,
             published_at: data.status === 'published' ? new Date().toISOString() : null,
           },
@@ -384,6 +394,98 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
               </div>
               
               <div className="grid gap-6">
+                {/* Layout Type Selector */}
+                <div className="space-y-3 p-4 border border-border rounded-lg bg-muted/30">
+                  <Label className="text-base font-semibold">Layout Type *</Label>
+                  <p className="text-sm text-muted-foreground mb-3">Choose how this project will be displayed</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setValue('layoutType', 'default', { shouldValidate: true })}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        layoutTypeValue === 'default'
+                          ? 'border-primary bg-primary/5 shadow-sm'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="text-left">
+                        <div className="font-semibold mb-1">Default Layout</div>
+                        <div className="text-xs text-muted-foreground">
+                          Standard project layout with left info panel and right media gallery
+                        </div>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setValue('layoutType', 'visual_design', { shouldValidate: true })}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        layoutTypeValue === 'visual_design'
+                          ? 'border-primary bg-primary/5 shadow-sm'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="text-left">
+                        <div className="font-semibold mb-1">Visual Design Layout</div>
+                        <div className="text-xs text-muted-foreground">
+                          Horizontal scrolling with parallax effect for poster/graphic work
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                  {errors.layoutType && (
+                    <p className="text-sm text-destructive">{errors.layoutType.message}</p>
+                  )}
+                </div>
+
+                {/* Background Color - Only for Visual Design Layout */}
+                {layoutTypeValue === 'visual_design' && (
+                  <>
+                    <div className="space-y-2 p-4 border border-amber-500/20 rounded-lg bg-amber-500/5">
+                      <Label htmlFor="backgroundColor">Background Color</Label>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Choose the background color for the visual design layout
+                      </p>
+                      <div className="flex gap-3 items-center">
+                        <Input
+                          id="backgroundColor"
+                          type="color"
+                          value={watch('backgroundColor') || '#ffffff'}
+                          onChange={(e) => setValue('backgroundColor', e.target.value, { shouldValidate: true })}
+                          className="w-20 h-10 cursor-pointer"
+                        />
+                        <Input
+                          type="text"
+                          {...register('backgroundColor')}
+                          placeholder="#ffffff"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 p-4 border border-blue-500/20 rounded-lg bg-blue-500/5">
+                      <Label htmlFor="textColor">Text Color</Label>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Choose the text color for the visual design layout
+                      </p>
+                      <div className="flex gap-3 items-center">
+                        <Input
+                          id="textColor"
+                          type="color"
+                          value={watch('textColor') || '#ffffff'}
+                          onChange={(e) => setValue('textColor', e.target.value, { shouldValidate: true })}
+                          className="w-20 h-10 cursor-pointer"
+                        />
+                        <Input
+                          type="text"
+                          {...register('textColor')}
+                          placeholder="#ffffff"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="title">Title *</Label>
                   <Input

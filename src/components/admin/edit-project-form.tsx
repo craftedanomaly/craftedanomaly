@@ -49,6 +49,9 @@ const projectSchema = z.object({
     ),
   status: z.enum(['draft', 'published']),
   coverVideo: z.string().optional(),
+  layoutType: z.enum(['default', 'visual_design']).optional(),
+  backgroundColor: z.string().optional(),
+  textColor: z.string().optional(),
 });
 
 type ProjectFormData = z.infer<typeof projectSchema>;
@@ -166,7 +169,10 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
       client: project.client || '',
       projectType: project.project_type || '',
       liveUrl: project.live_url || '',
-      tags: '',
+      tags: (project.tags || []).join(', '),
+      layoutType: (project.layout_type || 'default') as 'default' | 'visual_design',
+      backgroundColor: project.background_color || '#0b0b0c',
+      textColor: (project as any).text_color || '#ffffff',
       coverImage: project.cover_image || '',
       coverVideo: (project as any).cover_video_url || '',
       status: project.status || 'draft',
@@ -204,6 +210,9 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
           published_at: data.status === 'published' && !project.published_at 
             ? new Date().toISOString() 
             : project.published_at,
+          layout_type: data.layoutType || 'default',
+          background_color: data.backgroundColor || '#0b0b0c',
+          text_color: data.textColor || '#ffffff',
         })
         .eq('id', project.id)
         .select()
@@ -549,6 +558,95 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                   )}
                 </div>
 
+                {/* Layout Type Selector */}
+                <div className="space-y-3 p-4 border border-border rounded-lg bg-muted/30">
+                  <Label className="text-base font-semibold">Layout Type</Label>
+                  <p className="text-sm text-muted-foreground">Choose how this project will be displayed</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setValue('layoutType', 'default', { shouldValidate: true })}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        watch('layoutType') === 'default'
+                          ? 'border-primary bg-primary/5 shadow-sm'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="text-left">
+                        <div className="font-semibold mb-1">Default Layout</div>
+                        <div className="text-xs text-muted-foreground">
+                          Standard project layout with left info panel and right media gallery
+                        </div>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setValue('layoutType', 'visual_design', { shouldValidate: true })}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        watch('layoutType') === 'visual_design'
+                          ? 'border-primary bg-primary/5 shadow-sm'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="text-left">
+                        <div className="font-semibold mb-1">Visual Design Layout</div>
+                        <div className="text-xs text-muted-foreground">
+                          Horizontal scrolling with parallax effect for poster/graphic work
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Background & Text Color - Only for Visual Design Layout */}
+                {watch('layoutType') === 'visual_design' && (
+                  <>
+                    <div className="space-y-2 p-4 border border-amber-500/20 rounded-lg bg-amber-500/5">
+                      <Label htmlFor="backgroundColor">Background Color</Label>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Choose the background color for the visual design layout
+                      </p>
+                      <div className="flex gap-3 items-center">
+                        <Input
+                          id="backgroundColor"
+                          type="color"
+                          value={watch('backgroundColor') || '#0b0b0c'}
+                          onChange={(e) => setValue('backgroundColor', e.target.value, { shouldValidate: true })}
+                          className="w-20 h-10 cursor-pointer"
+                        />
+                        <Input
+                          type="text"
+                          {...register('backgroundColor')}
+                          placeholder="#0b0b0c"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 p-4 border border-blue-500/20 rounded-lg bg-blue-500/5">
+                      <Label htmlFor="textColor">Text Color</Label>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Choose the text color for the visual design layout
+                      </p>
+                      <div className="flex gap-3 items-center">
+                        <Input
+                          id="textColor"
+                          type="color"
+                          value={watch('textColor') || '#ffffff'}
+                          onChange={(e) => setValue('textColor', e.target.value, { shouldValidate: true })}
+                          className="w-20 h-10 cursor-pointer"
+                        />
+                        <Input
+                          type="text"
+                          {...register('textColor')}
+                          placeholder="#ffffff"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="blurb">Description *</Label>
                   <Textarea
@@ -672,13 +770,22 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                         onDragStart={(e) => {
                           e.dataTransfer.effectAllowed = 'move';
                           e.dataTransfer.setData('text/plain', index.toString());
+                          e.currentTarget.classList.add('opacity-50', 'scale-95');
+                        }}
+                        onDragEnd={(e) => {
+                          e.currentTarget.classList.remove('opacity-50', 'scale-95');
                         }}
                         onDragOver={(e) => {
                           e.preventDefault();
                           e.dataTransfer.dropEffect = 'move';
+                          e.currentTarget.classList.add('border-accent', 'border-2', 'bg-accent/5');
+                        }}
+                        onDragLeave={(e) => {
+                          e.currentTarget.classList.remove('border-accent', 'border-2', 'bg-accent/5');
                         }}
                         onDrop={(e) => {
                           e.preventDefault();
+                          e.currentTarget.classList.remove('border-accent', 'border-2', 'bg-accent/5');
                           const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
                           if (fromIndex !== index) {
                             const newImages = [...galleryImages];
@@ -687,7 +794,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                             setGalleryImages(newImages);
                           }
                         }}
-                        className="space-y-2 p-3 border rounded-lg cursor-move hover:border-accent transition-colors"
+                        className="space-y-2 p-3 border rounded-lg cursor-move hover:border-accent/50 transition-all"
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <GripVertical className="h-4 w-4 text-muted-foreground" />
