@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { LoadingAnimation } from './LoadingAnimation';
 import { HeroSwiper } from './HeroSwiper';
 import { ParallaxBackground } from './ParallaxBackground';
 import { FilmStripCarousel } from './FilmStripCarousel';
-import { CategoryNavbar } from './CategoryNavbar';
+import { CategoryIndicator } from './CategoryIndicator';
 
 interface HeroSlide {
   src: string;
@@ -40,6 +40,8 @@ interface HomePageProps {
 export function HomePage({ heroSlides, projects, categories }: HomePageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [centerProjectCategory, setCenterProjectCategory] = useState<string | undefined>(undefined);
+  const scrollToCategoryRef = useRef<((categorySlug: string) => void) | null>(null);
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
@@ -49,8 +51,19 @@ export function HomePage({ heroSlides, projects, categories }: HomePageProps) {
     setActiveCategory(slug);
   };
 
+  const handleCenterProjectChange = (projectId: string, categorySlug?: string) => {
+    setCenterProjectCategory(categorySlug);
+  };
+
+  const handleCategoryClick = (categorySlug: string) => {
+    if (scrollToCategoryRef.current) {
+      scrollToCategoryRef.current(categorySlug);
+    }
+  };
+
   return (
     <>
+
       {/* Loading Animation */}
       {isLoading && <LoadingAnimation onComplete={handleLoadingComplete} />}
 
@@ -60,26 +73,26 @@ export function HomePage({ heroSlides, projects, categories }: HomePageProps) {
       {/* Parallax SVG Shapes Background */}
       <ParallaxBackground />
 
-      {/* Category Navigation */}
-      {!isLoading && (
-        <CategoryNavbar
-          categories={categories}
-          activeCategory={activeCategory}
-          onCategoryChange={handleCategoryChange}
-        />
-      )}
-
       {/* Main Content */}
       {!isLoading && (
         <div className="relative z-10">
-          {/* Spacer for hero section */}
-          <div className="h-screen" />
-
-          {/* Film Strip Carousel */}
-          <FilmStripCarousel
-            projects={projects}
-            activeCategory={activeCategory}
-          />
+          {/* Blueprint Background Section - Covers hero on scroll */}
+          <div className="bp-grid mt-screen">
+            {/* Film Strip Carousel */}
+            <FilmStripCarousel
+              projects={projects}
+              activeCategory={activeCategory}
+              onCenterProjectChange={handleCenterProjectChange}
+              scrollToCategoryRef={scrollToCategoryRef}
+              categoryIndicator={
+                <CategoryIndicator
+                  categories={categories}
+                  activeCategorySlug={centerProjectCategory}
+                  onCategoryClick={handleCategoryClick}
+                />
+              }
+            />
+          </div>
         </div>
       )}
     </>

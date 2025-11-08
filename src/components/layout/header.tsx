@@ -8,8 +8,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { supabase } from '@/lib/supabase/client';
 import { getTransition, getVariants } from '@/lib/motion-constants';
+import { supabase } from '@/lib/supabase/client';
+import { FilmGrainToggle } from '@/components/effects/FilmGrainToggle';
 
 interface Category {
   id: string;
@@ -77,7 +78,7 @@ export function Header() {
         setLogoSettings({
           logo_light_url: columnData.logo_light_url || columnData.logo_url || '/Anomaly.png',
           logo_dark_url: columnData.logo_dark_url || columnData.logo_url || '/Anomaly.png',
-          logo_alt: columnData.logo_alt || 'Crafted Anomaly'
+          logo_alt: columnData.logo_alt || 'Crafted Anomaly',
         });
         return;
       }
@@ -99,7 +100,7 @@ export function Header() {
       setLogoSettings({
         logo_light_url: settings.logo_light_url || settings.logo_url || '/Anomaly.png',
         logo_dark_url: settings.logo_dark_url || settings.logo_url || '/Anomaly.png',
-        logo_alt: settings.logo_alt || 'Crafted Anomaly'
+        logo_alt: settings.logo_alt || 'Crafted Anomaly',
       });
     } catch (error) {
       console.error('Error fetching logo settings:', error);
@@ -108,13 +109,25 @@ export function Header() {
 
   const fetchCategories = async () => {
     try {
-      const { data } = await supabase
+      // Try API Route first
+      const res = await fetch('/api/categories', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setCategories(data);
+          return;
+        }
+      }
+      // Fallback to client supabase
+      const { data: direct, error } = await supabase
         .from('categories')
-        .select('id, slug, name, cover_image, cover_video_url, description')
-        .eq('active', true)
-        .order('display_order');
-
-      setCategories(data || []);
+        .select('id, slug, name, cover_image, cover_video_url, description');
+      if (error) {
+        console.error('Categories fallback error:', error);
+        setCategories([]);
+        return;
+      }
+      setCategories(direct || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
       setCategories([]);
@@ -186,16 +199,19 @@ export function Header() {
             {/* Desktop menu items would go here */}
           </nav>
 
-          {/* Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsOpen(true)}
-            className="h-11 w-11 rounded-full border border-border/20 hover:border-accent/30 hover:bg-accent/5 transition-all duration-300 bg-transparent"
-            aria-label="Open menu"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
+          {/* Grain toggle + Menu Button */}
+          <div className="flex items-center gap-1">
+            <FilmGrainToggle inline />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsOpen(true)}
+              className="h-11 w-11 rounded-full border border-border/20 hover:border-accent/30 hover:bg-accent/5 transition-all duration-300 bg-transparent"
+              aria-label="Open menu"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </div>
     </header>
@@ -206,20 +222,20 @@ export function Header() {
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 z-[100] bg-transparent"
+            className="fixed inset-0 z-[10010] bg-background/95"
             {...getVariants('fade')}
             transition={getTransition('fast')}
           />
 
           {/* Menu Content */}
           <motion.div
-            className="fixed inset-0 z-[101] overflow-y-auto"
+            className="fixed inset-0 z-[10011] overflow-y-auto bg-background bp-grid"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={getTransition('primary')}
           >
-            <div className="min-h-screen p-6 md:p-12">
+            <div className="min-h-screen p-6 md:p-12 bg-background">
               {/* Header */}
               <div className="flex items-center justify-between mb-12">
                 <Link href="/" onClick={() => setIsOpen(false)} className="relative h-[53px] w-auto">
@@ -241,84 +257,51 @@ export function Header() {
                 </button>
               </div>
 
-              {/* Categories Grid */}
+              {/* Categories Grid (simple, visible) */}
               <div className="max-w-7xl mx-auto">
                 <h2 className="text-sm uppercase tracking-widest text-muted-foreground mb-8">Explore</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                  {categories.map((category, index) => (
-                    <motion.div
-                      key={category.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1, ...getTransition('primary') }}
-                    >
+                {categories.length === 0 ? (
+                  <div className="text-center text-muted-foreground">No categories found.</div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                    {categories.map((category) => (
                       <Link
+                        key={category.id}
                         href={`/${category.slug}`}
                         onClick={() => setIsOpen(false)}
-                        className="group block relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-card hover:border-accent/50 transition-all duration-500"
+                        className="group block relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-card hover:border-accent/50 transition-all duration-300"
                         onMouseEnter={() => handleCategoryHover(category.id, true)}
                         onMouseLeave={() => handleCategoryHover(category.id, false)}
                       >
-                        {(category.cover_video_url || category.cover_image) && (
-                          <div className="absolute inset-0">
-                            {category.cover_image && (
-                              <Image
-                                src={category.cover_image}
-                                alt={category.name}
-                                fill
-                                className="object-cover transition-transform duration-700 group-hover:scale-105 group-hover:opacity-0"
-                              />
-                            )}
-                            {category.cover_video_url && (
-                              <video
-                                ref={(el) => {
-                                  if (el) {
-                                    categoryVideoRefs.current.set(category.id, el);
-                                  } else {
-                                    categoryVideoRefs.current.delete(category.id);
-                                  }
-                                }}
-                                className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                                src={category.cover_video_url}
-                                muted
-                                playsInline
-                                preload="metadata"
-                                loop
-                              />
-                            )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                        {category.cover_image ? (
+                          <Image src={category.cover_image} alt={category.name} fill className="object-cover" />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center bg-muted text-muted-foreground">
+                            {category.name}
                           </div>
                         )}
-                        <div className="absolute inset-0 flex flex-col justify-end p-6">
-                          <h3 className="text-2xl font-bold text-foreground mb-2 group-hover:text-accent transition-colors">
-                            {category.name}
-                          </h3>
-                          {category.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                              {category.description}
-                            </p>
-                          )}
+                        {category.cover_video_url && (
+                          <video
+                            ref={(el) => {
+                              if (el) categoryVideoRefs.current.set(category.id, el);
+                              else categoryVideoRefs.current.delete(category.id);
+                            }}
+                            className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                            src={category.cover_video_url}
+                            muted
+                            playsInline
+                            preload="metadata"
+                            loop
+                          />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                        <div className="absolute inset-0 flex items-end p-4">
+                          <h3 className="text-xl font-semibold text-white group-hover:text-accent transition-colors">{category.name}</h3>
                         </div>
                       </Link>
-                    </motion.div>
-                  ))}
-                </div>
-
-                {/* Contact Link */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: categories.length * 0.1, ...getTransition('primary') }}
-                >
-                  <Link
-                    href="/contact"
-                    onClick={() => setIsOpen(false)}
-                    className="inline-flex items-center gap-2 text-lg font-medium text-muted-foreground hover:text-accent transition-colors"
-                  >
-                    <Mail className="h-5 w-5" />
-                    Get in Touch
-                  </Link>
-                </motion.div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>

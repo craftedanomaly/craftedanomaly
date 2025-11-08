@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
-import { motion, useMotionValue, useSpring, useTransform, animate } from 'framer-motion';
+import { useRef, useState, useEffect, useMemo, useCallback } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -19,29 +19,69 @@ interface Project {
 interface FilmStripCarouselProps {
   projects: Project[];
   activeCategory: string | null;
+  onCenterProjectChange?: (projectId: string, categorySlug?: string) => void;
+  scrollToCategoryRef?: React.MutableRefObject<((categorySlug: string) => void) | null>;
+  categoryIndicator?: React.ReactNode;
 }
 
-export function FilmStripCarousel({ projects, activeCategory }: FilmStripCarouselProps) {
+export function FilmStripCarousel({ projects, activeCategory, onCenterProjectChange, scrollToCategoryRef, categoryIndicator }: FilmStripCarouselProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
+  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
+  const [centerProjectIndex, setCenterProjectIndex] = useState(0);
   
   const scrollProgress = useMotionValue(0);
-  const smoothScroll = useSpring(scrollProgress, { stiffness: 100, damping: 30 });
+  const smoothScroll = useSpring(scrollProgress, { stiffness: 160, damping: 32 });
   
   // Filter projects by active category
   const filteredProjects = activeCategory
     ? projects.filter((p) => p.categorySlug === activeCategory)
     : projects;
 
-  // Mouse wheel scroll handler
+  // Triple projects for infinite loop
+  const loopedProjects = useMemo(() => {
+    if (filteredProjects.length === 0) return [];
+    return [...filteredProjects, ...filteredProjects, ...filteredProjects];
+  }, [filteredProjects]);
+
+  // Helpers for provider embeds
+  const getYouTubeId = (url: string): string | null => {
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+      if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  const getVimeoId = (url: string): string | null => {
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes('vimeo.com')) return u.pathname.split('/').filter(Boolean)[0] || null;
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  // Mouse wheel scroll handler (faster, infinite loop)
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const delta = e.deltaY * 0.5; // Adjust sensitivity
+      const delta = e.deltaY * 1.5; // faster but controlled
       const current = scrollProgress.get();
-      const maxScroll = filteredProjects.length * 400;
-      const newScroll = Math.max(0, Math.min(maxScroll, current + delta));
+      const singleSetWidth = filteredProjects.length * 400;
+      let newScroll = current + delta;
+      
+      // Infinite loop logic
+      if (newScroll < 0) {
+        newScroll = singleSetWidth + newScroll;
+      } else if (newScroll > singleSetWidth * 2) {
+        newScroll = singleSetWidth + (newScroll % singleSetWidth);
+      }
+      
       scrollProgress.set(newScroll);
     };
 
@@ -55,21 +95,81 @@ export function FilmStripCarousel({ projects, activeCategory }: FilmStripCarouse
   // Calculate scroll position
   const scrollX = useTransform(smoothScroll, (value) => -value);
 
-  // Handle video playback on hover
-  const handleMouseEnter = (projectId: string, index: number) => {
-    setHoveredIndex(index);
-    const video = videoRefs.current[projectId];
-    if (video) {
-      video.play().catch(() => {});
+  // Track center project
+  useEffect(() => {
+    const unsubscribe = smoothScroll.on('change', (latest) => {
+      const cardWidth = 400 + 24; // card + gap
+      const centerIndex = Math.round(latest / cardWidth) % filteredProjects.length;
+      const actualIndex = centerIndex < 0 ? filteredProjects.length + centerIndex : centerIndex;
+      
+      if (actualIndex !== centerProjectIndex && filteredProjects[actualIndex]) {
+        setCenterProjectIndex(actualIndex);
+        onCenterProjectChange?.(filteredProjects[actualIndex].id, filteredProjects[actualIndex].categorySlug);
+      }
+    });
+    
+    return () => unsubscribe();
+  }, [smoothScroll, filteredProjects, centerProjectIndex, onCenterProjectChange]);
+
+  // Scroll to first project of a category
+  const scrollToCategory = useCallback((categorySlug: string) => {
+    const firstProjectIndex = filteredProjects.findIndex(p => p.categorySlug === categorySlug);
+    if (firstProjectIndex !== -1) {
+      const targetScroll = firstProjectIndex * 424; // card width + gap
+      scrollProgress.set(targetScroll);
     }
+  }, [filteredProjects, scrollProgress]);
+
+  // Expose scrollToCategory to parent
+  useEffect(() => {
+    if (scrollToCategoryRef) {
+      scrollToCategoryRef.current = scrollToCategory;
+    }
+  }, [scrollToCategory, scrollToCategoryRef]);
+
+  // Handle video playback on hover
+  const handleMouseEnter = (
+    projectId: string,
+    index: number,
+    categorySlug?: string,
+    videoUrl?: string
+  ) => {
+    setHoveredIndex(index);
+    // If URL is YouTube/Vimeo, we render an iframe (no programmatic play needed)
+    const yt = videoUrl ? getYouTubeId(videoUrl) : null;
+    const vm = videoUrl ? getVimeoId(videoUrl) : null;
+    if (!yt && !vm) {
+      const key = `${projectId}-${index}`;
+      const video = videoRefs.current[key];
+      if (video) {
+        try {
+          video.currentTime = 0;
+          void video.play();
+        } catch (error) {
+          console.warn('Video playback failed', error);
+        }
+      }
+    }
+    // Notify parent of hovered project
+    const actualIndex = index % filteredProjects.length;
+    onCenterProjectChange?.(filteredProjects[actualIndex]?.id, categorySlug);
   };
 
-  const handleMouseLeave = (projectId: string) => {
+  const handleMouseLeave = (projectId: string, index: number) => {
     setHoveredIndex(null);
-    const video = videoRefs.current[projectId];
+    const key = `${projectId}-${index}`;
+    const video = videoRefs.current[key];
     if (video) {
       video.pause();
       video.currentTime = 0;
+    }
+
+    const centerCategory = filteredProjects[centerProjectIndex]?.categorySlug;
+    if (filteredProjects[centerProjectIndex]) {
+      onCenterProjectChange?.(
+        filteredProjects[centerProjectIndex].id,
+        centerCategory
+      );
     }
   };
 
@@ -84,44 +184,61 @@ export function FilmStripCarousel({ projects, activeCategory }: FilmStripCarouse
   return (
     <div className="relative min-h-screen bp-grid flex flex-col items-center justify-center py-20 overflow-hidden">
       {/* Section Title */}
-      <div className="text-center mb-12 z-10">
-        <h2 className="text-5xl md:text-7xl font-bold text-accent drop-shadow-lg mb-4">
+      <div className="text-center mb-8 z-10">
+        <h2 className="text-5xl md:text-7xl font-bold drop-shadow-lg mb-6" style={{ color: '#ed5c2c' }}>
           Our Works
         </h2>
-        <p className="text-sm text-foreground/60">
-          Move your mouse to scroll through projects
-        </p>
+        {/* Category Indicator */}
+        {categoryIndicator}
       </div>
 
       {/* Film Strip Container */}
       <div
         ref={containerRef}
-        className="relative w-full h-[70vh] cursor-none"
+        className="relative w-full h-[70vh] cursor-grab active:cursor-grabbing"
         style={{ perspective: '1000px' }}
       >
         <motion.div
           className="absolute top-1/2 left-0 -translate-y-1/2 flex gap-6 px-[50vw]"
           style={{ x: scrollX }}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.1}
+          onDrag={(_, info) => {
+            const current = scrollProgress.get();
+            scrollProgress.set(current - info.delta.x);
+          }}
         >
-          {filteredProjects.map((project, index) => {
+          {loopedProjects.map((project, index) => {
+            const key = `${project.id}-${index}`;
             const isHovered = hoveredIndex === index;
-            
+            const isDimmed = hoveredIndex !== null && hoveredIndex !== index;
+            const scale = isHovered ? 1.05 : 1;
+            const height = '60vh';
+            const width = 380;
+            const borderColor = isHovered ? 'var(--accent)' : 'rgba(255,255,255,0.2)';
+            const zIndex = isHovered ? 60 : 20 - (index % filteredProjects.length);
+
             return (
               <motion.div
-                key={project.id}
+                key={`${project.id}-${index}`}
                 className="relative flex-shrink-0"
-                onMouseEnter={() => handleMouseEnter(project.id, index)}
-                onMouseLeave={() => handleMouseLeave(project.id)}
-                whileHover={{ scale: 1.08, z: 50 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                onMouseEnter={() => handleMouseEnter(project.id, index, project.categorySlug, project.coverVideoUrl)}
+                onMouseLeave={() => handleMouseLeave(project.id, index)}
+                animate={{
+                  scale,
+                  z: isHovered ? 60 : 0,
+                }}
+                transition={{ type: 'spring', stiffness: 150, damping: 25 }}
+                style={{ zIndex }}
               >
                 <Link href={`/projects/${project.slug}`}>
                   <div
                     className="relative overflow-hidden rounded-2xl border-2 shadow-2xl"
                     style={{
-                      width: '380px',
-                      height: '60vh',
-                      borderColor: isHovered ? 'var(--accent)' : 'rgba(255,255,255,0.2)',
+                      width,
+                      height,
+                      borderColor,
                     }}
                   >
                     {/* Project Image */}
@@ -133,23 +250,53 @@ export function FilmStripCarousel({ projects, activeCategory }: FilmStripCarouse
                       priority={index < 5}
                     />
 
-                    {/* Video on Hover */}
-                    {project.coverVideoUrl && (
-                      <video
-                        ref={(el) => {
-                          if (el) videoRefs.current[project.id] = el;
-                        }}
-                        src={project.coverVideoUrl}
-                        className="absolute inset-0 w-full h-full object-cover"
-                        style={{
-                          opacity: isHovered ? 1 : 0,
-                          transition: 'opacity 0.3s ease',
-                        }}
-                        loop
-                        muted
-                        playsInline
-                      />
-                    )}
+                    {/* Video on Hover (supports mp4/webm and YouTube/Vimeo) */}
+                    {project.coverVideoUrl && project.coverVideoUrl.trim() && (() => {
+                      const url = project.coverVideoUrl!;
+                      const yt = getYouTubeId(url);
+                      const vm = getVimeoId(url);
+                      if (yt) {
+                        return isHovered ? (
+                          <iframe
+                            className="absolute inset-0 w-full h-full"
+                            src={`https://www.youtube.com/embed/${yt}?autoplay=1&mute=1&controls=0&rel=0&showinfo=0&playsinline=1`}
+                            allow="autoplay; encrypted-media"
+                            allowFullScreen
+                            style={{ opacity: 1, zIndex: 10, border: '0' }}
+                          />
+                        ) : null;
+                      }
+                      if (vm) {
+                        return isHovered ? (
+                          <iframe
+                            className="absolute inset-0 w-full h-full"
+                            src={`https://player.vimeo.com/video/${vm}?autoplay=1&muted=1&background=1&dnt=1`}
+                            allow="autoplay; encrypted-media"
+                            allowFullScreen
+                            style={{ opacity: 1, zIndex: 10, border: '0' }}
+                          />
+                        ) : null;
+                      }
+                      return (
+                        <video
+                          ref={(el) => {
+                            if (el) videoRefs.current[key] = el;
+                            else delete videoRefs.current[key];
+                          }}
+                          src={url}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          style={{
+                            opacity: isHovered ? 1 : 0,
+                            transition: 'opacity 0.25s ease',
+                            zIndex: isHovered ? 10 : 0,
+                          }}
+                          loop
+                          muted
+                          playsInline
+                          preload="metadata"
+                        />
+                      );
+                    })()}
 
                     {/* Gradient Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
@@ -191,11 +338,6 @@ export function FilmStripCarousel({ projects, activeCategory }: FilmStripCarouse
         </motion.div>
       </div>
 
-      {/* Scroll Indicator */}
-      <div className="mt-8 flex items-center gap-2 text-foreground/60 text-sm">
-        <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-        <span>Move mouse left/right to browse</span>
-      </div>
     </div>
   );
 }

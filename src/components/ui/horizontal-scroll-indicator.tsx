@@ -50,13 +50,19 @@ export function HorizontalScrollIndicator({ containerRef }: HorizontalScrollIndi
 
   return (
     <motion.div
-      className="fixed right-8 top-1/2 -translate-y-1/2 z-40 pointer-events-none"
+      className="fixed right-8 top-1/2 -translate-y-1/2 z-40 pointer-events-auto"
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.5, duration: 0.5 }}
     >
-      <motion.div
-        className="flex items-center justify-center w-12 h-12 rounded-full bg-accent/20 backdrop-blur-sm border border-accent/30"
+      <motion.button
+        type="button"
+        aria-label="Scroll right"
+        onClick={() => {
+          const c = containerRef.current;
+          if (c) c.scrollLeft += 400;
+        }}
+        className="flex items-center justify-center w-12 h-12 rounded-full bg-accent/20 backdrop-blur-sm border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50"
         animate={{
           x: [0, 8, 0],
           opacity: [0.6, 1, 0.6],
@@ -68,7 +74,7 @@ export function HorizontalScrollIndicator({ containerRef }: HorizontalScrollIndi
         }}
       >
         <ChevronRight className="h-6 w-6 text-accent" />
-      </motion.div>
+      </motion.button>
     </motion.div>
   );
 }

@@ -39,6 +39,7 @@
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.23.22",
+    "ldrs": "^1.1.9",
     "locomotive-scroll": "^4.1.4",
     "lucide-react": "^0.544.0",
     "next": "15.5.4",
