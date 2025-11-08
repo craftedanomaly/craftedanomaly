@@ -3,6 +3,7 @@ import { Poppins } from 'next/font/google';
 import { MainLayout } from '@/components/layout/main-layout';
 import { ThemeProvider } from '@/components/theme-provider';
 import { NoSSR } from '@/components/no-ssr';
+import { RouteLoaderWrapper } from '@/components/RouteLoaderWrapper';
 import "./globals.css";
 
 const poppins = Poppins({
@@ -96,6 +97,7 @@ export default function RootLayout({
       <body className={`${poppins.variable} font-sans antialiased`} suppressHydrationWarning>
         <NoSSR fallback={<div className="min-h-screen bg-background" />}> 
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+            <RouteLoaderWrapper />
             <MainLayout>
               {children}
             </MainLayout>

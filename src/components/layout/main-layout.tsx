@@ -1,6 +1,6 @@
 import { Header } from './header';
-import { FloatingInfoModal } from '@/components/ui/floating-info-modal';
 import { ScrollProgress } from '@/components/ui/scroll-progress';
+import { SiteFloatingInfo } from '@/components/layout/site-floating-info';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -14,7 +14,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       <main className="flex-1">
         {children}
       </main>
-      <FloatingInfoModal />
+      <SiteFloatingInfo />
     </div>
   );
 }

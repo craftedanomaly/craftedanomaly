@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Menu, X, Home, Film, Building, Palette, ImageIcon, Gamepad2, Book, Mail, Tag as TagIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,6 +16,7 @@ interface Category {
   slug: string;
   name: string;
   cover_image?: string;
+  cover_video_url?: string;
   description?: string;
 }
 
@@ -32,6 +33,7 @@ export function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const { theme, resolvedTheme } = useTheme();
+  const categoryVideoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
 
   useEffect(() => {
     fetchLogoSettings();
@@ -108,7 +110,7 @@ export function Header() {
     try {
       const { data } = await supabase
         .from('categories')
-        .select('id, slug, name, cover_image, description')
+        .select('id, slug, name, cover_image, cover_video_url, description')
         .eq('active', true)
         .order('display_order');
 
@@ -136,6 +138,29 @@ export function Header() {
     return iconMap[slug] || Palette;
   };
 
+
+  const handleCategoryHover = (categoryId: string, isEntering: boolean) => {
+    const videoEl = categoryVideoRefs.current.get(categoryId);
+    if (!videoEl) return;
+
+    if (isEntering) {
+      videoEl.currentTime = 0;
+      const playPromise = videoEl.play();
+      if (playPromise) {
+        playPromise.catch(() => {
+          // Ignore autoplay restrictions
+        });
+      }
+    } else {
+      videoEl.pause();
+      videoEl.currentTime = 0;
+    }
+  };
+
+  // Hide header in admin panel
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <>
@@ -181,7 +206,7 @@ export function Header() {
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 z-[100] bg-background"
+            className="fixed inset-0 z-[100] bg-transparent"
             {...getVariants('fade')}
             transition={getTransition('fast')}
           />
@@ -231,16 +256,37 @@ export function Header() {
                         href={`/${category.slug}`}
                         onClick={() => setIsOpen(false)}
                         className="group block relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-card hover:border-accent/50 transition-all duration-500"
+                        onMouseEnter={() => handleCategoryHover(category.id, true)}
+                        onMouseLeave={() => handleCategoryHover(category.id, false)}
                       >
-                        {category.cover_image && (
+                        {(category.cover_video_url || category.cover_image) && (
                           <div className="absolute inset-0">
-                            <Image
-                              src={category.cover_image}
-                              alt={category.name}
-                              fill
-                              className="object-cover transition-transform duration-700 group-hover:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+                            {category.cover_image && (
+                              <Image
+                                src={category.cover_image}
+                                alt={category.name}
+                                fill
+                                className="object-cover transition-transform duration-700 group-hover:scale-105 group-hover:opacity-0"
+                              />
+                            )}
+                            {category.cover_video_url && (
+                              <video
+                                ref={(el) => {
+                                  if (el) {
+                                    categoryVideoRefs.current.set(category.id, el);
+                                  } else {
+                                    categoryVideoRefs.current.delete(category.id);
+                                  }
+                                }}
+                                className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                                src={category.cover_video_url}
+                                muted
+                                playsInline
+                                preload="metadata"
+                                loop
+                              />
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                           </div>
                         )}
                         <div className="absolute inset-0 flex flex-col justify-end p-6">

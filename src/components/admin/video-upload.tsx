@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { Upload, X, Play, Loader2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Upload, X, Play, Loader2, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase/client';
+// R2 storage is now used instead of Supabase
 import { getVideoType, isDirectVideoUrl } from '@/lib/video-utils';
+import { MediaLibraryModal } from '@/components/admin/media-library-modal';
 
 interface VideoUploadProps {
   value?: string;
@@ -19,6 +20,11 @@ export function VideoUpload({ value, onChange, maxSizeMB = 50 }: VideoUploadProp
   const [isUploading, setIsUploading] = useState(false);
   const [urlInput, setUrlInput] = useState(value || '');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showLibrary, setShowLibrary] = useState(false);
+
+  useEffect(() => {
+    setUrlInput(value || '');
+  }, [value]);
 
   const handleFileUpload = async (file: File) => {
     if (!file) return;
@@ -39,28 +45,25 @@ export function VideoUpload({ value, onChange, maxSizeMB = 50 }: VideoUploadProp
     setIsUploading(true);
 
     try {
-      // Create unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `category-videos/${fileName}`;
+      // Upload to R2 via API route
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('path', 'category-videos');
 
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('media')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+      const response = await fetch('/api/r2/upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Upload failed');
+      }
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('media')
-        .getPublicUrl(data.path);
+      const data = await response.json();
 
-      onChange(publicUrl);
-      setUrlInput(publicUrl);
+      onChange(data.url);
+      setUrlInput(data.url);
       toast.success('Video uploaded successfully!');
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -72,14 +75,21 @@ export function VideoUpload({ value, onChange, maxSizeMB = 50 }: VideoUploadProp
 
   const handleUrlChange = (url: string) => {
     setUrlInput(url);
-    
+
     // Validate video URL type
     const videoType = getVideoType(url);
     if (url && videoType !== 'direct') {
       toast.warning(`${videoType.toUpperCase()} videos are not supported for hover effects. Please use direct video files (MP4, WebM) or upload a video file.`);
     }
-    
     onChange(url);
+  };
+
+  const handleLibrarySelect = (url: string) => {
+    setShowLibrary(false);
+    setIsUploading(false);
+    setUrlInput(url);
+    onChange(url);
+    toast.success('Video kütüphaneden seçildi');
   };
 
   const clearVideo = () => {
@@ -90,25 +100,41 @@ export function VideoUpload({ value, onChange, maxSizeMB = 50 }: VideoUploadProp
     }
   };
 
+  const handleOpenLibrary = () => {
+    setShowLibrary(true);
+  };
+
   return (
     <div className="space-y-4">
       {/* URL Input */}
       <div className="space-y-2">
         <Label htmlFor="video-url">Video URL</Label>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Input
             id="video-url"
             value={urlInput}
             onChange={(e) => handleUrlChange(e.target.value)}
             placeholder="https://example.com/video.mp4 or upload below"
             type="url"
+            className="flex-1 min-w-[200px]"
           />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleOpenLibrary}
+            className="gap-2"
+          >
+            <FolderOpen className="h-4 w-4" />
+            Kütüphaneden Seç
+          </Button>
           {value && (
             <Button
               type="button"
-              variant="outline"
-              size="sm"
+              variant="ghost"
+              size="icon"
               onClick={clearVideo}
+              title="Temizle"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -213,6 +239,13 @@ export function VideoUpload({ value, onChange, maxSizeMB = 50 }: VideoUploadProp
           </p>
         </div>
       )}
+
+      <MediaLibraryModal
+        open={showLibrary}
+        onClose={() => setShowLibrary(false)}
+        onSelect={handleLibrarySelect}
+        accept="video"
+      />
     </div>
   );
 }

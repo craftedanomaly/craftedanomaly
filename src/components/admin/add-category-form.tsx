@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,75 +10,32 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { VideoUpload } from '@/components/admin/video-upload';
 import { ImageUpload } from '@/components/admin/image-upload';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 interface AddCategoryFormProps {
   onCategoryAdded?: (category: any) => void;
-  onBack?: () => void;
+  onCancel?: () => void;
+  className?: string;
 }
 
-export function AddCategoryForm({ onCategoryAdded, onBack }: AddCategoryFormProps) {
+const initialFormState = {
+  slug: '',
+  name: '',
+  description: '',
+  cover_image: '',
+  video_url: '',
+  active: true,
+};
+
+export function AddCategoryForm({ onCategoryAdded, onCancel, className }: AddCategoryFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    slug: '',
-    name: '',
-    description: '',
-    cover_image: '',
-    video_url: '',
-    active: true,
-  });
+  const [formData, setFormData] = useState(initialFormState);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  const formId = 'add-category-form';
 
-    try {
-      // Re-sanitize before submit to satisfy DB varchar(50)
-      const cleanedName = (formData.name || '').slice(0, 50);
-      const cleanedSlug = (formData.slug || '')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '')
-        .slice(0, 50);
-
-      const { data, error } = await supabase
-        .from('categories')
-        .insert([{
-          slug: cleanedSlug,
-          name: cleanedName,
-          description: formData.description,
-          cover_image: formData.cover_image,
-          video_url: formData.video_url,
-          active: formData.active,
-          display_order: 0,
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast.success('Category created successfully!');
-      
-      if (onCategoryAdded) {
-        onCategoryAdded(data);
-      }
-
-      // Reset form
-      setFormData({
-        slug: '',
-        name: '',
-        description: '',
-        cover_image: '',
-        video_url: '',
-        active: true,
-      });
-
-      if (onBack) onBack();
-    } catch (error: any) {
-      console.error('Error creating category:', error);
-      toast.error(error.message || 'Failed to create category');
-    } finally {
-      setIsSubmitting(false);
-    }
+  const resetForm = () => {
+    setFormData(initialFormState);
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,181 +45,203 @@ export function AddCategoryForm({ onCategoryAdded, onBack }: AddCategoryFormProp
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
       .slice(0, 50);
-    setFormData(prev => ({ ...prev, name, slug }));
+
+    setFormData((prev) => ({ ...prev, name, slug }));
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const cleanedName = (formData.name || '').slice(0, 50);
+      const cleanedSlug = (formData.slug || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 50);
+
+      const { data, error } = await supabase
+        .from('categories')
+        .insert([
+          {
+            slug: cleanedSlug,
+            name: cleanedName,
+            description: formData.description,
+            cover_image: formData.cover_image,
+            video_url: formData.video_url,
+            active: formData.active,
+            display_order: 0,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success('Kategori oluşturuldu');
+
+      resetForm();
+      onCategoryAdded?.(data);
+      onCancel?.();
+    } catch (error: any) {
+      console.error('Error creating category:', error);
+      toast.error(error.message || 'Kategori oluşturulamadı');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCancel = () => {
+    resetForm();
+    onCancel?.();
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex h-16 items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onBack}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Categories
-            </Button>
-            <div className="h-6 w-px bg-border" />
-            <div>
-              <h1 className="text-xl font-semibold">Create New Category</h1>
-              <p className="text-sm text-muted-foreground">Add a new category to your portfolio</p>
-            </div>
+    <div className={cn('rounded-xl border bg-card shadow-sm', className)}>
+      <div className="border-b bg-muted/40 px-6 py-5">
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">Yeni Kategori</h2>
+            <p className="text-sm text-muted-foreground">
+              Kategori bilgilerini girin, kapak görselini ve hover videosunu isteğe göre ekleyin.
+            </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={onBack}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit"
-              form="category-form"
-              disabled={isSubmitting}
-              className="min-w-32"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Creating...
-                </>
-              ) : (
-                'Create Category'
-              )}
-            </Button>
-          </div>
+          <Badge variant={formData.active ? 'default' : 'secondary'} className="uppercase">
+            {formData.active ? 'Aktif' : 'Pasif'}
+          </Badge>
         </div>
       </div>
 
-      {/* Main Content */}
-      <form id="category-form" onSubmit={handleSubmit} className="max-w-4xl mx-auto p-8 space-y-8">
-        
-        {/* Basic Info Section */}
+      <form
+        id={formId}
+        onSubmit={handleSubmit}
+        className="max-h-[70vh] overflow-y-auto px-6 py-6 space-y-10"
+      >
         <section className="space-y-6">
-          <div className="flex items-center gap-3 pb-4 border-b">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-lg">📁</span>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-lg">
+              📁
             </div>
             <div>
-              <h2 className="text-xl font-semibold">Basic Information</h2>
-              <p className="text-sm text-muted-foreground">Essential category details</p>
-            </div>
-          </div>
-          
-          <div className="grid gap-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={handleNameChange}
-                  placeholder="Films"
-                  required
-                  maxLength={50}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="slug">URL Slug *</Label>
-                <Input
-                  id="slug"
-                  value={formData.slug}
-                  onChange={(e) => {
-                    const raw = e.target.value;
-                    const cleaned = raw
-                      .toLowerCase()
-                      .replace(/[^a-z0-9]+/g, '-')
-                      .replace(/^-|-$/g, '')
-                      .slice(0, 50);
-                    setFormData(prev => ({ ...prev, slug: cleaned }));
-                  }}
-                  placeholder="films"
-                  required
-                  maxLength={50}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Used in URLs: /{formData.slug}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Category description..."
-                rows={3}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Cover Image</Label>
-              <ImageUpload
-                value={formData.cover_image}
-                onChange={(url) => setFormData(prev => ({ ...prev, cover_image: url }))}
-                bucket="media"
-              />
-              <p className="text-xs text-muted-foreground">
-                Upload a cover image for this category
+              <h3 className="text-base font-semibold">Temel Bilgiler</h3>
+              <p className="text-sm text-muted-foreground">
+                Kategori adı, URL slug ve açıklama ile aramalarda kolay bulunmasını sağlayın.
               </p>
             </div>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="category-name">Kategori Adı *</Label>
+              <Input
+                id="category-name"
+                value={formData.name}
+                onChange={handleNameChange}
+                placeholder="Filmler"
+                required
+                maxLength={50}
+              />
+              <p className="text-xs text-muted-foreground">En fazla 50 karakter, otomatik olarak slug üretilir.</p>
+            </div>
 
             <div className="space-y-2">
-              <Label>Hover Video (Desktop Only)</Label>
+              <Label htmlFor="category-slug">URL Slug *</Label>
+              <Input
+                id="category-slug"
+                value={formData.slug}
+                onChange={(event) => {
+                  const raw = event.target.value;
+                  const cleaned = raw
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-|-$/g, '')
+                    .slice(0, 50);
+                  setFormData((prev) => ({ ...prev, slug: cleaned }));
+                }}
+                placeholder="filmler"
+                required
+                maxLength={50}
+              />
+              <p className="text-xs text-muted-foreground">Adres çubuğunda /{formData.slug || 'kategori-adi'} olarak görünür.</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category-description">Açıklama</Label>
+            <Textarea
+              id="category-description"
+              value={formData.description}
+              onChange={(event) => setFormData((prev) => ({ ...prev, description: event.target.value }))}
+              placeholder="Kategoriye dair kısa bir açıklama yazın..."
+              rows={3}
+            />
+          </div>
+        </section>
+
+        <section className="grid gap-8 lg:grid-cols-2">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Kapak Görseli</Label>
+              <ImageUpload
+                value={formData.cover_image}
+                onChange={(url) => setFormData((prev) => ({ ...prev, cover_image: url }))}
+                bucket="categories"
+              />
+              <p className="text-xs text-muted-foreground">
+                Ana sayfadaki kategori kartı için önerilen ölçüler: 1600x900px.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label>Hover Videosu (İsteğe Bağlı)</Label>
               <VideoUpload
                 value={formData.video_url}
-                onChange={(url) => setFormData(prev => ({ ...prev, video_url: url }))}
+                onChange={(url) => setFormData((prev) => ({ ...prev, video_url: url }))}
                 maxSizeMB={50}
               />
               <p className="text-xs text-muted-foreground">
-                Video that plays when hovering over this category on desktop. Auto-plays muted on hover.
+                Masaüstünde kategori kartı üzerine gelindiğinde otomatik oynatılır (MP4/WebM önerilir).
               </p>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="active"
-                checked={formData.active}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, active: checked }))}
-              />
-              <Label htmlFor="active">Active</Label>
+            <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
+              <div>
+                <h4 className="text-sm font-semibold">Yayın Durumu</h4>
+                <p className="text-xs text-muted-foreground">
+                  Aktif kategoriler hemen vitrinde görünür. Taslak olarak tutmak için pasif bırakın.
+                </p>
+              </div>
+              <div className="flex items-center justify-between rounded-md border bg-background px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium">Kategori aktif</p>
+                  <p className="text-xs text-muted-foreground">/{formData.slug || 'kategori-adi'}</p>
+                </div>
+                <Switch
+                  id="category-active"
+                  checked={formData.active}
+                  onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, active: checked }))}
+                />
+              </div>
             </div>
           </div>
         </section>
       </form>
 
-      {/* Sticky Footer */}
-      <div className="sticky bottom-0 z-10 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center justify-end gap-3 px-6 py-4">
-          <Button
-            variant="outline"
-            onClick={onBack}
-          >
-            Cancel
-          </Button>
-          <Button 
-            type="submit"
-            form="category-form"
-            disabled={isSubmitting}
-            className="min-w-32"
-          >
-            {isSubmitting ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Creating...
-              </>
-            ) : (
-              'Create Category'
-            )}
-          </Button>
-        </div>
+      <div className="flex flex-col gap-3 border-t bg-muted/30 px-6 py-4 sm:flex-row sm:items-center sm:justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleCancel}
+          disabled={isSubmitting}
+        >
+          Vazgeç
+        </Button>
+        <Button type="submit" form={formId} disabled={isSubmitting} className="gap-2">
+          {isSubmitting ? 'Kaydediliyor...' : 'Kategori Ekle'}
+        </Button>
       </div>
     </div>
   );

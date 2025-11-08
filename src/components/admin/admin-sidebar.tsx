@@ -10,7 +10,8 @@ import {
   Settings,
   LogOut,
   Home,
-  Grid3X3
+  Grid3X3,
+  HardDrive
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,11 @@ const menuItems = [
     title: 'Projects',
     href: '/admin/projects',
     icon: FolderOpen,
+  },
+  {
+    title: 'Media',
+    href: '/admin/media',
+    icon: HardDrive,
   },
   {
     title: 'Messages',

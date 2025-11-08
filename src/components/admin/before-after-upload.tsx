@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { BeforeAfterSlider } from '@/components/ui/before-after-slider';
 import Image from 'next/image';
-import { supabase } from '@/lib/supabase/client';
+// R2 storage is now used instead of Supabase
 import { toast } from 'sonner';
 
 interface BeforeAfterUploadProps {
@@ -45,26 +45,29 @@ export function BeforeAfterUpload({
     const imageFile = files.find(file => file.type.startsWith('image/'));
     
     if (imageFile) {
-      // Upload to Supabase Storage and use public URL
+      // Upload to R2 via API route
       void (async () => {
         try {
-          const fileExt = imageFile.name.split('.').pop();
-          const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-          const path = fileName;
-          const bucket = 'project-images';
+          const formData = new FormData();
+          formData.append('file', imageFile);
+          formData.append('path', 'project-images');
 
-          const { error: uploadError } = await supabase.storage
-            .from(bucket)
-            .upload(path, imageFile, { cacheControl: '3600', upsert: false });
-          if (uploadError) throw uploadError;
+          const response = await fetch('/api/r2/upload', {
+            method: 'POST',
+            body: formData,
+          });
 
-          const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
-          const publicUrl = pub.publicUrl;
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Upload failed');
+          }
+
+          const data = await response.json();
 
           if (type === 'before') {
-            handleBeforeChange(publicUrl);
+            handleBeforeChange(data.url);
           } else {
-            handleAfterChange(publicUrl);
+            handleAfterChange(data.url);
           }
           toast.success('Image uploaded');
         } catch (err: any) {

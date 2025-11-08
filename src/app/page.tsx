@@ -1,7 +1,6 @@
-import { HeroToCategories } from '@/components/home/hero-to-categories';
 import { createClient } from '@supabase/supabase-js';
+import { HomePage } from '@/components/home/HomePage';
 
-// Always fetch fresh data for homepage content
 export const dynamic = 'force-dynamic';
 
 const supabase = createClient(
@@ -21,60 +20,79 @@ async function getHeroSlides() {
     return [];
   }
 
-  return data || [];
+  return (data || []).map((slide: any) => ({
+    src: slide.url,
+    alt: slide.title || 'Hero slide',
+    caption: slide.title,
+    type: slide.type || 'image',
+  }));
 }
 
-async function getCarouselSettings() {
+async function getProjects() {
   const { data, error } = await supabase
-    .from('site_settings')
-    .select('carousel_autoplay, carousel_interval, video_autoplay')
-    .limit(1)
-    .single();
+    .from('projects')
+    .select(`
+      id,
+      slug,
+      title,
+      blurb,
+      cover_image,
+      cover_video_url,
+      year,
+      project_categories(
+        categories(
+          slug
+        )
+      )
+    `)
+    .eq('status', 'published')
+    .order('published_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching carousel settings:', error);
-    return {
-      autoPlay: true,
-      slideInterval: 5000,
-      videoAutoPlay: true
-    };
-  }
-
-  return {
-    autoPlay: data?.carousel_autoplay ?? true,
-    slideInterval: data?.carousel_interval ?? 5000,
-    videoAutoPlay: data?.video_autoplay ?? true
-  };
-}
-
-async function getCategories() {
-  const { data: categories, error: catError } = await supabase
-    .from('categories')
-    .select('id, slug, name, description, cover_image, video_url, display_order, active')
-    .eq('active', true)
-    .order('display_order');
-
-  if (catError) {
-    console.error('Error fetching categories:', catError);
+    console.error('Error fetching projects:', error);
     return [];
   }
 
-  return categories || [];
+  return (data || []).map((project: any) => {
+    const categorySlug = project.project_categories?.[0]?.categories?.slug;
+
+    return {
+      id: project.id,
+      slug: project.slug,
+      title: project.title,
+      blurb: project.blurb || '',
+      coverImageUrl: project.cover_image || '',
+      coverVideoUrl: project.cover_video_url || undefined,
+      year: project.year,
+      categorySlug,
+    };
+  });
+}
+
+async function getCategories() {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('id, slug, name')
+    .eq('active', true)
+    .order('display_order');
+
+  if (error) {
+    console.error('Error fetching categories:', error);
+    return [];
+  }
+
+  return (data || []).map((cat: any) => ({
+    id: cat.id,
+    slug: cat.slug,
+    name: cat.name,
+  }));
 }
 
 
-export default async function Home() {
+export default async function Page() {
   const heroSlides = await getHeroSlides();
-  const carouselSettings = await getCarouselSettings();
+  const projects = await getProjects();
   const categories = await getCategories();
 
-  return (
-    <HeroToCategories 
-      slides={heroSlides}
-      categories={categories}
-      autoPlay={carouselSettings.autoPlay}
-      autoPlayInterval={carouselSettings.slideInterval}
-      videoAutoPlay={carouselSettings.videoAutoPlay}
-    />
-  );
+  return <HomePage heroSlides={heroSlides} projects={projects} categories={categories} />;
 }

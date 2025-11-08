@@ -11,7 +11,8 @@ import {
   Eye,
   TrendingUp,
   Activity,
-  Plus
+  Plus,
+  HardDrive
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -302,7 +303,7 @@ export default function AdminDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8"
         >
           <Link href="/admin/projects">
             <div className="bg-card border border-border rounded-lg p-6 hover:border-accent transition-colors cursor-pointer group">
@@ -346,6 +347,20 @@ export default function AdminDashboard() {
               >
                 <MessageSquare className="h-4 w-4 mr-2" />
                 {stats.unreadMessages > 0 ? `${stats.unreadMessages} Unread` : 'View All'}
+              </Button>
+            </div>
+          </Link>
+
+          <Link href="/admin/media">
+            <div className="bg-card border border-border rounded-lg p-6 hover:border-accent transition-colors cursor-pointer group">
+              <HardDrive className="h-8 w-8 text-accent mb-4 group-hover:scale-110 transition-transform" />
+              <h3 className="font-bold text-foreground mb-2">Media Management</h3>
+              <p className="text-sm text-muted-foreground">
+                Manage images, videos and media library
+              </p>
+              <Button className="mt-4 w-full" size="sm" variant="outline">
+                <HardDrive className="h-4 w-4 mr-2" />
+                Manage Media
               </Button>
             </div>
           </Link>

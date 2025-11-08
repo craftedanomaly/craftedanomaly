@@ -134,7 +134,8 @@ async function getCategoryData(slug: string) {
         .from('project_tags')
         .select(`
           project_id,
-          tags (
+          tag_id,
+          tags:tag_id (
             id,
             slug,
             name,
@@ -153,7 +154,11 @@ async function getCategoryData(slug: string) {
     projectTags?.forEach((pt: any) => {
       if (pt.tags) {
         const existing = projectTagsMap.get(pt.project_id) || [];
-        projectTagsMap.set(pt.project_id, [...existing, pt.tags]);
+        const tagData = pt.tags;
+        // Ensure we have valid tag data
+        if (tagData && tagData.id) {
+          projectTagsMap.set(pt.project_id, [...existing, tagData]);
+        }
       }
     });
 

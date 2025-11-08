@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Loader2, Image as ImageIcon, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/lib/supabase/client';
+// R2 storage is now used instead of Supabase
 import { toast } from 'sonner';
 import Image from 'next/image';
+import { MediaLibraryModal } from './media-library-modal';
 
 interface ImageUploadProps {
   value?: string;
@@ -16,10 +17,11 @@ interface ImageUploadProps {
 export function ImageUpload({ 
   value, 
   onChange, 
-  bucket = 'project-images' 
+  bucket = '' // R2'de bucket klasörü yok, direkt root'ta
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string>(value || '');
+  const [showLibrary, setShowLibrary] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,28 +43,25 @@ export function ImageUpload({
     setUploading(true);
 
     try {
-      // Generate unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      // Upload to R2 via API route
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('path', bucket); // Use bucket as folder path
 
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false,
-        });
+      const response = await fetch('/api/r2/upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Upload failed');
+      }
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(filePath);
+      const data = await response.json();
 
-      setPreview(publicUrl);
-      onChange(publicUrl);
+      setPreview(data.url);
+      onChange(data.url);
       toast.success('Image uploaded successfully!');
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -84,33 +83,50 @@ export function ImageUpload({
     fileInputRef.current?.click();
   };
 
+  const handleLibrarySelect = (url: string) => {
+    setPreview(url);
+    onChange(url);
+    toast.success('Image selected from library!');
+  };
+
   return (
     <div className="space-y-4">
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,image/avif,image/webp"
         onChange={handleFileChange}
         className="hidden"
       />
 
       {preview ? (
-        <div className="relative w-full h-48 rounded-lg overflow-hidden border border-border bg-muted">
-          <Image
-            src={preview}
-            alt="Preview"
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 400px"
-          />
+        <div className="space-y-2">
+          <div className="relative w-full h-48 rounded-lg overflow-hidden border border-border bg-muted">
+            <Image
+              src={preview}
+              alt="Preview"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 400px"
+            />
+            <Button
+              type="button"
+              variant="destructive"
+              size="icon"
+              className="absolute top-2 right-2"
+              onClick={handleRemove}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
           <Button
             type="button"
-            variant="destructive"
-            size="icon"
-            className="absolute top-2 right-2"
-            onClick={handleRemove}
+            variant="outline"
+            onClick={() => setShowLibrary(true)}
+            className="w-full gap-2"
           >
-            <X className="h-4 w-4" />
+            <FolderOpen className="h-4 w-4" />
+            Change from Library
           </Button>
         </div>
       ) : (
@@ -133,7 +149,7 @@ export function ImageUpload({
                   Click to upload image
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  PNG, JPG, GIF up to 50MB
+                  PNG, JPG, GIF, WebP, AVIF up to 50MB
                 </p>
               </div>
             </>
@@ -141,9 +157,28 @@ export function ImageUpload({
         </button>
       )}
 
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setShowLibrary(true)}
+          className="flex-1 gap-2"
+        >
+          <FolderOpen className="h-4 w-4" />
+          Choose from Library
+        </Button>
+      </div>
+
       <p className="text-xs text-muted-foreground">
-        Image will be stored in Supabase Storage
+        Upload new or choose from existing media library
       </p>
+
+      <MediaLibraryModal
+        open={showLibrary}
+        onClose={() => setShowLibrary(false)}
+        onSelect={handleLibrarySelect}
+        accept="image"
+      />
     </div>
   );
 }

@@ -386,29 +386,28 @@ export default function SettingsPage() {
 
       setIsUploadingLogo(true);
       try {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `logo-${Date.now()}.${fileExt}`;
-        const filePath = `branding/${fileName}`;
+        // Upload to R2 via API route
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('path', 'branding');
 
-        const { error: uploadError, data } = await supabase.storage
-          .from('media')
-          .upload(filePath, file);
+        const response = await fetch('/api/r2/upload', {
+          method: 'POST',
+          body: formData,
+        });
 
-        if (uploadError) {
-          console.error('Upload error details:', uploadError);
-          toast.error(`Upload failed: ${uploadError.message}`);
-          return;
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Upload failed');
         }
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('media')
-          .getPublicUrl(filePath);
+        const data = await response.json();
 
-        handleChange('logo_url', publicUrl);
+        handleChange('logo_url', data.url);
         toast.success('Logo uploaded successfully!');
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error uploading logo:', error);
-        toast.error('Failed to upload logo');
+        toast.error('Failed to upload logo: ' + (error.message || 'Unknown error'));
       } finally {
         setIsUploadingLogo(false);
       }
@@ -439,29 +438,28 @@ export default function SettingsPage() {
 
       setIsUploadingLogo(true);
       try {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${settingKey}-${Date.now()}.${fileExt}`;
-        const filePath = `content/${fileName}`;
+        // Upload to R2 via API route
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('path', 'content');
 
-        const { error: uploadError, data } = await supabase.storage
-          .from('media')
-          .upload(filePath, file);
+        const response = await fetch('/api/r2/upload', {
+          method: 'POST',
+          body: formData,
+        });
 
-        if (uploadError) {
-          console.error('Upload error details:', uploadError);
-          toast.error(`Upload failed: ${uploadError.message}`);
-          return;
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Upload failed');
         }
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('media')
-          .getPublicUrl(filePath);
+        const data = await response.json();
 
-        handleChange(settingKey, publicUrl);
+        handleChange(settingKey, data.url);
         toast.success('Image uploaded successfully!');
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error uploading image:', error);
-        toast.error('Failed to upload image');
+        toast.error('Failed to upload image: ' + (error.message || 'Unknown error'));
       } finally {
         setIsUploadingLogo(false);
       }

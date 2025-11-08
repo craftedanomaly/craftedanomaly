@@ -1,5 +1,50 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "locomotive-scroll/dist/locomotive-scroll.css";
+
+
+/* Blueprint grid background */
+.bp-grid {
+  background-color: #0046bf;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 24px 24px, 24px 24px, 8px 8px, 8px 8px;
+  background-position: 0 0, 0 0, 0 0, 0 0;
+}
+
+/* Embla Carousel Styles */
+.embla {
+  overflow: hidden;
+}
+
+.embla__container {
+  display: flex;
+}
+
+.embla__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+
+/* Masonry grid helpers */
+.masonry-grid {
+  display: flex;
+  margin-left: 0;
+  width: 100%;
+}
+
+.masonry-grid_column {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.masonry-grid_column > div {
+  margin-bottom: 0;
+}
 
 /* Hide scrollbar utility */
 .scrollbar-hide {
@@ -9,6 +54,129 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Locomotive Scroll */
+html.has-scroll-smooth {
+  overflow: hidden;
+}
+
+html.has-scroll-dragging {
+  user-select: none;
+}
+
+/* Swiper Pagination */
+.swiper-pagination {
+  bottom: 2rem !important;
+}
+
+.swiper-pagination-bullet {
+  width: 10px !important;
+  height: 10px !important;
+  transition: all 0.3s ease !important;
+}
+
+.swiper-pagination-bullet-active {
+  width: 30px !important;
+  border-radius: 5px !important;
+}
+
+/* CRT Effect Animations */
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes flicker {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+@keyframes grain {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  10% {
+    transform: translate(-2%, -2%);
+  }
+  20% {
+    transform: translate(2%, -2%);
+  }
+  30% {
+    transform: translate(-2%, 2%);
+  }
+  40% {
+    transform: translate(2%, 2%);
+  }
+  50% {
+    transform: translate(-1%, -1%);
+  }
+  60% {
+    transform: translate(1%, 1%);
+  }
+  70% {
+    transform: translate(-1%, 1%);
+  }
+  80% {
+    transform: translate(1%, -1%);
+  }
+  90% {
+    transform: translate(-2%, 1%);
+  }
+}
+
+@keyframes rgb-shift {
+  0% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(-1px, 0);
+  }
+  66% {
+    transform: translate(1px, 0);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+.animate-scanline {
+  animation: scanline 8s linear infinite;
+}
+
+.animate-flicker {
+  animation: flicker 0.15s infinite;
+}
+
+.animate-rgb-shift {
+  animation: rgb-shift 0.1s infinite;
+}
+
+/* CRT Barrel Distortion */
+.crt-distortion {
+  background: transparent;
+  border-radius: 2% / 3%;
+  box-shadow: 
+    inset 0 0 0 2px rgba(0, 0, 0, 0.1),
+    inset 0 0 50px rgba(0, 0, 0, 0.3);
+}
+
+.crt-container {
+  filter: contrast(1.05) brightness(1.02);
+}
+
+/* Film Grain */
+.film-grain {
+  opacity: 0.5;
+}
+
 
 @custom-variant dark (&:is(.dark *));
 
@@ -54,37 +222,37 @@
 
 :root {
   --radius: 0.625rem;
-  /* Crafted Anomaly Brand Colors */
-  --background: #0b0b0c;
-  --foreground: #e6e6e6;
-  --card: #151517;
-  --card-foreground: #e6e6e6;
-  --popover: #151517;
-  --popover-foreground: #e6e6e6;
+  /* Crafted Anomaly Brand Colors - Blueprint Theme */
+  --background: #0046bf;
+  --foreground: #ed882c;
+  --card: #0052d9;
+  --card-foreground: #ed882c;
+  --popover: #0052d9;
+  --popover-foreground: #ed882c;
   --primary: #e8ff3a;
   --primary-foreground: #0b0b0c;
-  --secondary: #151517;
-  --secondary-foreground: #e6e6e6;
-  --muted: #9aa0a6;
-  --muted-foreground: #9aa0a6;
+  --secondary: #0052d9;
+  --secondary-foreground: #ed882c;
+  --muted: #0b3a92;
+  --muted-foreground: #f6c096;
   --accent: #e8ff3a;
   --accent-foreground: #0b0b0c;
   --destructive: #b80f26;
-  --border: rgba(154, 160, 166, 0.2);
-  --input: rgba(154, 160, 166, 0.1);
+  --border: rgba(197, 213, 245, 0.15);
+  --input: rgba(197, 213, 245, 0.1);
   --ring: #e8ff3a;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: #151517;
-  --sidebar-foreground: #e6e6e6;
+  --sidebar: #0052d9;
+  --sidebar-foreground: #ed882c;
   --sidebar-primary: #e8ff3a;
   --sidebar-primary-foreground: #0b0b0c;
   --sidebar-accent: #e8ff3a;
   --sidebar-accent-foreground: #0b0b0c;
-  --sidebar-border: rgba(154, 160, 166, 0.2);
+  --sidebar-border: rgba(197, 213, 245, 0.15);
   --sidebar-ring: #e8ff3a;
 }
 
@@ -132,6 +300,22 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Blueprint grid pattern */
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 
+      100px 100px,
+      100px 100px,
+      20px 20px,
+      20px 20px;
+    background-position: 
+      -1px -1px,
+      -1px -1px,
+      -1px -1px,
+      -1px -1px;
   }
 }
 

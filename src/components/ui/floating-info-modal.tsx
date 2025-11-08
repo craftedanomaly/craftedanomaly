@@ -9,9 +9,11 @@ import { getTransition, getVariants, TRANSITION } from '@/lib/motion-constants';
 export function FloatingInfoModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [settings, setSettings] = useState<any>({});
+  const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
     fetchSettings();
+    fetchCategories();
   }, []);
 
   const fetchSettings = async () => {
@@ -26,6 +28,21 @@ export function FloatingInfoModal() {
       setSettings(data || {});
     } catch (error) {
       console.error('Error fetching settings:', error);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name, slug')
+        .eq('active', true)
+        .order('display_order');
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
     }
   };
 
@@ -113,7 +130,7 @@ export function FloatingInfoModal() {
       {/* Floating Button */}
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-[999] flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg hover:shadow-xl transition-shadow backdrop-blur-sm border border-accent/20"
+        className="fixed bottom-3 right-3 md:bottom-6 md:right-6 z-[60] flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full aspect-square bg-accent text-accent-foreground shadow-lg hover:shadow-xl transition-shadow backdrop-blur-sm border border-accent/20 pointer-events-auto"
         aria-label="Open info modal"
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -121,7 +138,7 @@ export function FloatingInfoModal() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
-        <Info className="h-6 w-6" />
+        <Info className="h-5 w-5 md:h-6 md:w-6" />
       </motion.button>
 
       {/* Modal */}
@@ -138,25 +155,25 @@ export function FloatingInfoModal() {
 
             {/* Modal Content */}
             <motion.div
-              className="fixed inset-0 z-[1001] flex items-center justify-center p-4"
+              className="fixed inset-0 z-[1001] flex items-center justify-center p-4 md:p-6"
               {...getVariants('modalContent')}
               transition={getTransition('primary')}
             >
-              <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card p-8 shadow-2xl">
+              <div className="relative w-full max-w-[min(960px,92vw)] md:max-w-[min(880px,88vw)] lg:max-w-[820px] max-h-[min(92vh,860px)] md:max-h-[85vh] overflow-y-auto rounded-2xl border border-border/70 bg-card/95 backdrop-blur-xl p-5 md:p-8 lg:p-10 shadow-2xl break-words text-base md:text-sm">
                 {/* Close Button */}
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-foreground hover:bg-accent/20 transition-colors"
+                  className="absolute right-5 top-5 md:right-6 md:top-6 flex h-9 w-9 md:h-10 md:w-10 items-center justify-center rounded-full bg-accent/10 text-foreground hover:bg-accent/20 transition-colors"
                   aria-label="Close modal"
                 >
                   <X className="h-5 w-5" />
                 </button>
 
                 {/* Content */}
-                <div className="space-y-8">
+                <div className="space-y-8 md:space-y-10">
                   {/* Header */}
                   <div className="space-y-2">
-                    <h2 className="text-3xl font-bold text-foreground">
+                    <h2 className="text-3xl md:text-4xl font-bold text-foreground">
                       {settings.company_name || 'crafted anomaly'}
                     </h2>
                     <p className="text-muted-foreground">
@@ -208,6 +225,26 @@ export function FloatingInfoModal() {
                       )}
                     </div>
                   </div>
+
+                  {/* Category Links */}
+                  {categories.length > 0 && (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-foreground">Categories</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {categories.map((category) => (
+                          <a
+                            key={category.id}
+                            href={`/#cat-${category.slug}`}
+                            className="group flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 text-sm font-medium text-foreground/80 hover:text-accent hover:border-accent transition-colors"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <span>{category.name}</span>
+                            <span className="text-xs text-muted-foreground group-hover:text-accent">View</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Social Links */}
                   {socialLinks.length > 0 && (

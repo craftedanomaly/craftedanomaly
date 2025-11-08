@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ArrowUpRight, Search } from 'lucide-react';
+import { ArrowUpRight, Search, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getTransition } from '@/lib/motion-constants';
 import { scrollPositionManager } from '@/lib/scroll-position-manager';
+import { HorizontalScrollIndicator } from '@/components/ui/horizontal-scroll-indicator';
 
 interface Tag {
   id: string;
@@ -245,7 +246,7 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
   }, [hoveredProject]);
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-background">
+    <div className="fixed inset-0 overflow-hidden bp-grid">
       {/* Left Band - Fixed */}
       <div className="fixed left-0 top-0 h-screen w-[25vw] border-r border-border bg-card overflow-y-auto scrollbar-hide">
         <div className="relative h-full p-8 md:p-12">
@@ -258,15 +259,6 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
           />
 
           <div className="relative space-y-8">
-            {/* Back Link */}
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              <span>Back to Home</span>
-            </Link>
-
             {/* Category Info */}
             <div className="space-y-4">
               <h1 className="text-4xl md:text-5xl font-black text-foreground leading-tight">
@@ -358,6 +350,9 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
         className="fixed left-[25vw] top-0 right-0 h-screen overflow-x-auto overflow-y-hidden scrollbar-hide bg-background"
         style={{ scrollSnapType: 'x mandatory', scrollBehavior: 'smooth' }}
       >
+        {/* Horizontal scroll indicator */}
+        {filteredProjects.length >= 4 && <HorizontalScrollIndicator containerRef={scrollContainerRef} />}
+        
         {/* Gradient fade on right edge */}
         <div className="fixed right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent pointer-events-none z-50" />
         <div className="h-full flex gap-0 min-w-max">

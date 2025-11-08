@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Edit, Trash2, GripVertical, Settings, Save } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Settings, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { AddHeroSlideForm } from '@/components/admin/add-hero-slide-form';
 import { EditHeroSlideForm } from '@/components/admin/edit-hero-slide-form';
@@ -19,6 +19,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface CarouselSettings {
   autoPlay: boolean;
@@ -34,6 +35,8 @@ export default function HeroManagement() {
     slideInterval: 5000,
     videoAutoPlay: true
   });
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingSlideId, setEditingSlideId] = useState<string | null>(null);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   useEffect(() => {
@@ -152,16 +155,32 @@ export default function HeroManagement() {
   };
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="space-y-8 p-8">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Hero Carousel</h1>
           <p className="text-muted-foreground mt-2">
-            Manage homepage hero slides
+            Ana sayfa hero slide’larını yönetin
           </p>
         </div>
-        <AddHeroSlideForm onSlideAdded={fetchSlides} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button className="gap-2" onClick={() => setShowAddForm((prev) => !prev)}>
+            <Plus className="h-4 w-4" />
+            {showAddForm ? 'Formu Gizle' : 'Yeni Slide Ekle'}
+          </Button>
+        </div>
       </div>
+
+      {showAddForm && (
+        <AddHeroSlideForm
+          className="shadow-sm"
+          onSlideAdded={() => {
+            fetchSlides();
+            setShowAddForm(false);
+          }}
+          onCancel={() => setShowAddForm(false)}
+        />
+      )}
 
       {/* Carousel Settings */}
       <div className="bg-card border border-border rounded-lg p-6 mb-8">
@@ -241,6 +260,31 @@ export default function HeroManagement() {
         </div>
       </div>
 
+      {editingSlideId && (
+        <Card className="border-accent/40">
+          <CardContent className="space-y-4 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">Slide Düzenle</h2>
+                <p className="text-sm text-muted-foreground">
+                  Seçili slide’ı inline olarak güncelleyin.
+                </p>
+              </div>
+              <Button variant="outline" onClick={() => setEditingSlideId(null)}>
+                Kapat
+              </Button>
+            </div>
+            <EditHeroSlideForm
+              slide={slides.find((item) => item.id === editingSlideId)}
+              onSlideUpdated={() => {
+                fetchSlides();
+                setEditingSlideId(null);
+              }}
+            />
+          </CardContent>
+        </Card>
+      )}
+
       {isLoading ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground">Loading slides...</p>
@@ -248,7 +292,7 @@ export default function HeroManagement() {
       ) : slides.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <p className="text-muted-foreground mb-4">No slides yet</p>
-          <AddHeroSlideForm onSlideAdded={fetchSlides} />
+          <Button onClick={() => setShowAddForm(true)}>Yeni Slide Ekle</Button>
         </div>
       ) : (
         <div className="rounded-lg border">
@@ -275,7 +319,7 @@ export default function HeroManagement() {
                     {slide.title_en || slide.title_tr}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">
+                    <Badge variant="outline" className="uppercase">
                       {slide.type}
                     </Badge>
                   </TableCell>
@@ -286,7 +330,14 @@ export default function HeroManagement() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <EditHeroSlideForm slide={slide} onSlideUpdated={fetchSlides} />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditingSlideId(slide.id)}
+                        disabled={editingSlideId === slide.id}
+                      >
+                        Düzenle
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
