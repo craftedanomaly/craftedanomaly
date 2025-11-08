@@ -85,34 +85,44 @@ npm install
 cp env.example .env.local
 ```
 
-Fill in your environment variables:
+**⚠️ IMPORTANT**: The `.env.local` file contains sensitive API keys and secrets. **NEVER commit this file to Git**. It's already in `.gitignore`.
+
+Contact the project owner to get the actual values for:
+- Supabase credentials (URL, keys)
+- Resend API key (for email functionality)
+- Cloudflare R2 credentials (for file storage)
+
+Fill in your `.env.local` with the provided values:
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-NEXT_INTL_DEFAULT_LOCALE=en
-RESEND_API_KEY=your_resend_api_key
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=<provided_by_owner>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<provided_by_owner>
+SUPABASE_SERVICE_ROLE_KEY=<provided_by_owner>
+
+# Email Configuration
+RESEND_API_KEY=<provided_by_owner>
+
+# Cloudflare R2 Configuration
+NEXT_PUBLIC_R2_ACCOUNT_ID=<provided_by_owner>
+R2_ACCESS_KEY_ID=<provided_by_owner>
+R2_SECRET_ACCESS_KEY=<provided_by_owner>
+NEXT_PUBLIC_R2_BUCKET_NAME=<provided_by_owner>
+NEXT_PUBLIC_R2_CDN_URL=<provided_by_owner>
 ```
 
-3. **Set up Supabase** (optional for local development):
-```bash
-# Install Supabase CLI
-npm install -g supabase
-
-# Start local Supabase
-supabase start
-
-# Run migrations
-supabase db reset
-```
-
-4. **Start development server**:
+3. **Start development server**:
 ```bash
 npm run dev
 ```
 
 Visit [http://localhost:3000](http://localhost:3000) to see the application.
+
+### 🔒 Security Notes for Collaborators
+
+- **DO NOT** commit `.env.local` or any file containing API keys
+- **DO NOT** hardcode any secrets in the codebase
+- Always use `process.env.VARIABLE_NAME` to access environment variables
+- If you need to add new environment variables, update `env.example` with placeholder values only
 
 ## 📱 Routes
 
