@@ -64,7 +64,14 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
     return Array.from(map.values());
   }, [projects]);
 
-  const tagsList = (availableTags && availableTags.length > 0) ? availableTags : derivedTags;
+  const tagsList = (Array.isArray(availableTags) && availableTags.length > 0) ? availableTags : derivedTags;
+  
+  console.log('Category page tags debug:', {
+    availableTags,
+    derivedTags,
+    tagsList,
+    projectsWithTags: projects.map(p => ({ id: p.id, title: p.title, tags: p.tags }))
+  });
 
   // Group projects into slides of 4 (2x2) for desktop view
   const slidesOfFour = useMemo(() => {
@@ -108,16 +115,41 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
     return () => container.removeEventListener('scroll', handleScroll);
   }, [category.slug, activeProjectIndex, filteredProjects]);
 
-  // Mouse wheel horizontal scroll
+  // Mouse wheel horizontal scroll with easing
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
+
+    let isScrolling = false;
+    let scrollTarget = container.scrollLeft;
 
     const handleWheel = (e: WheelEvent) => {
       // Convert vertical scroll to horizontal
       if (e.deltaY !== 0) {
         e.preventDefault();
-        container.scrollLeft += e.deltaY;
+        
+        // Faster scroll speed (1.5x of original)
+        scrollTarget += e.deltaY * 1.5;
+        
+        if (!isScrolling) {
+          isScrolling = true;
+          
+          const smoothScroll = () => {
+            const current = container.scrollLeft;
+            const diff = scrollTarget - current;
+            
+            // Ease out effect
+            if (Math.abs(diff) > 0.5) {
+              container.scrollLeft = current + diff * 0.2;
+              requestAnimationFrame(smoothScroll);
+            } else {
+              container.scrollLeft = scrollTarget;
+              isScrolling = false;
+            }
+          };
+          
+          requestAnimationFrame(smoothScroll);
+        }
       }
     };
 
@@ -258,7 +290,7 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
             }}
           />
 
-          <div className="relative space-y-8">
+          <div className="relative space-y-8 pt-[15vh]">
             {/* Category Info */}
             <div className="space-y-4">
               <h1 className="text-4xl md:text-5xl font-black text-foreground leading-tight">
@@ -347,7 +379,7 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
       {/* Right Panel - Masonry Grid with Horizontal Scroll */}
       <div 
         ref={scrollContainerRef}
-        className="fixed left-[25vw] top-0 right-0 h-screen overflow-x-auto overflow-y-hidden scrollbar-hide bg-background"
+        className="fixed left-[25vw] top-0 right-0 h-screen overflow-x-auto overflow-y-hidden scrollbar-hide"
         style={{ scrollSnapType: 'x mandatory', scrollBehavior: 'smooth' }}
       >
         {/* Horizontal scroll indicator */}
@@ -413,9 +445,7 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
                               playsInline
                             />
                           )}
-                          {/* Overlays */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent z-20" />
-                          <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-500 z-20" />
+                          {/* Overlays removed per request */}
                           {/* Project type badge */}
                           {project.project_type && (
                             <div className="absolute left-4 top-4 z-30 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground">
@@ -465,8 +495,7 @@ export function CategoryPageClient({ category, projects, availableTags }: Catego
                           loop muted playsInline
                         />
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent z-20" />
-                      <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-500 z-20" />
+                      {/* Overlays removed per request */}
                       {project.project_type && (
                         <div className="absolute left-4 top-4 z-30 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground">
                           {project.project_type}

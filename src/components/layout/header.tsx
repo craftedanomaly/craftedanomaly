@@ -17,7 +17,7 @@ interface Category {
   slug: string;
   name: string;
   cover_image?: string;
-  cover_video_url?: string;
+  video_url?: string;
   description?: string;
 }
 
@@ -121,7 +121,7 @@ export function Header() {
       // Fallback to client supabase
       const { data: direct, error } = await supabase
         .from('categories')
-        .select('id, slug, name, cover_image, cover_video_url, description');
+        .select('id, slug, name, cover_image, video_url, description');
       if (error) {
         console.error('Categories fallback error:', error);
         setCategories([]);
@@ -235,7 +235,7 @@ export function Header() {
             exit={{ opacity: 0 }}
             transition={getTransition('primary')}
           >
-            <div className="min-h-screen p-6 md:p-12 bg-background">
+            <div className="min-h-screen p-6 md:p-12 bg-transparent">
               {/* Header */}
               <div className="flex items-center justify-between mb-12">
                 <Link href="/" onClick={() => setIsOpen(false)} className="relative h-[53px] w-auto">
@@ -280,14 +280,14 @@ export function Header() {
                             {category.name}
                           </div>
                         )}
-                        {category.cover_video_url && (
+                        {category.video_url && (
                           <video
                             ref={(el) => {
                               if (el) categoryVideoRefs.current.set(category.id, el);
                               else categoryVideoRefs.current.delete(category.id);
                             }}
                             className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                            src={category.cover_video_url}
+                            src={category.video_url}
                             muted
                             playsInline
                             preload="metadata"

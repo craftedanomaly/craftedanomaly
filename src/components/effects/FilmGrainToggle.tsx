@@ -18,7 +18,7 @@ export function FilmGrainToggle({ inline = false }: FilmGrainToggleProps) {
         onClick={() => setGrainEnabled(!grainEnabled)}
         className={[
           inline
-            ? 'relative z-[100] p-2 bg-black/60 backdrop-blur-sm border border-white/20 rounded-lg hover:bg-black/80 transition-colors flex items-center justify-center'
+            ? 'relative z-[100] p-1.5 bg-black/60 backdrop-blur-sm border border-white/20 rounded-lg hover:bg-black/80 transition-colors flex items-center justify-center'
             : 'absolute top-6 right-24 z-[100] p-2 bg-black/60 backdrop-blur-sm border border-white/20 rounded-lg hover:bg-black/80 transition-colors flex items-center justify-center'
         ].join(' ')}
         aria-label="Toggle Film Grain"

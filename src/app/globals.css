@@ -55,13 +55,14 @@
   display: none;
 }
 
-/* Locomotive Scroll */
-html.has-scroll-smooth {
-  overflow: hidden;
+/* Smooth native scrolling */
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
-html.has-scroll-dragging {
-  user-select: none;
+body {
+  overflow-x: hidden;
 }
 
 /* Swiper Pagination */

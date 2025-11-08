@@ -91,8 +91,8 @@ export function VisualDesignLayout({ project, media, tags, blocks }: VisualDesig
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
       
-      // Slower scroll speed (30% of original)
-      scrollTarget += e.deltaY * 0.3;
+      // Faster scroll speed (60% of original, increased from 30%)
+      scrollTarget += e.deltaY * 0.6;
       
       if (!isScrolling) {
         isScrolling = true;
@@ -103,7 +103,7 @@ export function VisualDesignLayout({ project, media, tags, blocks }: VisualDesig
           
           // Ease out effect
           if (Math.abs(diff) > 0.5) {
-            testimonialsEl.scrollLeft = current + diff * 0.15;
+            testimonialsEl.scrollLeft = current + diff * 0.2;
             requestAnimationFrame(smoothScroll);
           } else {
             testimonialsEl.scrollLeft = scrollTarget;

@@ -65,6 +65,7 @@ async function getProjects() {
       coverVideoUrl: project.cover_video_url || undefined,
       year: project.year,
       categorySlug,
+      projectType: project.project_type || undefined,
     };
   });
 }

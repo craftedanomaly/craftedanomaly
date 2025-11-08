@@ -234,17 +234,24 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
       // Update tags
       await supabase.from('project_tags').delete().eq('project_id', project.id);
       const tagsArray = data.tags.split(',').map((tag) => tag.trim()).filter(Boolean);
+      console.log('Processing tags for project:', project.id, tagsArray);
       
       for (const tagName of tagsArray) {
-        let { data: existingTag } = await supabase
+        let { data: existingTag, error: findError } = await supabase
           .from('tags')
           .select('id')
           .eq('name', tagName)
           .maybeSingle();
 
+        if (findError) {
+          console.error('Error finding tag:', findError);
+          continue;
+        }
+
         let tagId;
         
         if (!existingTag) {
+          console.log('Creating new tag:', tagName);
           const { data: newTag, error: createError } = await supabase
             .from('tags')
             .insert([{ 
@@ -259,17 +266,27 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
             continue;
           }
           tagId = newTag?.id;
+          console.log('Created tag with id:', tagId);
         } else {
           tagId = existingTag.id;
+          console.log('Using existing tag with id:', tagId);
         }
 
         if (tagId) {
-          await supabase.from('project_tags').insert([{ 
+          const { error: linkError } = await supabase.from('project_tags').insert([{ 
             project_id: project.id, 
             tag_id: tagId 
           }]);
+          
+          if (linkError) {
+            console.error('Error linking tag to project:', linkError);
+          } else {
+            console.log('Successfully linked tag to project');
+          }
         }
       }
+      
+      console.log('Finished processing tags');
 
       // Update gallery images
       await supabase.from('media').delete().eq('project_id', project.id);

@@ -14,6 +14,7 @@ interface Project {
   blurb?: string;
   year?: number;
   categorySlug?: string;
+  projectType?: string;
 }
 
 interface FilmStripCarouselProps {
@@ -258,7 +259,7 @@ export function FilmStripCarousel({ projects, activeCategory, onCenterProjectCha
                       if (yt) {
                         return isHovered ? (
                           <iframe
-                            className="absolute inset-0 w-full h-full"
+                            className="absolute inset-0 w-full h-full pointer-events-none"
                             src={`https://www.youtube.com/embed/${yt}?autoplay=1&mute=1&controls=0&rel=0&showinfo=0&playsinline=1`}
                             allow="autoplay; encrypted-media"
                             allowFullScreen
@@ -269,7 +270,7 @@ export function FilmStripCarousel({ projects, activeCategory, onCenterProjectCha
                       if (vm) {
                         return isHovered ? (
                           <iframe
-                            className="absolute inset-0 w-full h-full"
+                            className="absolute inset-0 w-full h-full pointer-events-none"
                             src={`https://player.vimeo.com/video/${vm}?autoplay=1&muted=1&background=1&dnt=1`}
                             allow="autoplay; encrypted-media"
                             allowFullScreen
@@ -284,7 +285,7 @@ export function FilmStripCarousel({ projects, activeCategory, onCenterProjectCha
                             else delete videoRefs.current[key];
                           }}
                           src={url}
-                          className="absolute inset-0 w-full h-full object-cover"
+                          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                           style={{
                             opacity: isHovered ? 1 : 0,
                             transition: 'opacity 0.25s ease',
@@ -299,7 +300,14 @@ export function FilmStripCarousel({ projects, activeCategory, onCenterProjectCha
                     })()}
 
                     {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
+
+                    {/* Project Type Badge */}
+                    {project.projectType && (
+                      <div className="absolute left-4 top-4 z-20 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground pointer-events-none">
+                        {project.projectType}
+                      </div>
+                    )}
 
                     {/* Project Info - Always visible */}
                     <motion.div

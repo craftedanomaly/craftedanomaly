@@ -129,8 +129,17 @@ async function getCategoryData(slug: string) {
     // Get all tags for projects in this category
     const projectIds = projects?.map(p => p.id) || [];
     let projectTags: any[] | null = [];
+    
+    // Debug: Check all tags in database
+    const { data: allTagsInDb } = await supabaseServer.from('tags').select('*');
+    console.log('All tags in database:', allTagsInDb);
+    
+    // Debug: Check all project_tags relationships
+    const { data: allProjectTags } = await supabaseServer.from('project_tags').select('*');
+    console.log('All project_tags relationships:', allProjectTags);
+    
     if (projectIds.length > 0) {
-      const { data } = await supabaseServer
+      const { data, error } = await supabaseServer
         .from('project_tags')
         .select(`
           project_id,
@@ -138,12 +147,12 @@ async function getCategoryData(slug: string) {
           tags:tag_id (
             id,
             slug,
-            name,
-            name_en,
-            name_tr
+            name
           )
         `)
         .in('project_id', projectIds);
+      
+      console.log('Tags query result:', { data, error, projectIds });
       projectTags = data || [];
     } else {
       projectTags = [];
@@ -163,10 +172,13 @@ async function getCategoryData(slug: string) {
     });
 
     // Add tags to each project
-    const projectsWithTags = projects?.map(project => ({
-      ...project,
-      tags: projectTagsMap.get(project.id) || []
-    })) || [];
+    const projectsWithTags = projects?.map(project => {
+      const projectTags = projectTagsMap.get(project.id);
+      return {
+        ...project,
+        tags: projectTags !== undefined ? projectTags : []
+      };
+    }) || [];
 
     // Get unique tags for the filter
     const allTags = Array.from(
@@ -175,16 +187,22 @@ async function getCategoryData(slug: string) {
           .map((pt: any) => pt.tags)
           .filter(Boolean)
           .map((tag: any) => {
-            const name = tag?.name || tag?.name_en || tag?.name_tr || tag?.slug || 'tag';
-            return [tag.id, { id: tag.id, slug: tag.slug, name }];
+            return [tag.id, { id: tag.id, slug: tag.slug, name: tag.name }];
           })
       ).values()
     );
 
+    console.log('Final data:', {
+      projectsCount: projectsWithTags.length,
+      allTagsCount: allTags.length,
+      allTags,
+      projectsWithTagsCount: projectsWithTags.filter(p => p.tags && p.tags.length > 0).length
+    });
+
     return {
       category,
       projects: projectsWithTags,
-      availableTags: allTags,
+      availableTags: Array.isArray(allTags) ? allTags : [],
     };
   } catch (error) {
     console.error('Error fetching category data:', error);

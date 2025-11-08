@@ -7,7 +7,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from('categories')
-      .select('id, slug, name, cover_image, cover_video_url, description');
+      .select('id, slug, name, cover_image, video_url, description');
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
