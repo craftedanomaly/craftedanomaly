@@ -61,7 +61,8 @@ export default function ScrollProgress({ children }: ScrollProgressProps) {
 
   useEffect(() => {
     const scroller = new Lenis({
-      duration: 0.6,
+      duration: 0.4,
+      easing: (t) => 1 - Math.pow(1 - t, 3),
     });
     let rf: any;
     function raf(time: any) {
