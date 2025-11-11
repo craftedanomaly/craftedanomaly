@@ -647,3 +647,9 @@ h4,
     animation: none;
   }
 }
+
+.lenis-scrolling iframe,
+.lenis-scrolling img,
+.lenis-scrolling a {
+  pointer-events: none !important;
+}
