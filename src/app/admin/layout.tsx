@@ -1,10 +1,10 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-import { Toaster } from 'sonner';
-import { Poppins } from 'next/font/google';
-import { ThemeProvider } from '@/components/theme-provider';
-import '@/app/globals.css';
-import { AdminFrame } from '@/components/admin/admin-frame';
+import { Toaster } from "sonner";
+import { Poppins } from "next/font/google";
+import { ThemeProvider } from "@/components/theme-provider";
+import "@/app/globals.css";
+import { AdminFrame } from "@/components/admin/admin-frame";
 
 const poppins = Poppins({
   variable: "--font-poppins",
