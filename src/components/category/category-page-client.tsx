@@ -242,7 +242,7 @@ export function CategoryPageClient({
       <div>
         <div className="grid grid-cols-12 bp-grid overflow-x-hidden">
           {/* Left Band - Fixed */}
-          <div className="h-screen border-r border-border bg-card overflow-y-auto scrollbar-hide max-xl:col-span-12 col-span-3 bp-grid max-xl:h-auto z-10">
+          <div className="h-screen border-r border-border bg-card overflow-y-auto scrollbar-hide max-xl:col-span-12 col-span-3 bp-grid max-xl:h-auto z-10 max-xl:py-[60px]">
             <div
               className="relative h-full p-4 flex flex-col justify-center items-center"
               style={{
@@ -379,15 +379,20 @@ export function CategoryPageClient({
                     let widthValue = "40vw";
                     let heightValue = 250; // default fallback
 
-                    if (count === 4 || count === 3) {
-                      widthValue = "40vw";
-                      heightValue = height * 0.5;
-                    } else if (count === 2) {
-                      widthValue = "40vw";
-                      heightValue = height;
-                    } else if (count === 1) {
+                    if (width > 768) {
+                      if (count === 4 || count === 3) {
+                        widthValue = "40vw";
+                        heightValue = height * 0.5;
+                      } else if (count === 2) {
+                        widthValue = "40vw";
+                        heightValue = height;
+                      } else if (count === 1) {
+                        widthValue = "100vw";
+                        heightValue = height;
+                      }
+                    } else {
                       widthValue = "100vw";
-                      heightValue = height;
+                      heightValue = 350;
                     }
 
                     return (
@@ -468,9 +473,14 @@ export function CategoryPageClient({
                               let widthValue = "40vw";
                               let heightValue = height * 0.5;
 
-                              if (count === 3) {
+                              if (width > 768) {
+                                if (count === 3) {
+                                  widthValue = "100vw";
+                                  heightValue = height * 0.5;
+                                }
+                              } else {
                                 widthValue = "100vw";
-                                heightValue = height * 0.5;
+                                heightValue = 350;
                               }
 
                               return (
