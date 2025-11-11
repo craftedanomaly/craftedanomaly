@@ -1,17 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { LoadingAnimation } from './LoadingAnimation';
-import { HeroSwiper } from './HeroSwiper';
-import { ParallaxBackground } from './ParallaxBackground';
-import { FilmStripCarousel } from './FilmStripCarousel';
-import { CategoryIndicator } from './CategoryIndicator';
+import { useState, useEffect, useRef } from "react";
+import { LoadingAnimation } from "./LoadingAnimation";
+import { HeroSwiper } from "./HeroSwiper";
+import { ParallaxBackground } from "./ParallaxBackground";
+import { FilmStripCarousel } from "./FilmStripCarousel";
+import { CategoryIndicator } from "./CategoryIndicator";
+import { OurWorksSection } from "../ourworks/ourworks";
+import { OurWorksCategoryIndicator } from "../ourworks/ourWorksCategoryIndicator";
 
 interface HeroSlide {
   src: string;
   alt: string;
   caption?: string;
-  type?: 'image' | 'video';
+  type?: "image" | "video";
 }
 
 interface Project {
@@ -40,8 +42,12 @@ interface HomePageProps {
 export function HomePage({ heroSlides, projects, categories }: HomePageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [centerProjectCategory, setCenterProjectCategory] = useState<string | undefined>(undefined);
-  const scrollToCategoryRef = useRef<((categorySlug: string) => void) | null>(null);
+  const [centerProjectCategory, setCenterProjectCategory] = useState<
+    string | undefined
+  >(undefined);
+  const scrollToCategoryRef = useRef<((categorySlug: string) => void) | null>(
+    null
+  );
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
@@ -51,7 +57,10 @@ export function HomePage({ heroSlides, projects, categories }: HomePageProps) {
     setActiveCategory(slug);
   };
 
-  const handleCenterProjectChange = (projectId: string, categorySlug?: string) => {
+  const handleCenterProjectChange = (
+    projectId: string,
+    categorySlug?: string
+  ) => {
     setCenterProjectCategory(categorySlug);
   };
 
@@ -59,11 +68,12 @@ export function HomePage({ heroSlides, projects, categories }: HomePageProps) {
     if (scrollToCategoryRef.current) {
       scrollToCategoryRef.current(categorySlug);
     }
+
+    console.log("category slug from indicator:", categorySlug);
   };
 
   return (
     <>
-
       {/* Loading Animation */}
       {isLoading && <LoadingAnimation onComplete={handleLoadingComplete} />}
 
@@ -79,7 +89,7 @@ export function HomePage({ heroSlides, projects, categories }: HomePageProps) {
           {/* Blueprint Background Section - Covers hero on scroll */}
           <div className="bp-grid mt-screen">
             {/* Film Strip Carousel */}
-            <FilmStripCarousel
+            {/* <FilmStripCarousel
               projects={projects}
               activeCategory={activeCategory}
               onCenterProjectChange={handleCenterProjectChange}
@@ -91,6 +101,12 @@ export function HomePage({ heroSlides, projects, categories }: HomePageProps) {
                   onCategoryClick={handleCategoryClick}
                 />
               }
+            /> */}
+            <OurWorksSection
+              projects={projects}
+              onCenterProjectChange={handleCenterProjectChange}
+              scrollToCategoryRef={scrollToCategoryRef}
+              categories={categories}
             />
           </div>
         </div>
