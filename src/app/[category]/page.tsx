@@ -1,9 +1,9 @@
-import { notFound } from 'next/navigation';
-import type { Metadata } from 'next';
-import { CategoryPageClient } from '@/components/category/category-page-client';
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { CategoryPageClient } from "@/components/category/category-page-client";
 
 // Ensure newly created projects appear immediately without a full rebuild
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 // Revalidate every 60 seconds - ISR strategy
 export const revalidate = 60;
@@ -17,52 +17,56 @@ interface CategoryPageProps {
 // Generate static params for known categories (single-locale)
 export async function generateStaticParams() {
   try {
-    const { createClient } = await import('@supabase/supabase-js');
+    const { createClient } = await import("@supabase/supabase-js");
     const supabaseServer = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
     const { data: categories } = await supabaseServer
-      .from('categories')
-      .select('slug')
-      .eq('active', true);
+      .from("categories")
+      .select("slug")
+      .eq("active", true);
 
     if (!categories) return [];
 
     return categories.map((c: any) => ({ category: c.slug }));
   } catch (error) {
-    console.error('Error generating static params:', error);
+    console.error("Error generating static params:", error);
     return [];
   }
 }
 
 // Generate metadata for the category page (English only)
-export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: CategoryPageProps): Promise<Metadata> {
   try {
     const { category: categorySlug } = await params;
-    const { createClient } = await import('@supabase/supabase-js');
+    const { createClient } = await import("@supabase/supabase-js");
     const supabaseServer = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
     const { data: category } = await supabaseServer
-      .from('categories')
-      .select('*')
-      .eq('slug', categorySlug)
-      .eq('active', true)
+      .from("categories")
+      .select("*")
+      .eq("slug", categorySlug)
+      .eq("active", true)
       .single();
 
     if (!category) {
       return {
-        title: 'Category Not Found',
-        description: 'The requested category could not be found.',
+        title: "Category Not Found",
+        description: "The requested category could not be found.",
       };
     }
 
     const title = category.name;
-    const description = category.description || `Explore our ${category.name?.toLowerCase()} portfolio`;
+    const description =
+      category.description ||
+      `Explore our ${category.name?.toLowerCase()} portfolio`;
 
     return {
       title: `${title} | Crafted Anomaly`,
@@ -70,20 +74,20 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       openGraph: {
         title: `${title} | Crafted Anomaly`,
         description,
-        type: 'website',
+        type: "website",
       },
     };
   } catch (error) {
     return {
-      title: 'Category | Crafted Anomaly',
-      description: 'Explore our portfolio categories',
+      title: "Category | Crafted Anomaly",
+      description: "Explore our portfolio categories",
     };
   }
 }
 
 async function getCategoryData(slug: string) {
   try {
-    const { createClient } = await import('@supabase/supabase-js');
+    const { createClient } = await import("@supabase/supabase-js");
     const supabaseServer = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -91,10 +95,10 @@ async function getCategoryData(slug: string) {
 
     // Get category details
     const { data: category, error: categoryError } = await supabaseServer
-      .from('categories')
-      .select('*')
-      .eq('slug', slug)
-      .eq('active', true)
+      .from("categories")
+      .select("*")
+      .eq("slug", slug)
+      .eq("active", true)
       .single();
 
     if (categoryError || !category) {
@@ -103,8 +107,9 @@ async function getCategoryData(slug: string) {
 
     // Get projects in this category
     const { data: projects } = await supabaseServer
-      .from('projects')
-      .select(`
+      .from("projects")
+      .select(
+        `
         id,
         slug,
         title,
@@ -121,27 +126,31 @@ async function getCategoryData(slug: string) {
         project_categories!inner(
           category_id
         )
-      `)
-      .eq('status', 'published')
-      .eq('project_categories.category_id', category.id)
-      .order('published_at', { ascending: false });
+      `
+      )
+      .eq("status", "published")
+      .eq("project_categories.category_id", category.id)
+      .order("published_at", { ascending: false });
 
     // Get all tags for projects in this category
-    const projectIds = projects?.map(p => p.id) || [];
+    const projectIds = projects?.map((p) => p.id) || [];
     let projectTags: any[] | null = [];
-    
+
     // Debug: Check all tags in database
-    const { data: allTagsInDb } = await supabaseServer.from('tags').select('*');
-    console.log('All tags in database:', allTagsInDb);
-    
+    const { data: allTagsInDb } = await supabaseServer.from("tags").select("*");
+    console.log("All tags in database:", allTagsInDb);
+
     // Debug: Check all project_tags relationships
-    const { data: allProjectTags } = await supabaseServer.from('project_tags').select('*');
-    console.log('All project_tags relationships:', allProjectTags);
-    
+    const { data: allProjectTags } = await supabaseServer
+      .from("project_tags")
+      .select("*");
+    console.log("All project_tags relationships:", allProjectTags);
+
     if (projectIds.length > 0) {
       const { data, error } = await supabaseServer
-        .from('project_tags')
-        .select(`
+        .from("project_tags")
+        .select(
+          `
           project_id,
           tag_id,
           tags:tag_id (
@@ -149,10 +158,11 @@ async function getCategoryData(slug: string) {
             slug,
             name
           )
-        `)
-        .in('project_id', projectIds);
-      
-      console.log('Tags query result:', { data, error, projectIds });
+        `
+        )
+        .in("project_id", projectIds);
+
+      console.log("Tags query result:", { data, error, projectIds });
       projectTags = data || [];
     } else {
       projectTags = [];
@@ -172,13 +182,14 @@ async function getCategoryData(slug: string) {
     });
 
     // Add tags to each project
-    const projectsWithTags = projects?.map(project => {
-      const projectTags = projectTagsMap.get(project.id);
-      return {
-        ...project,
-        tags: projectTags !== undefined ? projectTags : []
-      };
-    }) || [];
+    const projectsWithTags =
+      projects?.map((project) => {
+        const projectTags = projectTagsMap.get(project.id);
+        return {
+          ...project,
+          tags: projectTags !== undefined ? projectTags : [],
+        };
+      }) || [];
 
     // Get unique tags for the filter
     const allTags = Array.from(
@@ -192,11 +203,13 @@ async function getCategoryData(slug: string) {
       ).values()
     );
 
-    console.log('Final data:', {
+    console.log("Final data:", {
       projectsCount: projectsWithTags.length,
       allTagsCount: allTags.length,
       allTags,
-      projectsWithTagsCount: projectsWithTags.filter(p => p.tags && p.tags.length > 0).length
+      projectsWithTagsCount: projectsWithTags.filter(
+        (p) => p.tags && p.tags.length > 0
+      ).length,
     });
 
     return {
@@ -205,7 +218,7 @@ async function getCategoryData(slug: string) {
       availableTags: Array.isArray(allTags) ? allTags : [],
     };
   } catch (error) {
-    console.error('Error fetching category data:', error);
+    console.error("Error fetching category data:", error);
     return null;
   }
 }
@@ -219,10 +232,12 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   }
 
   return (
-    <CategoryPageClient 
-      category={data.category}
-      projects={data.projects}
-      availableTags={data.availableTags || []}
-    />
+    <>
+      <CategoryPageClient
+        category={data.category}
+        projects={data.projects}
+        availableTags={data.availableTags || []}
+      />
+    </>
   );
 }

@@ -1,7 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
-import { HomePage } from '@/components/home/HomePage';
+import { createClient } from "@supabase/supabase-js";
+import { HomePage } from "@/components/home/HomePage";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,28 +10,29 @@ const supabase = createClient(
 
 async function getHeroSlides() {
   const { data, error } = await supabase
-    .from('hero_slides')
-    .select('*')
-    .eq('active', true)
-    .order('display_order');
+    .from("hero_slides")
+    .select("*")
+    .eq("active", true)
+    .order("display_order");
 
   if (error) {
-    console.error('Error fetching hero slides:', error);
+    console.error("Error fetching hero slides:", error);
     return [];
   }
 
   return (data || []).map((slide: any) => ({
     src: slide.url,
-    alt: slide.title || 'Hero slide',
+    alt: slide.title || "Hero slide",
     caption: slide.title,
-    type: slide.type || 'image',
+    type: slide.type || "image",
   }));
 }
 
 async function getProjects() {
   const { data, error } = await supabase
-    .from('projects')
-    .select(`
+    .from("projects")
+    .select(
+      `
       id,
       slug,
       title,
@@ -44,12 +45,13 @@ async function getProjects() {
           slug
         )
       )
-    `)
-    .eq('status', 'published')
-    .order('published_at', { ascending: false });
+    `
+    )
+    .eq("status", "published")
+    .order("published_at", { ascending: false });
 
   if (error) {
-    console.error('Error fetching projects:', error);
+    console.error("Error fetching projects:", error);
     return [];
   }
 
@@ -60,8 +62,8 @@ async function getProjects() {
       id: project.id,
       slug: project.slug,
       title: project.title,
-      blurb: project.blurb || '',
-      coverImageUrl: project.cover_image || '',
+      blurb: project.blurb || "",
+      coverImageUrl: project.cover_image || "",
       coverVideoUrl: project.cover_video_url || undefined,
       year: project.year,
       categorySlug,
@@ -72,13 +74,13 @@ async function getProjects() {
 
 async function getCategories() {
   const { data, error } = await supabase
-    .from('categories')
-    .select('id, slug, name')
-    .eq('active', true)
-    .order('display_order');
+    .from("categories")
+    .select("id, slug, name")
+    .eq("active", true)
+    .order("display_order");
 
   if (error) {
-    console.error('Error fetching categories:', error);
+    console.error("Error fetching categories:", error);
     return [];
   }
 
@@ -89,11 +91,16 @@ async function getCategories() {
   }));
 }
 
-
 export default async function Page() {
   const heroSlides = await getHeroSlides();
   const projects = await getProjects();
   const categories = await getCategories();
 
-  return <HomePage heroSlides={heroSlides} projects={projects} categories={categories} />;
+  return (
+    <HomePage
+      heroSlides={heroSlides}
+      projects={projects}
+      categories={categories}
+    />
+  );
 }
