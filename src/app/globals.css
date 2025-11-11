@@ -1,16 +1,16 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "locomotive-scroll/dist/locomotive-scroll.css";
-
 
 /* Blueprint grid background */
 .bp-grid {
   background-color: #0046bf;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-image: linear-gradient(
+      rgba(255, 255, 255, 0.04) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-size: 24px 24px, 24px 24px, 8px 8px, 8px 8px;
   background-position: 0 0, 0 0, 0 0, 0 0;
 }
@@ -92,7 +92,8 @@ body {
 }
 
 @keyframes flicker {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -101,7 +102,8 @@ body {
 }
 
 @keyframes grain {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(0, 0);
   }
   10% {
@@ -164,8 +166,7 @@ body {
 .crt-distortion {
   background: transparent;
   border-radius: 2% / 3%;
-  box-shadow: 
-    inset 0 0 0 2px rgba(0, 0, 0, 0.1),
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.1),
     inset 0 0 50px rgba(0, 0, 0, 0.3);
 }
 
@@ -198,18 +199,38 @@ body {
 }
 
 @keyframes animateGrain {
-  0%, 100% { transform: translate(0, 0); }
-  10% { transform: translate(-5%, -10%); }
-  20% { transform: translate(-15%, -20%); }
-  30% { transform: translate(-5%, -10%); }
-  40% { transform: translate(-15%, -20%); }
-  50% { transform: translate(-5%, -10%); }
-  60% { transform: translate(-15%, -20%); }
-  70% { transform: translate(-5%, -10%); }
-  80% { transform: translate(-15%, -20%); }
-  90% { transform: translate(-5%, -10%); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  10% {
+    transform: translate(-5%, -10%);
+  }
+  20% {
+    transform: translate(-15%, -20%);
+  }
+  30% {
+    transform: translate(-5%, -10%);
+  }
+  40% {
+    transform: translate(-15%, -20%);
+  }
+  50% {
+    transform: translate(-5%, -10%);
+  }
+  60% {
+    transform: translate(-15%, -20%);
+  }
+  70% {
+    transform: translate(-5%, -10%);
+  }
+  80% {
+    transform: translate(-15%, -20%);
+  }
+  90% {
+    transform: translate(-5%, -10%);
+  }
 }
-
 
 @custom-variant dark (&:is(.dark *));
 
@@ -291,32 +312,32 @@ body {
 
 /* Light Mode Colors - NEW WARM PALETTE */
 .light {
-  --background: #F2EBD5;
+  --background: #f2ebd5;
   --foreground: #000000;
-  --card: #F2EBD5;
+  --card: #f2ebd5;
   --card-foreground: #000000;
-  --popover: #F2EBD5;
+  --popover: #f2ebd5;
   --popover-foreground: #000000;
-  --primary: #658C0F;
+  --primary: #658c0f;
   --primary-foreground: #ffffff;
-  --secondary: #F2D06B;
+  --secondary: #f2d06b;
   --secondary-foreground: #000000;
-  --muted: #D4C5A0;
-  --muted-foreground: #6B5B47;
-  --accent: #658C0F;
+  --muted: #d4c5a0;
+  --muted-foreground: #6b5b47;
+  --accent: #658c0f;
   --accent-foreground: #ffffff;
   --destructive: #dc2626;
-  --border: #F2D06B;
-  --input: #F2EBD5;
-  --ring: #658C0F;
-  --sidebar: #F2EBD5;
+  --border: #f2d06b;
+  --input: #f2ebd5;
+  --ring: #658c0f;
+  --sidebar: #f2ebd5;
   --sidebar-foreground: #000000;
-  --sidebar-primary: #658C0F;
+  --sidebar-primary: #658c0f;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #658C0F;
+  --sidebar-accent: #658c0f;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #F2D06B;
-  --sidebar-ring: #658C0F;
+  --sidebar-border: #f2d06b;
+  --sidebar-ring: #658c0f;
 }
 
 /* Additional brand colors for extended palette */
@@ -334,35 +355,36 @@ body {
   body {
     @apply bg-background text-foreground;
     /* Blueprint grid pattern */
-    background-image: 
-      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    background-image: linear-gradient(
+        rgba(255, 255, 255, 0.05) 1px,
+        transparent 1px
+      ),
       linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
       linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-    background-size: 
-      100px 100px,
-      100px 100px,
-      20px 20px,
-      20px 20px;
-    background-position: 
-      -1px -1px,
-      -1px -1px,
-      -1px -1px,
-      -1px -1px;
+    background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+    background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px;
   }
 }
 
 /* Typography: Inter for headings */
-h1, h2, h3, h4,
+h1,
+h2,
+h3,
+h4,
 .font-heading {
-  font-family: 'Inter', var(--font-poppins), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: "Inter", var(--font-poppins), -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-weight: 700;
 }
 
 /* Light mode heading colors */
-.light h1, .light h2, .light h3, .light h4,
+.light h1,
+.light h2,
+.light h3,
+.light h4,
 .light .font-heading {
-  color: #F24C27;
+  color: #f24c27;
 }
 
 /* RADICAL LIGHT MODE REDESIGN */
@@ -371,14 +393,18 @@ h1, h2, h3, h4,
   --text-primary: #0f1419;
   --text-secondary: #334155;
   --text-muted: #64748b;
-  
+
   /* Professional shadow system */
   --shadow-sm: 0 1px 2px 0 rgba(15, 20, 25, 0.05);
-  --shadow: 0 1px 3px 0 rgba(15, 20, 25, 0.1), 0 1px 2px 0 rgba(15, 20, 25, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(15, 20, 25, 0.1), 0 2px 4px -1px rgba(15, 20, 25, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(15, 20, 25, 0.1), 0 4px 6px -2px rgba(15, 20, 25, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(15, 20, 25, 0.1), 0 10px 10px -5px rgba(15, 20, 25, 0.04);
-  
+  --shadow: 0 1px 3px 0 rgba(15, 20, 25, 0.1),
+    0 1px 2px 0 rgba(15, 20, 25, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(15, 20, 25, 0.1),
+    0 2px 4px -1px rgba(15, 20, 25, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 20, 25, 0.1),
+    0 4px 6px -2px rgba(15, 20, 25, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 20, 25, 0.1),
+    0 10px 10px -5px rgba(15, 20, 25, 0.04);
+
   /* Clean backdrop system */
   --backdrop-blur: rgba(255, 255, 255, 0.9);
 }
@@ -481,15 +507,15 @@ h1, h2, h3, h4,
 
 /* GRADIENT SYSTEM - REDESIGNED */
 .light .bg-gradient-to-br {
-  background-image: linear-gradient(to bottom right, #F2EBD5, #ffffff);
+  background-image: linear-gradient(to bottom right, #f2ebd5, #ffffff);
 }
 
 .light .bg-gradient-to-t {
-  background-image: linear-gradient(to top, #F2EBD5, transparent);
+  background-image: linear-gradient(to top, #f2ebd5, transparent);
 }
 
 .light .from-background {
-  --tw-gradient-from: #F2EBD5;
+  --tw-gradient-from: #f2ebd5;
 }
 
 .light .from-accent\/5 {
@@ -514,7 +540,7 @@ h1, h2, h3, h4,
 }
 
 .light .focus-visible\:ring-offset-background:focus-visible {
-  --tw-ring-offset-color: #F2EBD5;
+  --tw-ring-offset-color: #f2ebd5;
 }
 
 /* BUTTON SYSTEM - COMPLETE OVERHAUL */
@@ -545,15 +571,18 @@ h1, h2, h3, h4,
 }
 
 .light .shadow {
-  box-shadow: 0 1px 3px 0 rgba(15, 20, 25, 0.1), 0 1px 2px 0 rgba(15, 20, 25, 0.06);
+  box-shadow: 0 1px 3px 0 rgba(15, 20, 25, 0.1),
+    0 1px 2px 0 rgba(15, 20, 25, 0.06);
 }
 
 .light .shadow-lg {
-  box-shadow: 0 10px 15px -3px rgba(15, 20, 25, 0.1), 0 4px 6px -2px rgba(15, 20, 25, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(15, 20, 25, 0.1),
+    0 4px 6px -2px rgba(15, 20, 25, 0.05);
 }
 
 .light .shadow-xl {
-  box-shadow: 0 20px 25px -5px rgba(15, 20, 25, 0.1), 0 10px 10px -5px rgba(15, 20, 25, 0.04);
+  box-shadow: 0 20px 25px -5px rgba(15, 20, 25, 0.1),
+    0 10px 10px -5px rgba(15, 20, 25, 0.04);
 }
 
 .light .hover\:shadow-sm:hover {
@@ -561,7 +590,8 @@ h1, h2, h3, h4,
 }
 
 .light .hover\:shadow-lg:hover {
-  box-shadow: 0 10px 15px -3px rgba(15, 20, 25, 0.1), 0 4px 6px -2px rgba(15, 20, 25, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(15, 20, 25, 0.1),
+    0 4px 6px -2px rgba(15, 20, 25, 0.05);
 }
 
 /* BACKDROP BLUR - PROFESSIONAL */
