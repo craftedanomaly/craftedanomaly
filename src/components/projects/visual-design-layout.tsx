@@ -465,7 +465,7 @@ export function VisualDesignLayout({
   }, [vw, vh, project.title, project.blurb, tags?.length, showFullContent]);
 
   // Calculate scroll offset for blocks reveal and blurb motion
-  const infoScale = useTransform(smoothProgress, [0, 0.2], [1, 0.85]);
+  const infoScale = useTransform(smoothProgress, [0, 0.1], [1, 0.85]);
   const blurbOpacity = useTransform(smoothProgress, [0, 0.1, 0.2], [1, 0.8, 0]);
   const blurbY = useTransform(smoothProgress, [0, 0.1, 0.2], [0, -8, -20]);
 
@@ -836,7 +836,7 @@ export function VisualDesignLayout({
 
         {/* Fixed left panel with project info and content blocks */}
         <div
-          className="fixed left-0 top-0 z-[50] h-screen pointer-events-auto overflow-y-auto"
+          className="fixed left-0 top-0 z-[50] h-screen pointer-events-auto overflow-y-auto scrollbar-hide"
           style={{ width: infoPanelWidth, backgroundColor }}
         >
           <div
@@ -859,7 +859,7 @@ export function VisualDesignLayout({
               >
                 <motion.div
                   ref={infoGroupRef}
-                  // style={{ scale: infoScale, originX: 0, originY: 0 }}
+                  style={{ scale: infoScale, originX: 0, originY: 0 }}
                   className="space-y-3"
                 >
                   {project.project_type && (
