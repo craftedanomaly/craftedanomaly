@@ -126,6 +126,12 @@ export function CategoryPageClient({
     }
   }, [selectedTags, projects]);
 
+  useEffect(() => {
+    if (!searchQuery) {
+      setFilteredProjects(projects);
+    }
+  }, [searchQuery, projects]);
+
   // Handle hover state only; actual play happens in effect after mount
   const handleProjectHover = (projectId: string, isHovering: boolean) => {
     setHoveredProject(isHovering ? projectId : null);
