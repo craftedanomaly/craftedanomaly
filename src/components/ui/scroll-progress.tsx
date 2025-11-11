@@ -60,7 +60,9 @@ export default function ScrollProgress({ children }: ScrollProgressProps) {
   const [rafState, setRaf] = useState<any>(null);
 
   useEffect(() => {
-    const scroller = new Lenis();
+    const scroller = new Lenis({
+      duration: 0.6,
+    });
     let rf: any;
     function raf(time: any) {
       scroller.raf(time);
