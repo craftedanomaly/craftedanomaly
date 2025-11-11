@@ -1,7 +1,7 @@
-import { CategoryPageClient } from '@/components/category/category-page-client';
-import { createClient } from '@supabase/supabase-js';
+import { CategoryPageClient } from "@/components/category/category-page-client";
+import { createClient } from "@supabase/supabase-js";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,17 +12,18 @@ async function getCategoryData() {
   try {
     // Get games category
     const { data: category } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('slug', 'games')
+      .from("categories")
+      .select("*")
+      .eq("slug", "games")
       .single();
 
     if (!category) return null;
 
     // Get projects in this category via many-to-many
     const { data: projects } = await supabase
-      .from('projects')
-      .select(`
+      .from("projects")
+      .select(
+        `
         id,
         slug,
         title,
@@ -36,17 +37,18 @@ async function getCategoryData() {
         published_at,
         view_count,
         project_categories!inner(category_id)
-      `)
-      .eq('status', 'published')
-      .eq('project_categories.category_id', category.id)
-      .order('published_at', { ascending: false });
+      `
+      )
+      .eq("status", "published")
+      .eq("project_categories.category_id", category.id)
+      .order("published_at", { ascending: false });
 
     return {
       category,
       projects: projects || [],
     };
   } catch (error) {
-    console.error('Error fetching category data:', error);
+    console.error("Error fetching category data:", error);
     return null;
   }
 }
@@ -59,9 +61,6 @@ export default async function GamesPage() {
   }
 
   return (
-    <CategoryPageClient 
-      category={data.category}
-      projects={data.projects}
-    />
+    <CategoryPageClient category={data.category} projects={data.projects} />
   );
 }
