@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { motion } from "framer-motion";
-import { ArrowUpRight, Search, ChevronRight } from "lucide-react";
+import { Search } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getTransition } from "@/lib/motion-constants";
 import { scrollPositionManager } from "@/lib/scroll-position-manager";
 import { HorizontalScrollIndicator } from "@/components/ui/horizontal-scroll-indicator";
 import { useWindowSize } from "@/hooks/useWindowSize";
@@ -118,8 +116,15 @@ export function CategoryPageClient({
   };
 
   const clearFilters = () => {
+    setFilteredProjects(projects);
     setSelectedTags([]);
   };
+
+  useEffect(() => {
+    if (selectedTags.length === 0) {
+      setFilteredProjects(projects);
+    }
+  }, [selectedTags, projects]);
 
   // Handle hover state only; actual play happens in effect after mount
   const handleProjectHover = (projectId: string, isHovering: boolean) => {
@@ -307,7 +312,9 @@ export function CategoryPageClient({
                       {tagsList.map((tag) => (
                         <button
                           key={tag.id}
-                          onClick={() => toggleTag(tag.slug)}
+                          onClick={() => {
+                            toggleTag(tag.slug);
+                          }}
                           className={`px-3 py-1.5 text-xs rounded-full border transition-all ${
                             selectedTags.includes(tag.slug)
                               ? "bg-accent text-accent-foreground border-accent"
