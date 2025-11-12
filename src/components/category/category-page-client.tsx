@@ -194,7 +194,12 @@ export function CategoryPageClient({
   // Slider Script
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: false, skipSnaps: true },
-    [WheelGesturesPlugin({ forceWheelAxis: "y" })]
+    [
+      WheelGesturesPlugin({
+        forceWheelAxis: "y",
+        target: document.documentElement,
+      }),
+    ]
   );
 
   useEffect(() => {
@@ -222,23 +227,10 @@ export function CategoryPageClient({
     }
   };
 
-  // Catch Mouse Wheel for slide
-
-  const handleWheel = (event: WheelEvent) => {
-    event.preventDefault();
-    if (event.deltaY < 0) {
-      scrollPrev();
-    } else {
-      scrollNext();
-    }
-  };
-
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
-    // window.addEventListener("wheel", handleWheel, { passive: false });
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      // window.removeEventListener("wheel", handleWheel);
     };
   }, [scrollPrev, scrollNext]);
 
@@ -257,7 +249,7 @@ export function CategoryPageClient({
       {/* Gradient fade on right edge */}
       <div className="fixed right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
 
-      <div className="grid grid-cols-12 bp-grid overflow-x-hidden">
+      <div className="grid grid-cols-12 bp-grid overflow-x-hidden ">
         {/* Left Band - Fixed */}
         <div className="h-screen border-r border-border bg-card overflow-y-auto scrollbar-hide max-xl:col-span-12 col-span-3 bp-grid max-xl:h-auto z-10 max-xl:py-[60px]">
           <div
@@ -367,21 +359,6 @@ export function CategoryPageClient({
             </div>
           </div>
         </div>
-
-        {/* Right Panel - Masonry Grid with Horizontal Scroll */}
-        {/* <div
-            ref={scrollContainerRef}
-            className="h-screen scrollbar-hide max-xl:col-span-12 col-span-9 transition-all duration-500"
-            style={{
-              scrollSnapType: "x mandatory",
-              scrollBehavior: "smooth",
-              transform: width > 768 ? "translateX(0vw)" : "initial",
-            }}
-          > */}
-        {/* Horizontal scroll indicator */}
-        {/* {filteredProjects.length >= 4 && (
-            <HorizontalScrollIndicator containerRef={scrollContainerRef} />
-          )} */}
 
         <div className="col-span-9">
           <div className="embla w-[100dvw]">
