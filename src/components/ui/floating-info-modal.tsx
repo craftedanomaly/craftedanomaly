@@ -144,7 +144,7 @@ export function FloatingInfoModal() {
       {/* Floating Button */}
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-3 right-3 md:bottom-6 md:right-6 z-[60] flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full aspect-square bg-accent text-accent-foreground shadow-lg hover:shadow-xl transition-shadow backdrop-blur-sm border border-accent/20 pointer-events-auto"
+        className="fixed bottom-3 right-3 md:bottom-6 md:right-6 z-[60] flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full aspect-square bg-accent text-accent-foreground shadow-lg hover:shadow-xl transition-shadow backdrop-blur-sm border border-accent/20 pointer-events-auto cursor-pointer"
         aria-label="Open info modal"
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
