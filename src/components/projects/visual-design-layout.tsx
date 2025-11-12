@@ -11,6 +11,7 @@ import {
   useSpring,
   useMotionTemplate,
 } from "framer-motion";
+import { useWindowSize } from "@/hooks/useWindowSize";
 
 interface CategoryRelation {
   categories: {
@@ -79,6 +80,7 @@ export function VisualDesignLayout({
   const [collapsedBlocksTop, setCollapsedBlocksTop] = useState(0);
   const [detailsHeight, setDetailsHeight] = useState(0);
   const [blurbHeight, setBlurbHeight] = useState(0);
+  const { width } = useWindowSize();
 
   // Hide scroll hint on first scroll
   useEffect(() => {
@@ -663,20 +665,29 @@ export function VisualDesignLayout({
             {rowItems.map((item, index) => {
               if (item.type === "image" && item.img) {
                 return (
-                  <div key={item.img.id} className="relative w-full">
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
                     <div
+                      key={item.img.id}
                       className="relative w-full"
-                      style={{ aspectRatio: "16/9" }}
+                      style={{
+                        height: width < 768 ? "40dvh" : "auto",
+                      }}
                     >
-                      <Image
-                        src={item.img.url}
-                        alt={`Project image ${index + 1}`}
-                        fill
-                        className="object-cover"
-                        sizes="100vw"
-                      />
+                      <div
+                        className="relative w-full"
+                        style={{ aspectRatio: "16/9" }}
+                      >
+                        <Image
+                          src={item.img.url}
+                          alt={`Project image ${index + 1}`}
+                          fill
+                          className="object-cover"
+                          sizes="100vw"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </>
                 );
               } else if (item.type === "video" && item.block) {
                 const videoInfo =
@@ -1311,9 +1322,11 @@ function ImageSlide({
                     controls
                     autoPlay
                     className="absolute inset-0 w-full h-full pointer-events-auto"
-                    style={{ objectFit: "contain" }}
                     onEnded={() => setShowVideo(false)}
                     onPause={() => setShowVideo(false)}
+                    style={{
+                      objectFit: "contain",
+                    }}
                   />
                 ) : (
                   <iframe
@@ -1322,7 +1335,9 @@ function ImageSlide({
                     className="absolute inset-0 w-full h-full pointer-events-auto"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
-                    style={{ border: "none" }}
+                    style={{
+                      border: "none",
+                    }}
                   />
                 )}
                 {/* Close video button */}
