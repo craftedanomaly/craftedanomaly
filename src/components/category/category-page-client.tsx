@@ -269,7 +269,6 @@ export function CategoryPageClient({
   return (
     <>
       {/* Gradient fade on right edge */}
-
       <div className="fixed right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent pointer-events-none z-10 max-md:hidden" />
 
       <div className="grid grid-cols-12 bp-grid overflow-x-hidden ">
@@ -383,6 +382,7 @@ export function CategoryPageClient({
           </div>
         </div>
 
+        {/* Right Band */}
         <div
           className="col-span-9 max-md:col-span-12 relative"
           ref={rightSpanRef}
