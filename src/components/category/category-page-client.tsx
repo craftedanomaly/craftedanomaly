@@ -194,7 +194,7 @@ export function CategoryPageClient({
   // Slider Script
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: false, skipSnaps: true },
-    [WheelGesturesPlugin()]
+    [WheelGesturesPlugin({ forceWheelAxis: "y" })]
   );
 
   useEffect(() => {
@@ -256,120 +256,120 @@ export function CategoryPageClient({
     <>
       {/* Gradient fade on right edge */}
       <div className="fixed right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
-      <div>
-        <div className="grid grid-cols-12 bp-grid overflow-x-hidden">
-          {/* Left Band - Fixed */}
-          <div className="h-screen border-r border-border bg-card overflow-y-auto scrollbar-hide max-xl:col-span-12 col-span-3 bp-grid max-xl:h-auto z-10 max-xl:py-[60px]">
+
+      <div className="grid grid-cols-12 bp-grid overflow-x-hidden">
+        {/* Left Band - Fixed */}
+        <div className="h-screen border-r border-border bg-card overflow-y-auto scrollbar-hide max-xl:col-span-12 col-span-3 bp-grid max-xl:h-auto z-10 max-xl:py-[60px]">
+          <div
+            className="relative h-full p-4 flex flex-col justify-center items-center"
+            style={{
+              paddingTop: width <= 1440 ? "40px" : "16px",
+            }}
+          >
+            {/* Subtle grain overlay */}
             <div
-              className="relative h-full p-4 flex flex-col justify-center items-center"
+              className="absolute inset-0 opacity-[0.015] pointer-events-none"
               style={{
-                paddingTop: width <= 1440 ? "40px" : "16px",
+                backgroundImage:
+                  "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' /%3E%3C/svg%3E\")",
               }}
-            >
-              {/* Subtle grain overlay */}
-              <div
-                className="absolute inset-0 opacity-[0.015] pointer-events-none"
-                style={{
-                  backgroundImage:
-                    "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' /%3E%3C/svg%3E\")",
-                }}
-              />
+            />
 
-              <div className="relative space-y-8">
-                {/* Category Info */}
-                <div className="space-y-4">
-                  <h1 className="text-4xl md:text-5xl font-black text-foreground leading-tight">
-                    {category.name}
-                  </h1>
-                  {category.description && (
-                    <p className="text-lg text-muted-foreground leading-relaxed">
-                      {category.description}
-                    </p>
-                  )}
-                </div>
-
-                {/* Search */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    placeholder="Search projects..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
-                  />
-                </div>
-
-                {/* Project Count */}
-                <div className="text-sm text-muted-foreground">
-                  <span className="font-semibold text-foreground">
-                    {selectedTags.length > 0 || searchQuery
-                      ? filteredProjects.length
-                      : projects.length}{" "}
-                  </span>{" "}
-                  {(selectedTags.length > 0 || searchQuery
-                    ? filteredProjects.length
-                    : projects.length) === 1
-                    ? "project"
-                    : "projects"}{" "}
-                  {(selectedTags.length > 0 || searchQuery) && " (filtered)"}
-                </div>
-
-                {/* Tags Filter - Always visible if tags exist */}
-                {tagsList.length > 0 && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">
-                        Filter by Tag
-                      </h3>
-                      {selectedTags.length > 0 && (
-                        <button
-                          onClick={clearFilters}
-                          className="text-xs text-accent hover:text-accent/80 transition-colors"
-                        >
-                          Clear all
-                        </button>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {tagsList.map((tag) => (
-                        <button
-                          key={tag.id}
-                          onClick={() => {
-                            toggleTag(tag.slug);
-                          }}
-                          className={`px-3 py-1.5 text-xs rounded-full border transition-all ${
-                            selectedTags.includes(tag.slug)
-                              ? "bg-accent text-accent-foreground border-accent"
-                              : "bg-background text-muted-foreground border-border hover:border-accent/50"
-                          }`}
-                        >
-                          {tag.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Keyboard Hint */}
-                <div className="pt-8 border-t border-border max-md:hidden cursor-default">
-                  <p className="text-xs text-muted-foreground">
-                    Use{" "}
-                    <kbd className="px-2 py-1 text-xs font-semibold bg-accent/10 border border-accent/20 rounded">
-                      ←
-                    </kbd>{" "}
-                    <kbd className="px-2 py-1 text-xs font-semibold bg-accent/10 border border-accent/20 rounded">
-                      →
-                    </kbd>{" "}
-                    to navigate, or scroll horizontally with mouse
+            <div className="relative space-y-8">
+              {/* Category Info */}
+              <div className="space-y-4">
+                <h1 className="text-4xl md:text-5xl font-black text-foreground leading-tight">
+                  {category.name}
+                </h1>
+                {category.description && (
+                  <p className="text-lg text-muted-foreground leading-relaxed">
+                    {category.description}
                   </p>
+                )}
+              </div>
+
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search projects..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
+                />
+              </div>
+
+              {/* Project Count */}
+              <div className="text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">
+                  {selectedTags.length > 0 || searchQuery
+                    ? filteredProjects.length
+                    : projects.length}{" "}
+                </span>{" "}
+                {(selectedTags.length > 0 || searchQuery
+                  ? filteredProjects.length
+                  : projects.length) === 1
+                  ? "project"
+                  : "projects"}{" "}
+                {(selectedTags.length > 0 || searchQuery) && " (filtered)"}
+              </div>
+
+              {/* Tags Filter - Always visible if tags exist */}
+              {tagsList.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">
+                      Filter by Tag
+                    </h3>
+                    {selectedTags.length > 0 && (
+                      <button
+                        onClick={clearFilters}
+                        className="text-xs text-accent hover:text-accent/80 transition-colors"
+                      >
+                        Clear all
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {tagsList.map((tag) => (
+                      <button
+                        key={tag.id}
+                        onClick={() => {
+                          toggleTag(tag.slug);
+                        }}
+                        className={`px-3 py-1.5 text-xs rounded-full border transition-all ${
+                          selectedTags.includes(tag.slug)
+                            ? "bg-accent text-accent-foreground border-accent"
+                            : "bg-background text-muted-foreground border-border hover:border-accent/50"
+                        }`}
+                      >
+                        {tag.name}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+              )}
+
+              {/* Keyboard Hint */}
+              <div className="pt-8 border-t border-border max-md:hidden cursor-default">
+                <p className="text-xs text-muted-foreground">
+                  Use{" "}
+                  <kbd className="px-2 py-1 text-xs font-semibold bg-accent/10 border border-accent/20 rounded">
+                    ←
+                  </kbd>{" "}
+                  <kbd className="px-2 py-1 text-xs font-semibold bg-accent/10 border border-accent/20 rounded">
+                    →
+                  </kbd>{" "}
+                  to navigate, or scroll horizontally with mouse
+                </p>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Right Panel - Masonry Grid with Horizontal Scroll */}
-          {/* <div
+        {/* Right Panel - Masonry Grid with Horizontal Scroll */}
+        {/* <div
             ref={scrollContainerRef}
             className="h-screen scrollbar-hide max-xl:col-span-12 col-span-9 transition-all duration-500"
             style={{
@@ -378,204 +378,200 @@ export function CategoryPageClient({
               transform: width > 768 ? "translateX(0vw)" : "initial",
             }}
           > */}
-          {/* Horizontal scroll indicator */}
-          {/* {filteredProjects.length >= 4 && (
+        {/* Horizontal scroll indicator */}
+        {/* {filteredProjects.length >= 4 && (
             <HorizontalScrollIndicator containerRef={scrollContainerRef} />
           )} */}
 
-          <div className="col-span-9">
-            <div className="embla w-[100dvw]">
-              <div className="embla__viewport" ref={emblaRef}>
-                <div className="embla__container">
-                  {slides?.map((projectsGroup: any, slideIndex: number) => {
-                    const count = projectsGroup?.length;
-                    const firstRow = projectsGroup?.slice(0, 2);
-                    const secondRow = projectsGroup?.slice(2);
+        <div className="col-span-9">
+          <div className="embla w-[100dvw]">
+            <div className="embla__viewport" ref={emblaRef}>
+              <div className="embla__container">
+                {slides?.map((projectsGroup: any, slideIndex: number) => {
+                  const count = projectsGroup?.length;
+                  const firstRow = projectsGroup?.slice(0, 2);
+                  const secondRow = projectsGroup?.slice(2);
 
-                    // First Row width/height settings
-                    let widthValue = "40dvw";
-                    let heightValue = 250; // default fallback
+                  // First Row width/height settings
+                  let widthValue = "40dvw";
+                  let heightValue = 250; // default fallback
 
-                    if (width > 768) {
-                      if (count === 4 || count === 3) {
-                        widthValue = "40dvw";
-                        heightValue = height * 0.5;
-                      } else if (count === 2) {
-                        widthValue = "40dvw";
-                        heightValue = height;
-                      } else if (count === 1) {
-                        widthValue = "100dvw";
-                        heightValue = height;
-                      }
-                    } else {
+                  if (width > 768) {
+                    if (count === 4 || count === 3) {
+                      widthValue = "40dvw";
+                      heightValue = height * 0.5;
+                    } else if (count === 2) {
+                      widthValue = "40dvw";
+                      heightValue = height;
+                    } else if (count === 1) {
                       widthValue = "100dvw";
-                      heightValue = 350;
+                      heightValue = height;
                     }
+                  } else {
+                    widthValue = "100dvw";
+                    heightValue = 350;
+                  }
 
-                    return (
-                      <div className="embla_slide" key={slideIndex}>
-                        {/* First Row */}
-                        <div className="flex">
-                          {firstRow.map((project: any, index: number) => (
-                            <div
-                              key={project.id}
-                              style={{
-                                width: widthValue,
-                                height: `${heightValue}px`,
+                  return (
+                    <div className="embla_slide" key={slideIndex}>
+                      {/* First Row */}
+                      <div className="flex">
+                        {firstRow.map((project: any, index: number) => (
+                          <div
+                            key={project.id}
+                            style={{
+                              width: widthValue,
+                              height: `${heightValue}px`,
+                            }}
+                          >
+                            <Link
+                              href={`/projects/${project.slug}`}
+                              className="group block relative h-full"
+                              onMouseEnter={() =>
+                                handleProjectHover(project.id, true)
+                              }
+                              onMouseLeave={() =>
+                                handleProjectHover(project.id, false)
+                              }
+                              onFocus={() => setActiveProjectIndex(index)}
+                              onClick={() => {
+                                scrollPositionManager.saveActiveProject(
+                                  category.slug,
+                                  project.slug,
+                                  index
+                                );
                               }}
                             >
-                              <Link
-                                href={`/projects/${project.slug}`}
-                                className="group block relative h-full"
-                                onMouseEnter={() =>
-                                  handleProjectHover(project.id, true)
-                                }
-                                onMouseLeave={() =>
-                                  handleProjectHover(project.id, false)
-                                }
-                                onFocus={() => setActiveProjectIndex(index)}
-                                onClick={() => {
-                                  scrollPositionManager.saveActiveProject(
-                                    category.slug,
-                                    project.slug,
-                                    index
-                                  );
+                              <div className="relative w-full h-full overflow-hidden bg-card">
+                                <Image
+                                  src={project.cover_image}
+                                  alt={project.title}
+                                  fill
+                                  className="object-cover"
+                                  sizes="35vw"
+                                />
+                                {project.cover_video_url &&
+                                  hoveredProject === project.id && (
+                                    <video
+                                      ref={(el) => {
+                                        if (el)
+                                          videoRefs.current.set(project.id, el);
+                                      }}
+                                      src={project.cover_video_url}
+                                      className="absolute inset-0 w-full h-full object-cover z-10"
+                                      loop
+                                      muted
+                                      playsInline
+                                    />
+                                  )}
+                                {project.project_type && (
+                                  <div className="absolute left-4 top-4 z-30 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground">
+                                    {project.project_type}
+                                  </div>
+                                )}
+                                <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 z-30">
+                                  <h3 className="text-xl md:text-2xl font-bold text-foreground line-clamp-2 group-hover:text-accent transition-colors">
+                                    {project.title}
+                                  </h3>
+                                </div>
+                              </div>
+                            </Link>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Second Row */}
+                      {count > 2 && secondRow.length > 0 && (
+                        <div className="flex">
+                          {secondRow.map((project: any, index: number) => {
+                            let widthValue = "40dvw";
+                            let heightValue = height * 0.5;
+
+                            if (width > 768) {
+                              if (count === 3) {
+                                widthValue = "100dvw";
+                                heightValue = height * 0.5;
+                              }
+                            } else {
+                              widthValue = "100dvw";
+                              heightValue = 350;
+                            }
+
+                            return (
+                              <div
+                                key={project.id}
+                                style={{
+                                  width: widthValue,
+                                  height: `${heightValue}px`,
                                 }}
                               >
-                                <div className="relative w-full h-full overflow-hidden bg-card">
-                                  <Image
-                                    src={project.cover_image}
-                                    alt={project.title}
-                                    fill
-                                    className="object-cover"
-                                    sizes="35vw"
-                                  />
-                                  {project.cover_video_url &&
-                                    hoveredProject === project.id && (
-                                      <video
-                                        ref={(el) => {
-                                          if (el)
-                                            videoRefs.current.set(
-                                              project.id,
-                                              el
-                                            );
-                                        }}
-                                        src={project.cover_video_url}
-                                        className="absolute inset-0 w-full h-full object-cover z-10"
-                                        loop
-                                        muted
-                                        playsInline
-                                      />
-                                    )}
-                                  {project.project_type && (
-                                    <div className="absolute left-4 top-4 z-30 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground">
-                                      {project.project_type}
-                                    </div>
-                                  )}
-                                  <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 z-30">
-                                    <h3 className="text-xl md:text-2xl font-bold text-foreground line-clamp-2 group-hover:text-accent transition-colors">
-                                      {project.title}
-                                    </h3>
-                                  </div>
-                                </div>
-                              </Link>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Second Row */}
-                        {count > 2 && secondRow.length > 0 && (
-                          <div className="flex">
-                            {secondRow.map((project: any, index: number) => {
-                              let widthValue = "40dvw";
-                              let heightValue = height * 0.5;
-
-                              if (width > 768) {
-                                if (count === 3) {
-                                  widthValue = "100dvw";
-                                  heightValue = height * 0.5;
-                                }
-                              } else {
-                                widthValue = "100dvw";
-                                heightValue = 350;
-                              }
-
-                              return (
-                                <div
-                                  key={project.id}
-                                  style={{
-                                    width: widthValue,
-                                    height: `${heightValue}px`,
+                                <Link
+                                  href={`/projects/${project.slug}`}
+                                  className="group block relative h-full"
+                                  onMouseEnter={() =>
+                                    handleProjectHover(project.id, true)
+                                  }
+                                  onMouseLeave={() =>
+                                    handleProjectHover(project.id, false)
+                                  }
+                                  onFocus={() =>
+                                    setActiveProjectIndex(
+                                      index + firstRow.length
+                                    )
+                                  }
+                                  onClick={() => {
+                                    scrollPositionManager.saveActiveProject(
+                                      category.slug,
+                                      project.slug,
+                                      index + firstRow.length
+                                    );
                                   }}
                                 >
-                                  <Link
-                                    href={`/projects/${project.slug}`}
-                                    className="group block relative h-full"
-                                    onMouseEnter={() =>
-                                      handleProjectHover(project.id, true)
-                                    }
-                                    onMouseLeave={() =>
-                                      handleProjectHover(project.id, false)
-                                    }
-                                    onFocus={() =>
-                                      setActiveProjectIndex(
-                                        index + firstRow.length
-                                      )
-                                    }
-                                    onClick={() => {
-                                      scrollPositionManager.saveActiveProject(
-                                        category.slug,
-                                        project.slug,
-                                        index + firstRow.length
-                                      );
-                                    }}
-                                  >
-                                    <div className="relative w-full h-full overflow-hidden bg-card">
-                                      <Image
-                                        src={project.cover_image}
-                                        alt={project.title}
-                                        fill
-                                        className="object-cover"
-                                        sizes="35vw"
-                                      />
-                                      {project.cover_video_url &&
-                                        hoveredProject === project.id && (
-                                          <video
-                                            ref={(el) => {
-                                              if (el)
-                                                videoRefs.current.set(
-                                                  project.id,
-                                                  el
-                                                );
-                                            }}
-                                            src={project.cover_video_url}
-                                            className="absolute inset-0 w-full h-full object-cover z-10"
-                                            loop
-                                            muted
-                                            playsInline
-                                          />
-                                        )}
-                                      {project.project_type && (
-                                        <div className="absolute left-4 top-4 z-30 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground">
-                                          {project.project_type}
-                                        </div>
+                                  <div className="relative w-full h-full overflow-hidden bg-card">
+                                    <Image
+                                      src={project.cover_image}
+                                      alt={project.title}
+                                      fill
+                                      className="object-cover"
+                                      sizes="35vw"
+                                    />
+                                    {project.cover_video_url &&
+                                      hoveredProject === project.id && (
+                                        <video
+                                          ref={(el) => {
+                                            if (el)
+                                              videoRefs.current.set(
+                                                project.id,
+                                                el
+                                              );
+                                          }}
+                                          src={project.cover_video_url}
+                                          className="absolute inset-0 w-full h-full object-cover z-10"
+                                          loop
+                                          muted
+                                          playsInline
+                                        />
                                       )}
-                                      <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 z-30">
-                                        <h3 className="text-xl md:text-2xl font-bold text-foreground line-clamp-2 group-hover:text-accent transition-colors">
-                                          {project.title}
-                                        </h3>
+                                    {project.project_type && (
+                                      <div className="absolute left-4 top-4 z-30 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground">
+                                        {project.project_type}
                                       </div>
+                                    )}
+                                    <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 z-30">
+                                      <h3 className="text-xl md:text-2xl font-bold text-foreground line-clamp-2 group-hover:text-accent transition-colors">
+                                        {project.title}
+                                      </h3>
                                     </div>
-                                  </Link>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                                  </div>
+                                </Link>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
