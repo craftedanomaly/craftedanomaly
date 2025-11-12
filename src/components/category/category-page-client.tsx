@@ -9,6 +9,7 @@ import { scrollPositionManager } from "@/lib/scroll-position-manager";
 import { HorizontalScrollIndicator } from "@/components/ui/horizontal-scroll-indicator";
 import { useWindowSize } from "@/hooks/useWindowSize";
 import useEmblaCarousel from "embla-carousel-react";
+import { WheelGesturesPlugin } from "embla-carousel-wheel-gestures";
 interface Tag {
   id: string;
   slug: string;
@@ -191,7 +192,10 @@ export function CategoryPageClient({
   }, [selectedTags, searchQuery, projects]);
 
   // Slider Script
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, skipSnaps: true },
+    [WheelGesturesPlugin()]
+  );
 
   useEffect(() => {
     if (emblaApi) {
@@ -218,10 +222,23 @@ export function CategoryPageClient({
     }
   };
 
+  // Catch Mouse Wheel for slide
+
+  const handleWheel = (event: WheelEvent) => {
+    event.preventDefault();
+    if (event.deltaY < 0) {
+      scrollPrev();
+    } else {
+      scrollNext();
+    }
+  };
+
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
+    // window.addEventListener("wheel", handleWheel, { passive: false });
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+      // window.removeEventListener("wheel", handleWheel);
     };
   }, [scrollPrev, scrollNext]);
 
@@ -376,29 +393,29 @@ export function CategoryPageClient({
                     const secondRow = projectsGroup?.slice(2);
 
                     // First Row width/height settings
-                    let widthValue = "40vw";
+                    let widthValue = "40dvw";
                     let heightValue = 250; // default fallback
 
                     if (width > 768) {
                       if (count === 4 || count === 3) {
-                        widthValue = "40vw";
+                        widthValue = "40dvw";
                         heightValue = height * 0.5;
                       } else if (count === 2) {
-                        widthValue = "40vw";
+                        widthValue = "40dvw";
                         heightValue = height;
                       } else if (count === 1) {
-                        widthValue = "100vw";
+                        widthValue = "100dvw";
                         heightValue = height;
                       }
                     } else {
-                      widthValue = "100vw";
+                      widthValue = "100dvw";
                       heightValue = 350;
                     }
 
                     return (
                       <div className="embla_slide" key={slideIndex}>
                         {/* First Row */}
-                        <div className="flex w-[100dvw]">
+                        <div className="flex">
                           {firstRow.map((project: any, index: number) => (
                             <div
                               key={project.id}
@@ -468,18 +485,18 @@ export function CategoryPageClient({
 
                         {/* Second Row */}
                         {count > 2 && secondRow.length > 0 && (
-                          <div className="flex w-[100dvw]">
+                          <div className="flex">
                             {secondRow.map((project: any, index: number) => {
-                              let widthValue = "40vw";
+                              let widthValue = "40dvw";
                               let heightValue = height * 0.5;
 
                               if (width > 768) {
                                 if (count === 3) {
-                                  widthValue = "100vw";
+                                  widthValue = "100dvw";
                                   heightValue = height * 0.5;
                                 }
                               } else {
-                                widthValue = "100vw";
+                                widthValue = "100dvw";
                                 heightValue = 350;
                               }
 
