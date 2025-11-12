@@ -145,8 +145,8 @@ export function OurWorksSection({
   };
 
   return (
-    <div className="relative min-h-screen bp-grid flex flex-col items-center justify-start py-20 overflow-hidden">
-      <div className="text-center mb-8 z-10">
+    <div className="relative min-h-screen bp-grid flex flex-col items-center justify-start overflow-hidden">
+      <div className="text-center z-10 py-20">
         <h2
           className="text-5xl md:text-7xl font-bold drop-shadow-lg mb-6"
           style={{ color: "#ed5c2c" }}
@@ -188,7 +188,7 @@ export function OurWorksSection({
                     )
                   }
                   onMouseLeave={() => handleMouseLeave(project.id, index)}
-                  className="relative mx-auto overflow-hidden shadow-2xl cursor-pointer pointer-events-auto max-md:rounded-none border-t-2 border-b-2"
+                  className="relative mx-auto overflow-hidden shadow-2xl cursor-pointer pointer-events-auto max-md:rounded-none md:border-t-2 md:border-b-2"
                   style={{
                     width: width < 768 ? "100%" : "100%",
                     minHeight: width < 768 ? "40dvh" : "100dvh",
@@ -203,54 +203,58 @@ export function OurWorksSection({
                     priority={index < 5}
                   />
 
-                  {project.coverVideoUrl &&
-                    project.coverVideoUrl.trim() &&
-                    (() => {
-                      const url = project.coverVideoUrl!;
-                      const yt = getYouTubeId(url);
-                      const vm = getVimeoId(url);
-                      if (yt) {
-                        return isHovered ? (
-                          <iframe
-                            className="absolute inset-0 w-full h-full pointer-events-none"
-                            src={`https://www.youtube.com/embed/${yt}?autoplay=1&mute=1&controls=0&rel=0&showinfo=0&playsinline=1`}
-                            allow="autoplay; encrypted-media"
-                            allowFullScreen
-                            style={{ opacity: 1, zIndex: 10, border: "0" }}
-                          />
-                        ) : null;
-                      }
-                      if (vm) {
-                        return isHovered ? (
-                          <iframe
-                            className="absolute inset-0 w-full h-full pointer-events-none"
-                            src={`https://player.vimeo.com/video/${vm}?autoplay=1&muted=1&background=1&dnt=1`}
-                            allow="autoplay; encrypted-media"
-                            allowFullScreen
-                            style={{ opacity: 1, zIndex: 10, border: "0" }}
-                          />
-                        ) : null;
-                      }
-                      return (
-                        <video
-                          ref={(el) => {
-                            if (el) videoRefs.current[key] = el;
-                            else delete videoRefs.current[key];
-                          }}
-                          src={url}
-                          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                          style={{
-                            opacity: isHovered ? 1 : 0,
-                            transition: "opacity 0.25s ease",
-                            zIndex: isHovered ? 10 : 0,
-                          }}
-                          loop
-                          muted
-                          playsInline
-                          preload="metadata"
-                        />
-                      );
-                    })()}
+                  {width > 768 ? (
+                    <>
+                      {project.coverVideoUrl &&
+                        project.coverVideoUrl.trim() &&
+                        (() => {
+                          const url = project.coverVideoUrl!;
+                          const yt = getYouTubeId(url);
+                          const vm = getVimeoId(url);
+                          if (yt) {
+                            return isHovered ? (
+                              <iframe
+                                className="absolute inset-0 w-full h-full pointer-events-none"
+                                src={`https://www.youtube.com/embed/${yt}?autoplay=1&mute=1&controls=0&rel=0&showinfo=0&playsinline=1`}
+                                allow="autoplay; encrypted-media"
+                                allowFullScreen
+                                style={{ opacity: 1, zIndex: 10, border: "0" }}
+                              />
+                            ) : null;
+                          }
+                          if (vm) {
+                            return isHovered ? (
+                              <iframe
+                                className="absolute inset-0 w-full h-full pointer-events-none"
+                                src={`https://player.vimeo.com/video/${vm}?autoplay=1&muted=1&background=1&dnt=1`}
+                                allow="autoplay; encrypted-media"
+                                allowFullScreen
+                                style={{ opacity: 1, zIndex: 10, border: "0" }}
+                              />
+                            ) : null;
+                          }
+                          return (
+                            <video
+                              ref={(el) => {
+                                if (el) videoRefs.current[key] = el;
+                                else delete videoRefs.current[key];
+                              }}
+                              src={url}
+                              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                              style={{
+                                opacity: isHovered ? 1 : 0,
+                                transition: "opacity 0.25s ease",
+                                zIndex: isHovered ? 10 : 0,
+                              }}
+                              loop
+                              muted
+                              playsInline
+                              preload="metadata"
+                            />
+                          );
+                        })()}
+                    </>
+                  ) : null}
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
 
@@ -260,35 +264,60 @@ export function OurWorksSection({
                     </div>
                   )}
 
-                  {isHovered && project.blurb && (
+                  {width <= 768 ? (
                     <>
-                      <motion.div
-                        className="absolute bottom-0 left-0 right-0 p-6"
-                        whileHover={{ opacity: 1 }}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
+                      <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col">
                         <h4>{project.categorySlug}</h4>
                         <h3 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">
                           {project.title}
                         </h3>
-                        {project.year && (
-                          <span className="inline-block px-3 py-1 bg-accent/80 text-accent-foreground text-xs font-medium rounded-full">
-                            {project.year}
-                          </span>
-                        )}
-                      </motion.div>
-                      <motion.div
-                        className="absolute top-0 left-0 right-0 p-6 bg-black/60 backdrop-blur-sm"
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <p className="text-white/90 text-sm line-clamp-3">
-                          {project.blurb}
-                        </p>
-                      </motion.div>
+                        <div className="flex items-center gap-2">
+                          {project.year && (
+                            <span className="inline-block px-3 py-1 bg-accent/80 text-accent-foreground text-xs font-medium rounded-full">
+                              {project.year}
+                            </span>
+                          )}
+                          {/* <div className="px-3 py-1 bg-black/60 backdrop-blur-sm">
+                            <p className="text-white/90 text-xs line-clamp-3">
+                              {project.blurb}
+                            </p>
+                          </div> */}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {isHovered && project.blurb && (
+                        <>
+                          <motion.div
+                            className="absolute bottom-0 left-0 right-0 p-6"
+                            whileHover={{ opacity: 1 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <h4>{project.categorySlug}</h4>
+                            <h3 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">
+                              {project.title}
+                            </h3>
+                            {project.year && (
+                              <span className="inline-block px-3 py-1 bg-accent/80 text-accent-foreground text-xs font-medium rounded-full">
+                                {project.year}
+                              </span>
+                            )}
+                          </motion.div>
+                          <motion.div
+                            className="absolute top-0 left-0 right-0 p-6 bg-black/60 backdrop-blur-sm"
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <p className="text-white/90 text-sm line-clamp-3">
+                              {project.blurb}
+                            </p>
+                          </motion.div>
+                        </>
+                      )}
                     </>
                   )}
                 </div>

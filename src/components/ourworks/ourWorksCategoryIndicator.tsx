@@ -1,5 +1,6 @@
 "use client";
 
+import { useWindowSize } from "@/hooks/useWindowSize";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
@@ -21,11 +22,10 @@ export function OurWorksCategoryIndicator({
   if (!categories || categories.length === 0) return null;
 
   const [activeCategorySlug, setActiveCategorySlug] = useState<string>("");
-
-  console.log("");
+  const { width } = useWindowSize();
 
   return (
-    <div className="flex items-center justify-center gap-3 mt-6">
+    <div className="flex max-md:flex-wrap items-center justify-center gap-3 mt-6">
       {categories.map((category) => {
         const isActive = category.slug === activeCategorySlug;
 
@@ -44,8 +44,8 @@ export function OurWorksCategoryIndicator({
               color: isActive ? "#ed5c2c" : "rgba(255, 255, 255, 0.6)",
               scale: isActive ? 1.1 : 1,
             }}
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.3 }}
+            whileHover={width > 768 ? { scale: 1.05 } : undefined}
+            transition={width > 768 ? { duration: 0.3 } : undefined}
           >
             {category.name}
             {isActive && (
