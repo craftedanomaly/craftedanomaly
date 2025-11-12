@@ -59,6 +59,7 @@ export function CategoryPageClient({
   const [hoveredProject, setHoveredProject] = useState<string | null>(null);
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
   const { width, height } = useWindowSize();
+  const rightSpanRef = useRef<HTMLDivElement>(null);
 
   const derivedTags = useMemo(() => {
     const map = new Map<string, Tag>();
@@ -193,13 +194,15 @@ export function CategoryPageClient({
 
   // Slider Script
   const [emblaRef, emblaApi] = useEmblaCarousel(
-    { loop: false, skipSnaps: true },
-    [
-      WheelGesturesPlugin({
-        forceWheelAxis: "y",
-        target: document.documentElement,
-      }),
-    ]
+    width > 768 ? { loop: false, skipSnaps: true } : undefined,
+    width > 768
+      ? [
+          WheelGesturesPlugin({
+            forceWheelAxis: "y",
+            target: document.documentElement,
+          }),
+        ]
+      : undefined
   );
 
   useEffect(() => {
@@ -244,14 +247,17 @@ export function CategoryPageClient({
 
   const slides = chunkArray(filteredProjects, 4);
 
+  console.log("slides:", slides);
+
   return (
     <>
       {/* Gradient fade on right edge */}
-      <div className="fixed right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
+
+      <div className="fixed right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent pointer-events-none z-10 max-md:hidden" />
 
       <div className="grid grid-cols-12 bp-grid overflow-x-hidden ">
-        {/* Left Band - Fixed */}
-        <div className="h-screen border-r border-border bg-card overflow-y-auto scrollbar-hide max-xl:col-span-12 col-span-3 bp-grid max-xl:h-auto z-10 max-xl:py-[60px]">
+        {/* Left Band */}
+        <div className="h-screen border-r border-border bg-card overflow-y-auto scrollbar-hide max-md:col-span-12 col-span-3 bp-grid max-md:h-auto z-10 max-md:py-[60px]">
           <div
             className="relative h-full p-4 flex flex-col justify-center items-center"
             style={{
@@ -360,45 +366,48 @@ export function CategoryPageClient({
           </div>
         </div>
 
-        <div className="col-span-9">
-          <div className="embla w-[100dvw]">
+        <div className="col-span-9 max-md:col-span-12" ref={rightSpanRef}>
+          <div className="embla">
             <div className="embla__viewport" ref={emblaRef}>
-              <div className="embla__container">
+              <div className="embla__container max-md:flex max-md:flex-col">
                 {slides?.map((projectsGroup: any, slideIndex: number) => {
                   const count = projectsGroup?.length;
                   const firstRow = projectsGroup?.slice(0, 2);
                   const secondRow = projectsGroup?.slice(2);
+                  const parentWidth = rightSpanRef.current?.clientWidth || 0;
 
                   // First Row width/height settings
-                  let widthValue = "40dvw";
+
+                  let widthValue = parentWidth * 0.5; // %50
                   let heightValue = 250; // default fallback
 
                   if (width > 768) {
                     if (count === 4 || count === 3) {
-                      widthValue = "40dvw";
+                      widthValue = parentWidth * 0.5;
                       heightValue = height * 0.5;
                     } else if (count === 2) {
-                      widthValue = "40dvw";
+                      widthValue = parentWidth * 0.5; // %50
                       heightValue = height;
                     } else if (count === 1) {
-                      widthValue = "100dvw";
+                      widthValue = parentWidth;
                       heightValue = height;
                     }
                   } else {
-                    widthValue = "100dvw";
+                    widthValue = parentWidth;
                     heightValue = 350;
                   }
 
                   return (
                     <div className="embla_slide" key={slideIndex}>
                       {/* First Row */}
-                      <div className="flex">
+                      <div className="flex max-md:flex-col">
                         {firstRow.map((project: any, index: number) => (
                           <div
                             key={project.id}
                             style={{
                               width: widthValue,
-                              height: `${heightValue}px`,
+                              height:
+                                width < 768 ? "40dvh" : `${heightValue}px`,
                             }}
                           >
                             <Link
@@ -441,13 +450,16 @@ export function CategoryPageClient({
                                       playsInline
                                     />
                                   )}
+
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
+
                                 {project.project_type && (
                                   <div className="absolute left-4 top-4 z-30 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground">
                                     {project.project_type}
                                   </div>
                                 )}
                                 <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 z-30">
-                                  <h3 className="text-xl md:text-2xl font-bold text-foreground line-clamp-2 group-hover:text-accent transition-colors">
+                                  <h3 className="text-xl md:text-2xl font-bold text-foreground line-clamp-2 md:group-hover:text-accent transition-colors">
                                     {project.title}
                                   </h3>
                                 </div>
@@ -459,18 +471,21 @@ export function CategoryPageClient({
 
                       {/* Second Row */}
                       {count > 2 && secondRow.length > 0 && (
-                        <div className="flex">
+                        <div className="flex max-md:flex-col">
                           {secondRow.map((project: any, index: number) => {
-                            let widthValue = "40dvw";
+                            let widthValue = parentWidth * 0.5;
                             let heightValue = height * 0.5;
 
                             if (width > 768) {
                               if (count === 3) {
-                                widthValue = "100dvw";
+                                widthValue = parentWidth;
+                                heightValue = height * 0.5;
+                              } else {
+                                widthValue = parentWidth * 0.5;
                                 heightValue = height * 0.5;
                               }
                             } else {
-                              widthValue = "100dvw";
+                              widthValue = parentWidth;
                               heightValue = 350;
                             }
 
@@ -479,7 +494,8 @@ export function CategoryPageClient({
                                 key={project.id}
                                 style={{
                                   width: widthValue,
-                                  height: `${heightValue}px`,
+                                  height:
+                                    width < 768 ? "40dvh" : `${heightValue}px`,
                                 }}
                               >
                                 <Link
