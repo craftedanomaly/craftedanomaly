@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { usePathname } from 'next/navigation';
-import { RouteLoader } from './RouteLoader';
+import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { RouteLoader } from "./RouteLoader";
+import { LoadingAnimation } from "./home/LoadingAnimation";
 
 const INITIAL_DELAY = 900;
 const ROUTE_TRANSITION_DURATION = 450;
@@ -15,7 +16,7 @@ export function RouteLoaderWrapper() {
   const initialTimerRef = useRef<NodeJS.Timeout | null>(null);
   const routeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const shouldRender = pathname ? !pathname.startsWith('/admin') : true;
+  const shouldRender = pathname ? !pathname.startsWith("/admin") : true;
 
   useEffect(() => {
     if (!shouldRender) {
@@ -70,5 +71,5 @@ export function RouteLoaderWrapper() {
 
   const isActive = isInitialLoading || isRouteChanging;
 
-  return isActive ? <RouteLoader isActive={isActive} /> : null;
+  return isActive ? <LoadingAnimation isActive={isActive} /> : null;
 }

@@ -75,7 +75,7 @@ export function HomePage({ heroSlides, projects, categories }: HomePageProps) {
   return (
     <>
       {/* Loading Animation */}
-      {isLoading && <LoadingAnimation onComplete={handleLoadingComplete} />}
+      {/* {isLoading && <LoadingAnimation onComplete={handleLoadingComplete} />} */}
 
       {/* Hero Carousel - Fixed Background */}
       <HeroSwiper slides={heroSlides} />
@@ -84,12 +84,12 @@ export function HomePage({ heroSlides, projects, categories }: HomePageProps) {
       <ParallaxBackground />
 
       {/* Main Content */}
-      {!isLoading && (
-        <div className="relative z-10">
-          {/* Blueprint Background Section - Covers hero on scroll */}
-          <div className="bp-grid mt-screen">
-            {/* Film Strip Carousel */}
-            {/* <FilmStripCarousel
+      {/* {!isLoading && ( */}
+      <div className="relative z-10">
+        {/* Blueprint Background Section - Covers hero on scroll */}
+        <div className="bp-grid mt-screen">
+          {/* Film Strip Carousel */}
+          {/* <FilmStripCarousel
               projects={projects}
               activeCategory={activeCategory}
               onCenterProjectChange={handleCenterProjectChange}
@@ -102,15 +102,15 @@ export function HomePage({ heroSlides, projects, categories }: HomePageProps) {
                 />
               }
             /> */}
-            <OurWorksSection
-              projects={projects}
-              onCenterProjectChange={handleCenterProjectChange}
-              scrollToCategoryRef={scrollToCategoryRef}
-              categories={categories}
-            />
-          </div>
+          <OurWorksSection
+            projects={projects}
+            onCenterProjectChange={handleCenterProjectChange}
+            scrollToCategoryRef={scrollToCategoryRef}
+            categories={categories}
+          />
         </div>
-      )}
+      </div>
+      {/* )} */}
     </>
   );
 }
