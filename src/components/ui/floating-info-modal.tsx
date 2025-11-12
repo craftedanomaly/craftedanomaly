@@ -264,7 +264,7 @@ export function FloatingInfoModal() {
                           {categories.map((category) => (
                             <a
                               key={category.id}
-                              href={`/#cat-${category.slug}`}
+                              href={`/${category.slug}`}
                               className="group flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 font-medium text-foreground/80 hover:text-accent hover:border-accent transition-colors"
                               onClick={() => setIsOpen(false)}
                             >
