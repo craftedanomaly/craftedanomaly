@@ -157,178 +157,178 @@ export function FloatingInfoModal() {
 
       {/* Modal */}
       <AnimatePresence>
-        {/* {isOpen && ( */}
-        <>
-          {/* Backdrop */}
-          <motion.div
-            className="fixed inset-0 z-[1000] bg-background/80 backdrop-blur-sm"
-            {...getVariants("modalOverlay")}
-            transition={getTransition("fast")}
-            onClick={() => setIsOpen(false)}
-          />
+        {isOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              className="fixed inset-0 z-[1000] bg-background/80 backdrop-blur-sm"
+              {...getVariants("modalOverlay")}
+              transition={getTransition("fast")}
+              onClick={() => setIsOpen(false)}
+            />
 
-          {/* Modal Content */}
-          <motion.div
-            className="fixed inset-0 z-[1001] flex items-center justify-center"
-            {...getVariants("modalContent")}
-            transition={getTransition("primary")}
-          >
-            <div
-              className="relative w-full overflow-y-hidden border border-border/70 bg-card/95 backdrop-blur-xl p-5 md:p-8 lg:p-10 shadow-2xl break-words text-base md:text-sm"
-              style={{
-                maxWidth: width <= 768 ? "100dvw" : "70dvw",
-                height: width <= 768 ? "100dvh" : "auto",
-              }}
+            {/* Modal Content */}
+            <motion.div
+              className="fixed inset-0 z-[1001] flex items-center justify-center"
+              {...getVariants("modalContent")}
+              transition={getTransition("primary")}
             >
-              {/* Close Button */}
-              <button
-                onClick={() => setIsOpen(false)}
-                className="cursor-pointer absolute right-5 top-5 md:right-6 md:top-6 flex h-9 w-9 md:h-10 md:w-10 items-center justify-center rounded-full bg-accent/10 text-foreground hover:bg-accent/20 transition-colors"
-                aria-label="Close modal"
+              <div
+                className="relative w-full overflow-y-hidden border border-border/70 bg-card/95 backdrop-blur-xl p-5 md:p-8 lg:p-10 shadow-2xl break-words text-base md:text-sm"
+                style={{
+                  maxWidth: width <= 768 ? "100dvw" : "70dvw",
+                  height: width <= 768 ? "100dvh" : "auto",
+                }}
               >
-                <X className="h-5 w-5" />
-              </button>
+                {/* Close Button */}
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="cursor-pointer absolute right-5 top-5 md:right-6 md:top-6 flex h-9 w-9 md:h-10 md:w-10 items-center justify-center rounded-full bg-accent/10 text-foreground hover:bg-accent/20 transition-colors"
+                  aria-label="Close modal"
+                >
+                  <X className="h-5 w-5" />
+                </button>
 
-              {/* Content */}
-              <div className="flex flex-col gap-10 max-md:gap-5">
-                {/* Header */}
-                <div className="space-y-2">
-                  <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-                    {settings.company_name || "crafted anomaly"}
-                  </h2>
-                  <p className="text-muted-foreground">
-                    {settings.company_tagline ||
-                      "a design studio crafting dreams through films, spatial design, visual identity, and interactive experiences."}
-                  </p>
-                </div>
+                {/* Content */}
+                <div className="flex flex-col gap-10 max-md:gap-5">
+                  {/* Header */}
+                  <div className="space-y-2">
+                    <h2 className="text-3xl md:text-4xl font-bold text-foreground">
+                      {settings.company_name || "crafted anomaly"}
+                    </h2>
+                    <p className="text-muted-foreground">
+                      {settings.company_tagline ||
+                        "a design studio crafting dreams through films, spatial design, visual identity, and interactive experiences."}
+                    </p>
+                  </div>
 
-                {/* box 1 */}
-                <div className="flex gap-10 max-md:gap-5 max-md:flex-col">
-                  {/* About (if exists) */}
-                  {settings.about_text && (
+                  {/* box 1 */}
+                  <div className="flex gap-10 max-md:gap-5 max-md:flex-col">
+                    {/* About (if exists) */}
+                    {settings.about_text && (
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-foreground">
+                          {settings.about_title || "About"}
+                        </h3>
+                        <p className="text-muted-foreground leading-relaxed max-md:text-sm">
+                          {settings.about_text}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Contact */}
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-foreground">
-                        {settings.about_title || "About"}
+                        {settings.footer_contact_title || "Contact"}
                       </h3>
-                      <p className="text-muted-foreground leading-relaxed max-md:text-sm">
-                        {settings.about_text}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Contact */}
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {settings.footer_contact_title || "Contact"}
-                    </h3>
-                    <div className="space-y-3 max-md:text-sm">
-                      {settings.contact_email && (
-                        <a
-                          href={`mailto:${settings.contact_email}`}
-                          className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors"
-                        >
-                          <Mail className="h-5 w-5" />
-                          <span>{settings.contact_email}</span>
-                        </a>
-                      )}
-                      {settings.contact_phone && (
-                        <a
-                          href={`tel:${settings.contact_phone.replace(
-                            /\s/g,
-                            ""
-                          )}`}
-                          className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors"
-                        >
-                          <Phone className="h-5 w-5" />
-                          <span>{settings.contact_phone}</span>
-                        </a>
-                      )}
-                      {settings.contact_address && (
-                        <p className="flex items-start gap-3 text-muted-foreground">
-                          <MapPin className="h-5 w-5" />
-                          <span>{settings.contact_address}</span>
-                        </p>
-                      )}
+                      <div className="space-y-3 max-md:text-sm">
+                        {settings.contact_email && (
+                          <a
+                            href={`mailto:${settings.contact_email}`}
+                            className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors"
+                          >
+                            <Mail className="h-5 w-5" />
+                            <span>{settings.contact_email}</span>
+                          </a>
+                        )}
+                        {settings.contact_phone && (
+                          <a
+                            href={`tel:${settings.contact_phone.replace(
+                              /\s/g,
+                              ""
+                            )}`}
+                            className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors"
+                          >
+                            <Phone className="h-5 w-5" />
+                            <span>{settings.contact_phone}</span>
+                          </a>
+                        )}
+                        {settings.contact_address && (
+                          <p className="flex items-start gap-3 text-muted-foreground">
+                            <MapPin className="h-5 w-5" />
+                            <span>{settings.contact_address}</span>
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-                {/* box 2 */}
-                <div className="flex gap-10 max-md:gap-5 max-lg:flex-col">
-                  {/* Category Links */}
-                  {categories.length > 0 && (
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-foreground">
-                        categories
-                      </h3>
-                      <div className="md:grid grid-cols-1 sm:grid-cols-2 gap-3 max-md:flex max-md:flex-wrap">
-                        {categories.map((category) => (
-                          <a
-                            key={category.id}
-                            href={`/#cat-${category.slug}`}
-                            className="group flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 font-medium text-foreground/80 hover:text-accent hover:border-accent transition-colors"
-                            onClick={() => setIsOpen(false)}
-                          >
-                            <span className="max-md:text-sm">
-                              {category.name}
-                            </span>
-                            <span className="text-xs text-muted-foreground group-hover:text-accent max-md:ml-2">
-                              View
-                            </span>
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Social Links */}
-                  {socialLinks.length > 0 && (
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-foreground">
-                        social
-                      </h3>
-                      <div className="flex flex-wrap gap-3">
-                        {socialLinks.map((link) => {
-                          const Icon = link.icon;
-                          const href = link.href?.startsWith("mailto:")
-                            ? link.href
-                            : normalizeUrl(link.href);
-                          if (!href) return null;
-                          return (
+                  {/* box 2 */}
+                  <div className="flex gap-10 max-md:gap-5 max-lg:flex-col">
+                    {/* Category Links */}
+                    {categories.length > 0 && (
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-foreground">
+                          categories
+                        </h3>
+                        <div className="md:grid grid-cols-1 sm:grid-cols-2 gap-3 max-md:flex max-md:flex-wrap">
+                          {categories.map((category) => (
                             <a
-                              key={link.name}
-                              href={href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-foreground hover:bg-accent/20 hover:text-accent transition-all"
-                              aria-label={link.name}
+                              key={category.id}
+                              href={`/#cat-${category.slug}`}
+                              className="group flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 font-medium text-foreground/80 hover:text-accent hover:border-accent transition-colors"
+                              onClick={() => setIsOpen(false)}
                             >
-                              <Icon className="h-5 w-5" />
+                              <span className="max-md:text-sm">
+                                {category.name}
+                              </span>
+                              <span className="text-xs text-muted-foreground group-hover:text-accent max-md:ml-2">
+                                View
+                              </span>
                             </a>
-                          );
-                        })}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
+                    )}
 
-                {/* Copyright */}
-                <div className="pt-6 border-t border-border">
-                  <p className="text-sm text-muted-foreground text-center max-md:text-xs">
-                    © {new Date().getFullYear()}{" "}
-                    {settings.company_name || "crafted anomaly"}.{" "}
-                    {settings.footer_copyright_text || "all rights reserved"}.
-                  </p>
-                  {settings.footer_bottom_text && (
-                    <p className="text-sm text-muted-foreground text-center mt-2 max-md:text-xs">
-                      {settings.footer_bottom_text}
+                    {/* Social Links */}
+                    {socialLinks.length > 0 && (
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-foreground">
+                          social
+                        </h3>
+                        <div className="flex flex-wrap gap-3">
+                          {socialLinks.map((link) => {
+                            const Icon = link.icon;
+                            const href = link.href?.startsWith("mailto:")
+                              ? link.href
+                              : normalizeUrl(link.href);
+                            if (!href) return null;
+                            return (
+                              <a
+                                key={link.name}
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-foreground hover:bg-accent/20 hover:text-accent transition-all"
+                                aria-label={link.name}
+                              >
+                                <Icon className="h-5 w-5" />
+                              </a>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Copyright */}
+                  <div className="pt-6 border-t border-border">
+                    <p className="text-sm text-muted-foreground text-center max-md:text-xs">
+                      © {new Date().getFullYear()}{" "}
+                      {settings.company_name || "crafted anomaly"}.{" "}
+                      {settings.footer_copyright_text || "all rights reserved"}.
                     </p>
-                  )}
+                    {settings.footer_bottom_text && (
+                      <p className="text-sm text-muted-foreground text-center mt-2 max-md:text-xs">
+                        {settings.footer_bottom_text}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        </>
-        {/* )} */}
+            </motion.div>
+          </>
+        )}
       </AnimatePresence>
     </>
   );
