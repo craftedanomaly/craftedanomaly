@@ -10,6 +10,8 @@ import { HorizontalScrollIndicator } from "@/components/ui/horizontal-scroll-ind
 import { useWindowSize } from "@/hooks/useWindowSize";
 import useEmblaCarousel from "embla-carousel-react";
 import { WheelGesturesPlugin } from "embla-carousel-wheel-gestures";
+import { motion } from "framer-motion";
+
 interface Tag {
   id: string;
   slug: string;
@@ -60,6 +62,8 @@ export function CategoryPageClient({
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
   const { width, height } = useWindowSize();
   const rightSpanRef = useRef<HTMLDivElement>(null);
+  const [isScrolling, setIsScrolling] = useState<boolean>(false);
+  const [scrollLength, setScrollLength] = useState<number>(-1);
 
   const derivedTags = useMemo(() => {
     const map = new Map<string, Tag>();
@@ -194,7 +198,7 @@ export function CategoryPageClient({
 
   // Slider Script
   const [emblaRef, emblaApi] = useEmblaCarousel(
-    width > 768 ? { loop: false, skipSnaps: true } : undefined,
+    width > 768 ? { loop: false, skipSnaps: true, dragFree: true } : undefined,
     width > 768
       ? [
           WheelGesturesPlugin({
@@ -205,20 +209,35 @@ export function CategoryPageClient({
       : undefined
   );
 
-  useEffect(() => {
-    if (emblaApi) {
-      console.log(emblaApi.slideNodes()); // Access API
-    }
-  }, [emblaApi]);
-
   // Next Slide
   const scrollPrev = useCallback(() => {
+    if (!isScrolling) setIsScrolling(true);
     if (emblaApi) emblaApi.scrollPrev();
   }, [emblaApi]);
 
   // Previous Slide
   const scrollNext = useCallback(() => {
+    if (!isScrolling) setIsScrolling(true);
     if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (emblaApi) setScrollLength(emblaApi?.scrollSnapList().length);
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+
+    const onScroll = () => setIsScrolling(true);
+    // const onSettle = () => setIsScrolling(false);
+
+    emblaApi.on("scroll", onScroll);
+    // emblaApi.on("settle", onSettle);
+
+    return () => {
+      emblaApi.off("scroll", onScroll);
+      // emblaApi.off("settle", onSettle);
+    };
   }, [emblaApi]);
 
   // Catch Key Strokes for slide
@@ -246,8 +265,6 @@ export function CategoryPageClient({
   };
 
   const slides = chunkArray(filteredProjects, 4);
-
-  console.log("slides:", slides);
 
   return (
     <>
@@ -366,7 +383,10 @@ export function CategoryPageClient({
           </div>
         </div>
 
-        <div className="col-span-9 max-md:col-span-12" ref={rightSpanRef}>
+        <div
+          className="col-span-9 max-md:col-span-12 relative"
+          ref={rightSpanRef}
+        >
           <div className="embla">
             <div className="embla__viewport" ref={emblaRef}>
               <div className="embla__container max-md:flex max-md:flex-col">
@@ -399,6 +419,71 @@ export function CategoryPageClient({
 
                   return (
                     <div className="embla_slide" key={slideIndex}>
+                      {/* Scroll Hint - Only on slide */}
+                      {!isScrolling && scrollLength > 1 && (
+                        <motion.div
+                          className="absolute left-1/2 top-1/2 -translate-x-[50%] -translate-y-[50%] z-[30] pointer-events-auto cursor-pointer p-2"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.5 }}
+                          onClick={() => scrollNext()}
+                        >
+                          <div className="flex flex-col items-center gap-3">
+                            <motion.div
+                              animate={{ x: [0, 20, 0] }}
+                              transition={{
+                                duration: 1.5,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                              }}
+                              className="flex items-center gap-2 text-white"
+                            >
+                              <svg
+                                className="w-6 h-6"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 5l7 7-7 7"
+                                />
+                              </svg>
+                              <span className="text-lg font-medium">
+                                Scroll to explore
+                              </span>
+                              <svg
+                                className="w-6 h-6"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 5l7 7-7 7"
+                                />
+                              </svg>
+                            </motion.div>
+                            <motion.div className="w-32 h-1 bg-white/30 rounded-full overflow-hidden">
+                              <motion.div
+                                className="h-full bg-white rounded-full"
+                                animate={{ x: [-128, 128] }}
+                                transition={{
+                                  duration: 1.5,
+                                  repeat: Infinity,
+                                  ease: "easeInOut",
+                                }}
+                                style={{ width: "50%" }}
+                              />
+                            </motion.div>
+                          </div>
+                        </motion.div>
+                      )}
                       {/* First Row */}
                       <div className="flex max-md:flex-col">
                         {firstRow.map((project: any, index: number) => (
