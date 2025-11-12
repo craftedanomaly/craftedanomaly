@@ -193,7 +193,7 @@ export function CategoryPageClient({
 
   // Slider Script
   const [emblaRef, emblaApi] = useEmblaCarousel(
-    { loop: true, skipSnaps: true },
+    { loop: false, skipSnaps: true },
     [WheelGesturesPlugin()]
   );
 
