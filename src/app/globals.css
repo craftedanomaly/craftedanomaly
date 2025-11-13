@@ -648,8 +648,10 @@ h4,
   }
 }
 
-.lenis-scrolling iframe,
-.lenis-scrolling img,
-.lenis-scrolling a {
+html.lenis-scrolling {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
   pointer-events: none !important;
 }

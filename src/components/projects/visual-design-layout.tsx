@@ -783,6 +783,77 @@ export function VisualDesignLayout({
         style={{ height: `${(vh || 0) + rowTravel}px` }}
       />
 
+      {/* start to check */}
+      {/* <div
+        className="grid grid-cols-12 overflow-x-hidden"
+        style={{ backgroundColor, color: textColor }}
+      >
+        {/* Left Band */}
+      {/* <div className="h-screen. border-0 overflow-y-auto scrollbar-hide max-md:col-span-12 col-span-3 max-md:h-auto z-10 max-md:py-[60px]">
+          <div
+            className="relative h-full p-4 flex flex-col justify-center items-center"
+            style={{
+              paddingTop: width <= 1440 ? "40px" : "16px",
+            }}
+          >
+            <div className="relative">
+              <div className="space-y-4">
+                {project.project_type && (
+                  <div className="text-[10px] uppercase tracking-[0.3em] opacity-80 mb-2">
+                    {project.project_type}
+                  </div>
+                )}
+                <h1 className="text-4xl md:text-5xl font-black text-foreground leading-tight">
+                  {project.title}
+                </h1>
+                {project.blurb && (
+                  <p className="text-sm leading-relaxed opacity-80 mb-6">
+                    {project.blurb}
+                  </p>
+                )}
+                <div className="text-xs opacity-70 space-y-1">
+                  {categoryInfo && (
+                    <div>
+                      <b>Category:</b> {categoryInfo.name}
+                    </div>
+                  )}
+                  {project.client && (
+                    <div>
+                      <b>Client:</b> {project.client}
+                    </div>
+                  )}
+                  {project.year && (
+                    <div>
+                      <b>Year:</b> {project.year}
+                    </div>
+                  )}
+                  {project.role_en && (
+                    <div>
+                      <b>Role:</b> {project.role_en}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div> */}
+      {/* Right Band */}
+      {/* <div
+          className="col-span-9 max-md:col-span-12 relative"
+          // ref={rightSpanRef}
+        > */}
+      {/* <div className="embla">
+            <div
+              className="embla__viewport"
+              // ref={emblaRef}
+            >
+              <div className="embla__container max-md:flex max-md:flex-col"></div>
+            </div>
+          </div>
+        </div> */}
+      {/* </div>  */}
+      {/* finish to check */}
+
       {/* Fixed viewport */}
       <div
         className="fixed inset-0 z-[10000] overflow-hidden pointer-events-none"
@@ -1316,18 +1387,26 @@ function ImageSlide({
             {showVideo && videoInfo ? (
               <div className="absolute inset-0 bg-black z-20 pointer-events-auto">
                 {videoInfo.type === "direct" ? (
-                  <video
-                    ref={videoRef}
-                    src={videoInfo.url}
-                    controls
-                    autoPlay
-                    className="absolute inset-0 w-full h-full pointer-events-auto"
-                    onEnded={() => setShowVideo(false)}
-                    onPause={() => setShowVideo(false)}
-                    style={{
-                      objectFit: "contain",
-                    }}
-                  />
+                  <>
+                    <video
+                      ref={videoRef}
+                      src={videoInfo.url}
+                      // controls
+                      autoPlay
+                      className="absolute inset-0 w-full h-full pointer-events-auto"
+                      // onEnded={() => setShowVideo(false)}
+                      // onPause={() => setShowVideo(false)}
+                      style={{
+                        objectFit: "cover",
+                      }}
+                      loop
+                    />
+                    <div>
+                      <div className="flex justify-center items-center">
+                        <div className="video-controller ">hello world</div>
+                      </div>
+                    </div>
+                  </>
                 ) : (
                   <iframe
                     ref={iframeRef}

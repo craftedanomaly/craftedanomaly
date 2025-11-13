@@ -65,7 +65,16 @@ export default function ScrollProgress({ children }: ScrollProgressProps) {
       easing: (t) => 1 - Math.pow(1 - t, 3),
     });
 
-    document.documentElement.style.overflow = "hidden";
+    // document.documentElement.style.overflow = "hidden";
+
+    const style = document.createElement("style");
+    style.innerHTML = `
+      ::-webkit-scrollbar {
+        width: 0px;
+        background: transparent;
+      }
+    `;
+    document.head.appendChild(style);
 
     let rf: any;
     function raf(time: any) {
