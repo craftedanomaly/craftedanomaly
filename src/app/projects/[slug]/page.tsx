@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import ProjectDetailClient from "@/components/projects/project-detail-client";
 import { VisualDesignLayout } from "@/components/projects/visual-design-layout";
+import { NewDesignLayout } from "@/components/projects/new-design-layout";
 
 // Always resolve slugs at request time so new projects are immediately available
 export const dynamic = "force-dynamic";
@@ -158,7 +159,13 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   if (layoutType === "visual_design") {
     return (
-      <VisualDesignLayout
+      // <VisualDesignLayout
+      //   project={data.project}
+      //   media={data.media}
+      //   tags={data.tags}
+      //   blocks={data.blocks}
+      // />
+      <NewDesignLayout
         project={data.project}
         media={data.media}
         tags={data.tags}
