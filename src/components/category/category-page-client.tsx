@@ -499,7 +499,7 @@ export function CategoryPageClient({
                             style={{
                               width: widthValue,
                               height:
-                                width < 768 ? "40dvh" : `${heightValue}px`,
+                                width < 768 ? "298px" : `${heightValue}px`,
                             }}
                           >
                             <Link
@@ -587,7 +587,7 @@ export function CategoryPageClient({
                                 style={{
                                   width: widthValue,
                                   height:
-                                    width < 768 ? "40dvh" : `${heightValue}px`,
+                                    width < 768 ? "298px" : `${heightValue}px`,
                                 }}
                               >
                                 <Link
