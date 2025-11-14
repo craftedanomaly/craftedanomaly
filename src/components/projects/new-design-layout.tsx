@@ -6,7 +6,14 @@ import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { X, Clapperboard } from "lucide-react";
+import {
+  X,
+  Clapperboard,
+  CircleStop,
+  Pause,
+  Play,
+  Fullscreen,
+} from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import WheelGesturesPlugin from "embla-carousel-wheel-gestures";
 
@@ -14,6 +21,8 @@ import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { EmblaCarouselType } from "embla-carousel";
 import { useRouter } from "next/navigation";
 import ReactPlayer from "react-player";
+import screenfull from "screenfull";
+import Duration from "@/components/ui/VideoDuration";
 interface CategoryRelation {
   categories: {
     id: string;
@@ -91,7 +100,7 @@ export function NewDesignLayout({
 
   // Slider Script
   const [emblaRef, emblaApi] = useEmblaCarousel(
-    width > 1280 || coverVideoPlay
+    width > 1280
       ? {
           loop: false,
           dragFree: true,
@@ -99,7 +108,7 @@ export function NewDesignLayout({
           containScroll: "trimSnaps",
         }
       : undefined,
-    width > 1280 || coverVideoPlay
+    width > 1280
       ? [
           WheelGesturesPlugin({
             forceWheelAxis: "y",
@@ -246,6 +255,179 @@ export function NewDesignLayout({
   console.log("project media:", media);
   console.log("combined media:", combinedMedia);
   console.log("cover video:", project.cover_video_url);
+
+  // non youtube video controller states/settings
+
+  const playerRef = useRef<HTMLVideoElement | null>(null);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  const initialState = {
+    pip: false,
+    playing: false,
+    controls: false,
+    light: false,
+    volume: 1,
+    muted: false,
+    played: 0,
+    loaded: 0,
+    duration: 0,
+    playbackRate: 1.0,
+    loop: false,
+    seeking: false,
+    loadedSeconds: 0,
+    playedSeconds: 0,
+  };
+
+  type PlayerState = Omit<typeof initialState, "src"> & {
+    src?: string;
+  };
+
+  const [state, setState] = useState<PlayerState>(initialState);
+
+  const handlePlayPause = () => {
+    setState((prevState) => ({ ...prevState, playing: !prevState.playing }));
+  };
+
+  const handleStop = () => {
+    setState((prevState) => ({ ...prevState, playing: false }));
+  };
+
+  const handleToggleLoop = () => {
+    setState((prevState) => ({ ...prevState, loop: !prevState.loop }));
+  };
+
+  const handleVolumeChange = (
+    event: React.SyntheticEvent<HTMLInputElement>
+  ) => {
+    const inputTarget = event.target as HTMLInputElement;
+    setState((prevState) => ({
+      ...prevState,
+      volume: Number.parseFloat(inputTarget.value),
+    }));
+  };
+
+  const handleToggleMuted = () => {
+    setState((prevState) => ({ ...prevState, muted: !prevState.muted }));
+  };
+  const handleSetPlaybackRate = (
+    event: React.SyntheticEvent<HTMLButtonElement>
+  ) => {
+    const buttonTarget = event.target as HTMLButtonElement;
+    setState((prevState) => ({
+      ...prevState,
+      playbackRate: Number.parseFloat(`${buttonTarget.dataset.value}`),
+    }));
+  };
+
+  const handleRateChange = () => {
+    const player = playerRef.current;
+    if (!player) return;
+
+    setState((prevState) => ({
+      ...prevState,
+      playbackRate: player.playbackRate,
+    }));
+  };
+
+  const handlePlay = () => {
+    console.log("onPlay");
+    setState((prevState) => ({ ...prevState, playing: true }));
+  };
+
+  const handlePause = () => {
+    console.log("onPause");
+    setState((prevState) => ({ ...prevState, playing: false }));
+  };
+
+  const handleSeekMouseDown = () => {
+    setState((prevState) => ({ ...prevState, seeking: true }));
+  };
+
+  const handleSeekChange = (event: React.SyntheticEvent<HTMLInputElement>) => {
+    const inputTarget = event.target as HTMLInputElement;
+    setState((prevState) => ({
+      ...prevState,
+      played: Number.parseFloat(inputTarget.value),
+    }));
+  };
+
+  const handleSeekMouseUp = (event: React.SyntheticEvent<HTMLInputElement>) => {
+    const inputTarget = event.target as HTMLInputElement;
+    setState((prevState) => ({ ...prevState, seeking: false }));
+    if (playerRef.current) {
+      playerRef.current.currentTime =
+        Number.parseFloat(inputTarget.value) * playerRef.current.duration;
+    }
+  };
+
+  const handleProgress = () => {
+    const player = playerRef.current;
+    // We only want to update time slider if we are not currently seeking
+    if (!player || state.seeking || !player.buffered?.length) return;
+
+    console.log("onProgress");
+
+    setState((prevState) => ({
+      ...prevState,
+      loadedSeconds: player.buffered?.end(player.buffered?.length - 1),
+      loaded:
+        player.buffered?.end(player.buffered?.length - 1) / player.duration,
+    }));
+  };
+
+  const handleTimeUpdate = () => {
+    const player = playerRef.current;
+    // We only want to update time slider if we are not currently seeking
+    if (!player || state.seeking) return;
+
+    console.log("onTimeUpdate", player.currentTime);
+
+    if (!player.duration) return;
+
+    setState((prevState) => ({
+      ...prevState,
+      playedSeconds: player.currentTime,
+      played: player.currentTime / player.duration,
+    }));
+  };
+
+  const handleEnded = () => {
+    console.log("onEnded");
+    setState((prevState) => ({ ...prevState, playing: prevState.loop }));
+  };
+
+  const handleClickFullscreen = () => {
+    const reactPlayer = document.querySelector(".react-player");
+    if (reactPlayer) screenfull.request(reactPlayer);
+  };
+
+  const handleDurationChange = () => {
+    const player = playerRef.current;
+    if (!player) return;
+
+    console.log("onDurationChange", player.duration);
+    setState((prevState) => ({ ...prevState, duration: player.duration }));
+  };
+
+  const setPlayerRef = useCallback((player: HTMLVideoElement) => {
+    if (!player) return;
+    playerRef.current = player;
+    console.log(player);
+  }, []);
+
+  const {
+    playing,
+    controls,
+    light,
+    volume,
+    muted,
+    loop,
+    played,
+    loaded,
+    duration,
+    playbackRate,
+    pip,
+  } = state;
 
   return (
     <>
@@ -541,130 +723,441 @@ export function NewDesignLayout({
             </div>
           )}
 
-          <div className="embla">
-            <div className="embla__viewport" ref={emblaRef}>
-              <div className="embla__container max-xl:flex max-xl:flex-col">
-                {combinedMedia.map((item, i) => {
-                  const parentWidth = rightSpanRef.current?.clientWidth || 0;
+          {coverVideoPlay && project.cover_video_url ? (
+            <div className="relative h-full">
+              {project.cover_video_url.includes("youtube.com") ||
+              project.cover_video_url.includes("youtu.be") ? (
+                <ReactPlayer
+                  src={project.cover_video_url}
+                  controls // use YouTube controller
+                  muted
+                  loop
+                  width="100%"
+                  height="100%"
+                  playing
+                  style={{
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                <>
+                  <ReactPlayer
+                    className="react-player"
+                    ref={setPlayerRef}
+                    src={project.cover_video_url}
+                    pip={pip}
+                    playing={playing}
+                    controls={false}
+                    light={light}
+                    loop={loop}
+                    playbackRate={playbackRate}
+                    volume={volume}
+                    muted={muted}
+                    config={{
+                      youtube: {
+                        color: "white",
+                      },
+                      vimeo: {
+                        color: "ffffff",
+                      },
+                      spotify: {
+                        preferVideo: true,
+                      },
+                      tiktok: {
+                        fullscreen_button: true,
+                        progress_bar: true,
+                        play_button: true,
+                        volume_control: true,
+                        timestamp: false,
+                        music_info: false,
+                        description: false,
+                        rel: false,
+                        native_context_menu: true,
+                        closed_caption: false,
+                      },
+                    }}
+                    onLoadStart={() => console.log("onLoadStart")}
+                    onReady={() => console.log("onReady")}
+                    onStart={(e) => console.log("onStart", e)}
+                    onPlay={handlePlay}
+                    onPause={handlePause}
+                    onRateChange={handleRateChange}
+                    onSeeking={(e) => console.log("onSeeking", e)}
+                    onSeeked={(e) => console.log("onSeeked", e)}
+                    onEnded={handleEnded}
+                    onError={(e) => console.log("onError", e)}
+                    onTimeUpdate={handleTimeUpdate}
+                    onProgress={handleProgress}
+                    onDurationChange={handleDurationChange}
+                    width="100%"
+                    height="100%"
+                    style={{
+                      objectFit: "cover",
+                    }}
+                  />
 
-                  let widthValue = parentWidth; // %100
-                  let heightValue = height; // default fallback 100%
+                  {/* Custom Controller */}
+                  {/* <div className="absolute bottom-8 left-8">
+                    <div className="flex">
+                      <button type="button" onClick={handleStop}>
+                        Stop
+                      </button>
+                      <button type="button" onClick={handlePlayPause}>
+                        {playing ? "Pause" : "Play"}
+                      </button>
+                      <button type="button" onClick={handleClickFullscreen}>
+                        Fullscreen
+                      </button>
+                    </div>
 
-                  if (width > 1280) {
-                    widthValue = parentWidth;
-                    heightValue = height;
-                  } else {
-                    widthValue = parentWidth;
-                    heightValue = 350;
-                  }
-                  return (
-                    <div className="embla_slide " key={i}>
-                      {/* play btn for cover video */}
-                      {!coverVideoPlay &&
-                        project.cover_video_url &&
-                        item.media_type === "cover_image" && (
-                          <div
-                            className="flex gap-2 absolute z-10 bottom-8 left-8 max-xl:hidden "
-                            style={{}}
-                          >
-                            <button
-                              onClick={() => {
-                                setCoverVideoPlay(true);
-                              }}
-                              className="flex h-12 w-12 items-center justify-center rounded-full text-foreground transition-colors cursor-pointer max-xl:cursor-default hover:opacity-80"
-                              aria-label="Close menu"
-                              style={{
-                                backgroundColor: textColor,
-                              }}
-                            >
-                              <Clapperboard
-                                className="h-5 w-5"
-                                style={{ color: backgroundColor }}
-                              />
-                            </button>
-                          </div>
-                        )}
-                      {/* Scroll Pagination */}
-                      <div className="flex">
-                        <div
-                          style={{
-                            width: widthValue,
-                            height: width < 1280 ? "40dvh" : `${heightValue}px`,
-                          }}
+                    <div>Speed</div>
+                    <button
+                      type="button"
+                      onClick={handleSetPlaybackRate}
+                      data-value={1}
+                    >
+                      1x
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSetPlaybackRate}
+                      data-value={1.5}
+                    >
+                      1.5x
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSetPlaybackRate}
+                      data-value={2}
+                    >
+                      2x
+                    </button>
+                    <div>
+                      <label htmlFor="seek">Seek</label>
+                    </div>
+                    <div>
+                      <input
+                        id="seek"
+                        type="range"
+                        min={0}
+                        max={0.999999}
+                        step="any"
+                        value={played}
+                        onMouseDown={handleSeekMouseDown}
+                        onChange={handleSeekChange}
+                        onMouseUp={handleSeekMouseUp}
+                      />
+                    </div>
+                    <div>Volume</div>
+                    <input
+                      id="volume"
+                      type="range"
+                      min={0}
+                      max={1}
+                      step="any"
+                      value={volume}
+                      onChange={handleVolumeChange}
+                    />
+
+                    <div>Muted</div>
+                    <input
+                      id="muted"
+                      type="checkbox"
+                      checked={muted}
+                      onChange={handleToggleMuted}
+                    />
+
+                    <div>Loop</div>
+                    <input
+                      id="loop"
+                      type="checkbox"
+                      checked={loop}
+                      onChange={handleToggleLoop}
+                    />
+                    <div>Played</div>
+                    <progress max={1} value={played} />
+                    <div>Loaded</div>
+                    <progress max={1} value={loaded} />
+
+                    <div>Duration</div>
+                    <Duration seconds={duration * played} />
+                    <div>Remaining</div>
+                    <Duration seconds={duration * (1 - played)} />
+                  </div> */}
+
+                  <div className="absolute bottom-0 right-0 w-80">
+                    {/* Controller Header */}
+                    <div
+                      onClick={() => setIsOpen(!isOpen)}
+                      className="text-white px-4 py-2 cursor-pointer select-none flex justify-between items-center backdrop-blur-md backdrop-brightness-150 shadow-lg rounded-tl-2xl overflow-hidden border-r-0 border-b-0"
+                      style={{
+                        borderLeft: "2px solid rgba(0,0,0,0.2)",
+                        borderTop: "2px solid rgba(0,0,0,0.2)",
+                      }}
+                    >
+                      <span className="text-sm">Controller</span>
+                      <span className="text-sm">{isOpen ? "−" : "+"}</span>
+                    </div>
+
+                    {/* Controller Content with smooth animation */}
+                    <div
+                      className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                        isOpen
+                          ? "max-h-[1000px] opacity-100 p-4"
+                          : "max-h-0 opacity-0"
+                      } bg-gray-950/80 rounded-b-lg shadow-lg backdrop-blur-md text-white space-y-4 backdrop-brightness-150 `}
+                    >
+                      {/* Controller */}
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleStop}
+                          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-md transition"
                         >
-                          <div
-                            className={`relative w-full h-full  ${
-                              project.slug === "otis-tarda" ? "bg-black" : ""
+                          <CircleStop width={20} height={20} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handlePlayPause}
+                          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-md transition"
+                        >
+                          {playing ? (
+                            <Pause width={20} height={20} />
+                          ) : (
+                            <Play width={20} height={20} />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleClickFullscreen}
+                          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-md transition"
+                        >
+                          <Fullscreen width={20} height={20} />
+                        </button>
+                      </div>
+
+                      {/* Speed */}
+                      <div className="flex items-center gap-2">
+                        {[1, 1.5, 2].map((rate) => (
+                          <button
+                            key={rate}
+                            type="button"
+                            onClick={handleSetPlaybackRate}
+                            data-value={rate}
+                            className={`px-2 text-xs py-1 rounded-md transition ${
+                              playbackRate === rate
+                                ? "bg-gray-700 border border-transparent"
+                                : "border hover:bg-gray-700 transition-all duration-300 cursor-pointer "
                             }`}
                           >
-                            {project.cover_video_url && coverVideoPlay && (
-                              <>
-                                {project.cover_video_url.includes(
-                                  "youtube.com"
-                                ) ||
-                                project.cover_video_url.includes("youtu.be") ? (
-                                  <ReactPlayer
-                                    src={project.cover_video_url}
-                                    controls // use YouTube controller
-                                    muted
-                                    loop
-                                    width="100%"
-                                    height="100%"
-                                    playing
-                                  />
-                                ) : (
-                                  <ReactPlayer
-                                    src={project.cover_video_url}
-                                    controls={true} // use Custom controller
-                                    muted
-                                    loop
-                                    width="100%"
-                                    height="100%"
-                                    playing
-                                  />
-                                  /* build Custom controller */
-                                )}
-                              </>
-                            )}
+                            {rate}x
+                          </button>
+                        ))}
+                      </div>
 
-                            {!coverVideoPlay && (
-                              <>
-                                {item.media_type === "cover_image" &&
-                                item.media_url ? (
-                                  <Image
-                                    src={item.media_url}
-                                    alt={`${project.title} + media ${i} + url ${item.media_url}`}
-                                    fill
-                                    className={`${
-                                      project.slug === "otis-tarda"
-                                        ? "object-contain"
-                                        : "object-cover"
-                                    }`}
-                                  />
-                                ) : item.media_type === "image" &&
+                      {/* Seek */}
+                      <div>
+                        <label
+                          htmlFor="seek"
+                          className="block text-xs mb-1 text-gray-400"
+                        >
+                          Seek
+                        </label>
+                        <div className="video-timeline">
+                          <input
+                            id="seek"
+                            type="range"
+                            min={0}
+                            max={0.999999}
+                            step="any"
+                            value={played}
+                            onMouseDown={handleSeekMouseDown}
+                            onChange={handleSeekChange}
+                            onMouseUp={handleSeekMouseUp}
+                            className="w-full h-2 rounded-lg smooth-seek"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Volume */}
+                      <div>
+                        <label
+                          htmlFor="volume"
+                          className="block text-xs mb-1 text-gray-400"
+                        >
+                          Volume
+                        </label>
+                        <input
+                          id="volume"
+                          type="range"
+                          min={0}
+                          max={1}
+                          step="any"
+                          value={volume}
+                          onChange={handleVolumeChange}
+                          className="w-full h-2 rounded-lg smooth-volume"
+                        />
+                      </div>
+
+                      {/* Muted & Loop */}
+                      <div className="flex gap-4 items-center">
+                        <label className="flex items-center gap-1 text-xs text-gray-400">
+                          <input
+                            type="checkbox"
+                            checked={muted}
+                            onChange={handleToggleMuted}
+                            className="accent-red-600"
+                          />
+                          Muted
+                        </label>
+                        <label className="flex items-center gap-1 text-xs text-gray-400">
+                          <input
+                            type="checkbox"
+                            checked={loop}
+                            onChange={handleToggleLoop}
+                            className="accent-yellow-600"
+                          />
+                          Loop
+                        </label>
+                      </div>
+
+                      {/* Progress Bars */}
+                      {/* <div> */}
+                      {/* <div className="flex justify-between text-xs mb-1">
+                          <label className="block text-xs mb-1 text-gray-400">
+                            Played
+                          </label>
+                          <label className="block text-xs mb-1 text-gray-400">
+                            Loaded
+                          </label>
+                        </div> */}
+                      {/* <div className="flex gap-2">
+                          <progress
+                            max={1}
+                            value={played}
+                            className="w-1/2 h-2 rounded-lg bg-gray-700 accent-blue-400"
+                          />
+                          <progress
+                            max={1}
+                            value={loaded}
+                            className="w-1/2 h-2 rounded-lg bg-gray-700 accent-green-400"
+                          />
+                        </div> */}
+                      {/* </div> */}
+
+                      {/* Duration & Remaining */}
+                      <div className="flex justify-between text-xs text-gray-400">
+                        <span>
+                          Duration: <Duration seconds={duration * played} />
+                        </span>
+                        <span>
+                          Remaining:{" "}
+                          <Duration seconds={duration * (1 - played)} />
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="embla">
+              <div className="embla__viewport" ref={emblaRef}>
+                <div className="embla__container max-xl:flex max-xl:flex-col">
+                  {combinedMedia.map((item, i) => {
+                    const parentWidth = rightSpanRef.current?.clientWidth || 0;
+
+                    let widthValue = parentWidth; // %100
+                    let heightValue = height; // default fallback 100%
+
+                    if (width > 1280) {
+                      widthValue = parentWidth;
+                      heightValue = height;
+                    } else {
+                      widthValue = parentWidth;
+                      heightValue = 350;
+                    }
+                    return (
+                      <div className="embla_slide " key={i}>
+                        {/* play btn for cover video */}
+                        {!coverVideoPlay &&
+                          project.cover_video_url &&
+                          item.media_type === "cover_image" && (
+                            <div
+                              className="flex gap-2 absolute z-10 bottom-8 left-8 max-xl:hidden "
+                              style={{}}
+                            >
+                              <button
+                                onClick={() => {
+                                  setCoverVideoPlay(true);
+                                  handlePlayPause();
+                                  setIsOpen(true);
+                                }}
+                                className="flex h-12 w-12 items-center justify-center rounded-full text-foreground transition-colors cursor-pointer max-xl:cursor-default hover:opacity-80"
+                                aria-label="Close menu"
+                                style={{
+                                  backgroundColor: textColor,
+                                }}
+                              >
+                                <Clapperboard
+                                  className="h-5 w-5"
+                                  style={{ color: backgroundColor }}
+                                />
+                              </button>
+                            </div>
+                          )}
+                        <div className="flex">
+                          <div
+                            style={{
+                              width: widthValue,
+                              height:
+                                width < 1280 ? "40dvh" : `${heightValue}px`,
+                            }}
+                          >
+                            <div
+                              className={`relative w-full h-full  ${
+                                project.slug === "otis-tarda" ? "bg-black" : ""
+                              }`}
+                            >
+                              {!coverVideoPlay && (
+                                <>
+                                  {item.media_type === "cover_image" &&
                                   item.media_url ? (
-                                  <Image
-                                    src={item.media_url}
-                                    alt={`${project.title} + media ${i} + url ${item.media_url}`}
-                                    fill
-                                    className={`${
-                                      project.slug === "otis-tarda"
-                                        ? "object-contain"
-                                        : "object-cover"
-                                    }`}
-                                  />
-                                ) : null}
-                              </>
-                            )}
+                                    <Image
+                                      src={item.media_url}
+                                      alt={`${project.title} + media ${i} + url ${item.media_url}`}
+                                      fill
+                                      className={`${
+                                        project.slug === "otis-tarda"
+                                          ? "object-contain"
+                                          : "object-cover"
+                                      }`}
+                                    />
+                                  ) : item.media_type === "image" &&
+                                    item.media_url ? (
+                                    <Image
+                                      src={item.media_url}
+                                      alt={`${project.title} + media ${i} + url ${item.media_url}`}
+                                      fill
+                                      className={`${
+                                        project.slug === "otis-tarda"
+                                          ? "object-contain"
+                                          : "object-cover"
+                                      }`}
+                                    />
+                                  ) : null}
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </>
