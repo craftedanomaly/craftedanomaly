@@ -663,3 +663,95 @@ html.lenis-scrolling {
 .embla__container {
   transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
+
+.seek-range {
+  -webkit-appearance: none;
+  width: 100%;
+  background: transparent;
+}
+
+/* TRACK (Chrome / Safari / Edge) */
+.timeline-wrapper {
+  width: 100%;
+  position: relative;
+}
+
+.smooth-seek {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: #333;
+  border-radius: 3px;
+  outline: none;
+  overflow: hidden;
+  --progress: 0%;
+  position: relative;
+}
+
+/* seek */
+.smooth-seek::-webkit-slider-runnable-track {
+  height: 6px;
+  background: linear-gradient(
+    to right,
+    #ff0000 var(--progress),
+    #333 var(--progress)
+  );
+  border-radius: 3px;
+  transition: background 0.18s linear; /* YUMUŞAK GEÇİŞ */
+}
+
+/* Thumb */
+.smooth-seek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #ff0000;
+  border-radius: 50%;
+  cursor: pointer;
+  margin-top: -5px;
+
+  transition: transform 0.15s ease;
+}
+
+.smooth-seek:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+
+/* Firefox */
+.smooth-seek::-moz-range-track {
+  height: 6px;
+  background: #333;
+}
+
+.smooth-seek::-moz-range-progress {
+  height: 6px;
+  background: #ff0000;
+  transition: width 0.18s linear;
+}
+
+.smooth-seek::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #ff0000;
+  border-radius: 50%;
+  transition: transform 0.15s ease;
+}
+
+/* volume */
+.smooth-volume {
+  -webkit-appearance: none;
+  width: 100%;
+  background: transparent;
+}
+
+.smooth-volume {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: #333;
+  border-radius: 3px;
+  outline: none;
+  overflow: hidden;
+  --progress: 0%;
+  position: relative;
+}
