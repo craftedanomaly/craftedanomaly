@@ -12,7 +12,7 @@ import WheelGesturesPlugin from "embla-carousel-wheel-gestures";
 
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { EmblaCarouselType } from "embla-carousel";
-
+import { useRouter } from "next/navigation";
 interface CategoryRelation {
   categories: {
     id: string;
@@ -77,6 +77,8 @@ export function NewDesignLayout({
   const backgroundColor = project.background_color || "#0b0b0c";
   const textColor = (project as any).text_color || "#ffffff";
   const categoryInfo = project.project_categories?.[0]?.categories;
+
+  const router = useRouter();
 
   useEffect(() => {
     document.body.classList.add("hide-header");
@@ -163,8 +165,6 @@ export function NewDesignLayout({
       .on("slideFocus", onScroll);
   }, [emblaApi, onScroll]);
 
-  console.log("scroll progress:", scrollProgress);
-
   // Catch Key Strokes for slide
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === "ArrowLeft") {
@@ -209,9 +209,7 @@ export function NewDesignLayout({
     // ...coverVideoMedia,
     ...coverImageMedia,
     ...processedMedia,
-  ];
-
-  console.log("project:", project);
+  ]?.filter((i) => i.media_url !== "failed");
 
   // Smooth progress pagination
   // component top-level
@@ -223,6 +221,9 @@ export function NewDesignLayout({
   }, [scrollProgress, scrollMotion]);
 
   const segmentCount = combinedMedia.length;
+
+  console.log("project media:", media);
+  console.log("combined media:", combinedMedia);
 
   return (
     <>
@@ -253,11 +254,14 @@ export function NewDesignLayout({
 
             {/* navigate -1 button */}
             <button
-              // onClick={() => (false)}
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 text-foreground hover:bg-accent/20 transition-colors cursor-pointer max-xl:cursor-default"
+              onClick={() => router.push("/")}
+              className="flex h-12 w-12 items-center justify-center rounded-full text-foreground transition-colors cursor-pointer max-xl:cursor-default hover:opacity-80"
               aria-label="Close menu"
+              style={{
+                backgroundColor: textColor,
+              }}
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5" style={{ color: backgroundColor }} />
             </button>
           </div>
         </div>
@@ -535,7 +539,8 @@ export function NewDesignLayout({
                               project.slug === "otis-tarda" ? "bg-black" : ""
                             }`}
                           >
-                            {item.media_type === "cover_image" ? (
+                            {item.media_type === "cover_image" &&
+                            item.media_url ? (
                               <Image
                                 src={item.media_url}
                                 alt={`${project.title} + media ${i} + url ${item.media_url}`}
@@ -546,7 +551,8 @@ export function NewDesignLayout({
                                     : "object-cover"
                                 }`}
                               />
-                            ) : item.media_type === "image" ? (
+                            ) : item.media_type === "image" &&
+                              item.media_url ? (
                               <Image
                                 src={item.media_url}
                                 alt={`${project.title} + media ${i} + url ${item.media_url}`}
