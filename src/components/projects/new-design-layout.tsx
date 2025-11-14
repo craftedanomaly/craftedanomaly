@@ -6,13 +6,14 @@ import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
+import { X, Clapperboard } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import WheelGesturesPlugin from "embla-carousel-wheel-gestures";
 
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { EmblaCarouselType } from "embla-carousel";
 import { useRouter } from "next/navigation";
+import ReactPlayer from "react-player";
 interface CategoryRelation {
   categories: {
     id: string;
@@ -79,6 +80,7 @@ export function NewDesignLayout({
   const categoryInfo = project.project_categories?.[0]?.categories;
 
   const router = useRouter();
+  const [coverVideoPlay, setCoverVideoPlay] = useState<boolean>(false);
 
   useEffect(() => {
     document.body.classList.add("hide-header");
@@ -191,25 +193,14 @@ export function NewDesignLayout({
       ]
     : [];
 
-  const coverVideoMedia = project.cover_video_url
-    ? [
-        {
-          media_type: "cover_video",
-          media_url: project.cover_video_url,
-        },
-      ]
-    : [];
-
   const processedMedia = media.map((m) => ({
     media_type: m.media_type === "image" ? "image" : "video",
     media_url: m.url ? m.url : "failed",
   }));
 
-  const combinedMedia = [
-    // ...coverVideoMedia,
-    ...coverImageMedia,
-    ...processedMedia,
-  ]?.filter((i) => i.media_url !== "failed");
+  const combinedMedia = [...coverImageMedia, ...processedMedia]?.filter(
+    (i) => i.media_url !== "failed"
+  );
 
   // Smooth progress pagination
   // component top-level
@@ -222,13 +213,44 @@ export function NewDesignLayout({
 
   const segmentCount = combinedMedia.length;
 
+  // Segment progress
+  // loop öncesi
+  const segmentProgresses = combinedMedia.map((_, index) =>
+    useTransform(
+      normalizedProgress,
+      [index / segmentCount, (index + 1) / segmentCount],
+      [0, 1]
+    )
+  );
+
+  const segmentOpacities = combinedMedia.map((_, index) =>
+    useTransform(
+      normalizedProgress,
+      [
+        index / segmentCount - 0.1,
+        index / segmentCount,
+        (index + 1) / segmentCount,
+        (index + 1) / segmentCount + 0.1,
+      ],
+      [0.2, 0.8, 0.8, 0.2]
+    )
+  );
+
+  const smoothSegmentProgresses = segmentProgresses.map((p) =>
+    useSpring(p, { stiffness: 120, damping: 25, mass: 0.7, restDelta: 0.001 })
+  );
+  const smoothSegmentOpacities = segmentOpacities.map((o) =>
+    useSpring(o, { stiffness: 120, damping: 25, mass: 0.7, restDelta: 0.001 })
+  );
+
   console.log("project media:", media);
   console.log("combined media:", combinedMedia);
+  console.log("cover video:", project.cover_video_url);
 
   return (
     <>
       {/* customized div as header */}
-      <div className="absolute top-0 left-0 right-0 z-50 w-full bg-transparent">
+      <div className="absolute top-0 left-0 right-0 z-50 w-full bg-transparent ">
         <div
           className="w-full"
           style={{ paddingLeft: "1%", paddingRight: "1%" }}
@@ -254,7 +276,13 @@ export function NewDesignLayout({
 
             {/* navigate -1 button */}
             <button
-              onClick={() => router.push("/")}
+              onClick={() => {
+                if (coverVideoPlay) {
+                  setCoverVideoPlay(false);
+                } else {
+                  router.push("/");
+                }
+              }}
               className="flex h-12 w-12 items-center justify-center rounded-full text-foreground transition-colors cursor-pointer max-xl:cursor-default hover:opacity-80"
               aria-label="Close menu"
               style={{
@@ -267,7 +295,7 @@ export function NewDesignLayout({
         </div>
       </div>
       <div
-        className="grid grid-cols-12 overflow-x-hidden"
+        className="grid grid-cols-12 overflow-x-hidden z-[61]"
         style={{
           backgroundColor,
           color: textColor,
@@ -376,9 +404,9 @@ export function NewDesignLayout({
           ref={rightSpanRef}
         >
           {/* Scroll Hint - Only on slide */}
-          {!isScrolling && scrollLength > 1 && (
+          {!isScrolling && scrollLength > 1 && !coverVideoPlay && (
             <motion.div
-              className="absolute left-1/2 top-1/2 -translate-x-[50%] -translate-y-[50%] z-[30] pointer-events-auto cursor-pointer p-2"
+              className="absolute left-1/2 top-1/2 -translate-x-[50%] -translate-y-[50%] z-[30] pointer-events-auto cursor-pointer p-2 max-xl:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -440,74 +468,102 @@ export function NewDesignLayout({
           )}
 
           {/* Scroll Progress */}
-          <div className="flex gap-2 absolute z-10 bottom-8 left-1/2 -translate-x-[50%] max-xl:hidden">
-            <div className="flex items-center gap-1.5">
-              {combinedMedia.map((_, index) => {
-                const segmentStart = index / segmentCount;
-                const segmentEnd = (index + 1) / segmentCount;
+          {!coverVideoPlay && (
+            <div className="flex gap-2 absolute z-10 bottom-8 left-1/2 -translate-x-[50%] max-xl:hidden">
+              <div className="flex items-center gap-1.5">
+                {combinedMedia.map((_, index) => {
+                  // const segmentStart = index / segmentCount;
+                  // const segmentEnd = (index + 1) / segmentCount;
 
-                const segmentProgress = useTransform(
-                  normalizedProgress,
-                  [segmentStart, segmentEnd],
-                  [0, 1]
-                );
+                  // const segmentProgress = useTransform(
+                  //   normalizedProgress,
+                  //   [segmentStart, segmentEnd],
+                  //   [0, 1]
+                  // );
 
-                const segmentOpacity = useTransform(
-                  normalizedProgress,
-                  [
-                    segmentStart - 0.1, // fade-in start
-                    segmentStart, // fade-in completed
-                    segmentEnd, // during segment opacity
-                    segmentEnd + 0.1, // fade-out start
-                  ],
-                  [0.2, 0.8, 0.8, 0.2]
-                );
+                  // const segmentOpacity = useTransform(
+                  //   normalizedProgress,
+                  //   [
+                  //     segmentStart - 0.1, // fade-in start
+                  //     segmentStart, // fade-in completed
+                  //     segmentEnd, // during segment opacity
+                  //     segmentEnd + 0.1, // fade-out start
+                  //   ],
+                  //   [0.2, 0.8, 0.8, 0.2]
+                  // );
 
-                const smoothSegmentProgress = useSpring(segmentProgress, {
-                  stiffness: 120,
-                  damping: 25,
-                  mass: 0.7,
-                  restDelta: 0.001,
-                });
+                  // const smoothSegmentProgress = useSpring(segmentProgress, {
+                  //   stiffness: 120,
+                  //   damping: 25,
+                  //   mass: 0.7,
+                  //   restDelta: 0.001,
+                  // });
 
-                const smoothSegmentOpacity = useSpring(segmentOpacity, {
-                  stiffness: 120,
-                  damping: 25,
-                  mass: 0.7,
-                  restDelta: 0.001,
-                });
-                return (
-                  <button
-                    key={index}
-                    onClick={() => emblaApi?.scrollTo(index)}
-                    className="relative h-1.5 w-8 rounded-full cursor-pointer overflow-hidden"
-                  >
-                    {/* bg */}
-                    <motion.div
-                      className="absolute inset-0 rounded-full"
-                      style={{
-                        backgroundColor: textColor,
-                        opacity:
-                          scrollProgress === 0 && index === 0
-                            ? 0.8
-                            : smoothSegmentOpacity,
-                      }}
-                    />
+                  // const smoothSegmentOpacity = useSpring(segmentOpacity, {
+                  //   stiffness: 120,
+                  //   damping: 25,
+                  //   mass: 0.7,
+                  //   restDelta: 0.001,
+                  // });
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => emblaApi?.scrollTo(index)}
+                      className="relative h-1.5 w-8 rounded-full cursor-pointer overflow-hidden"
+                    >
+                      {/* bg */}
+                      <motion.div
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                          backgroundColor: textColor,
+                          opacity:
+                            scrollProgress === 0 && index === 0
+                              ? 0.8
+                              : // : smoothSegmentOpacity,
+                                smoothSegmentOpacities[index],
+                        }}
+                      />
 
-                    {/* dynamic progress */}
-                    <motion.div
-                      className="absolute inset-0 rounded-full origin-left"
-                      style={{
-                        scaleX: smoothSegmentProgress,
-                        backgroundColor: textColor,
-                        opacity: 1,
-                      }}
-                    />
-                  </button>
-                );
-              })}
+                      {/* dynamic progress */}
+                      <motion.div
+                        className="absolute inset-0 rounded-full origin-left"
+                        style={{
+                          // scaleX: smoothSegmentProgress,
+                          scaleX: smoothSegmentProgresses[index],
+                          backgroundColor: textColor,
+                          opacity: 1,
+                        }}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
+
+          {!coverVideoPlay && project.cover_video_url && (
+            <div
+              className="flex gap-2 absolute z-10 bottom-8 left-8 max-xl:hidden "
+              style={{}}
+            >
+              <button
+                onClick={() => {
+                  setCoverVideoPlay(true);
+                }}
+                className="flex h-12 w-12 items-center justify-center rounded-full text-foreground transition-colors cursor-pointer max-xl:cursor-default hover:opacity-80"
+                aria-label="Close menu"
+                style={{
+                  backgroundColor: textColor,
+                }}
+              >
+                <Clapperboard
+                  className="h-5 w-5"
+                  style={{ color: backgroundColor }}
+                />
+              </button>
+            </div>
+          )}
+
           <div className="embla">
             <div className="embla__viewport" ref={emblaRef}>
               <div className="embla__container max-xl:flex max-xl:flex-col">
@@ -525,7 +581,7 @@ export function NewDesignLayout({
                     heightValue = 350;
                   }
                   return (
-                    <div className="embla_slide" key={i}>
+                    <div className="embla_slide " key={i}>
                       {/* Scroll Pagination */}
                       <div className="flex">
                         <div
@@ -535,35 +591,69 @@ export function NewDesignLayout({
                           }}
                         >
                           <div
-                            className={`relative w-full h-full ${
+                            className={`relative w-full h-full  ${
                               project.slug === "otis-tarda" ? "bg-black" : ""
                             }`}
                           >
-                            {item.media_type === "cover_image" &&
-                            item.media_url ? (
-                              <Image
-                                src={item.media_url}
-                                alt={`${project.title} + media ${i} + url ${item.media_url}`}
-                                fill
-                                className={`${
-                                  project.slug === "otis-tarda"
-                                    ? "object-contain"
-                                    : "object-cover"
-                                }`}
-                              />
-                            ) : item.media_type === "image" &&
-                              item.media_url ? (
-                              <Image
-                                src={item.media_url}
-                                alt={`${project.title} + media ${i} + url ${item.media_url}`}
-                                fill
-                                className={`${
-                                  project.slug === "otis-tarda"
-                                    ? "object-contain"
-                                    : "object-cover"
-                                }`}
-                              />
-                            ) : null}
+                            {project.cover_video_url && coverVideoPlay && (
+                              <>
+                                {project.cover_video_url.includes(
+                                  "youtube.com"
+                                ) ||
+                                project.cover_video_url.includes("youtu.be") ? (
+                                  <ReactPlayer
+                                    src={project.cover_video_url}
+                                    controls // use YouTube controller
+                                    muted
+                                    loop
+                                    width="100%"
+                                    height="100%"
+                                    playing
+                                  />
+                                ) : (
+                                  <ReactPlayer
+                                    src={project.cover_video_url}
+                                    controls={true} // use Custom controller
+                                    muted
+                                    loop
+                                    width="100%"
+                                    height="100%"
+                                    playing
+                                  />
+                                  /* build Custom controller */
+                                )}
+                              </>
+                            )}
+
+                            {!coverVideoPlay && (
+                              <>
+                                {item.media_type === "cover_image" &&
+                                item.media_url ? (
+                                  <Image
+                                    src={item.media_url}
+                                    alt={`${project.title} + media ${i} + url ${item.media_url}`}
+                                    fill
+                                    className={`${
+                                      project.slug === "otis-tarda"
+                                        ? "object-contain"
+                                        : "object-cover"
+                                    }`}
+                                  />
+                                ) : item.media_type === "image" &&
+                                  item.media_url ? (
+                                  <Image
+                                    src={item.media_url}
+                                    alt={`${project.title} + media ${i} + url ${item.media_url}`}
+                                    fill
+                                    className={`${
+                                      project.slug === "otis-tarda"
+                                        ? "object-contain"
+                                        : "object-cover"
+                                    }`}
+                                  />
+                                ) : null}
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
