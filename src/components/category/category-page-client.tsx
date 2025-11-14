@@ -198,7 +198,14 @@ export function CategoryPageClient({
 
   // Slider Script
   const [emblaRef, emblaApi] = useEmblaCarousel(
-    width > 768 ? { loop: false, skipSnaps: true, dragFree: true } : undefined,
+    width > 768
+      ? {
+          loop: false,
+          dragFree: true,
+          dragThreshold: 50,
+          containScroll: "trimSnaps",
+        }
+      : undefined,
     width > 768
       ? [
           WheelGesturesPlugin({
