@@ -198,6 +198,10 @@ body {
   pointer-events: none;
 }
 
+.hide-header header {
+  display: none !important;
+}
+
 @keyframes animateGrain {
   0%,
   100% {
@@ -654,4 +658,8 @@ html.lenis-scrolling {
   -ms-user-select: none !important;
   user-select: none !important;
   pointer-events: none !important;
+}
+
+.embla__container {
+  transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
