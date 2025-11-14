@@ -191,7 +191,7 @@ export function OurWorksSection({
                   className="relative mx-auto overflow-hidden shadow-2xl cursor-pointer pointer-events-auto max-md:rounded-none md:border-t-2 md:border-b-2"
                   style={{
                     width: width < 768 ? "100%" : "100%",
-                    minHeight: width < 768 ? "40dvh" : "100dvh",
+                    minHeight: width < 768 ? "298px" : "100dvh",
                     borderColor,
                   }}
                 >

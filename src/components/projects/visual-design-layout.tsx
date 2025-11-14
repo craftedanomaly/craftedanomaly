@@ -671,7 +671,7 @@ export function VisualDesignLayout({
                       key={item.img.id}
                       className="relative w-full"
                       style={{
-                        height: width < 768 ? "40dvh" : "auto",
+                        height: width < 768 ? "298px" : "auto",
                       }}
                     >
                       <div
