@@ -49,7 +49,7 @@ export function Header() {
   const categoryVideoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
 
   useEffect(() => {
-    fetchLogoSettings();
+    // fetchLogoSettings();
     fetchCategories();
   }, []);
 
