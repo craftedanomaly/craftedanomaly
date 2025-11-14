@@ -91,7 +91,7 @@ export function NewDesignLayout({
 
   // Slider Script
   const [emblaRef, emblaApi] = useEmblaCarousel(
-    width > 1280
+    width > 1280 || coverVideoPlay
       ? {
           loop: false,
           dragFree: true,
@@ -99,7 +99,7 @@ export function NewDesignLayout({
           containScroll: "trimSnaps",
         }
       : undefined,
-    width > 1280
+    width > 1280 || coverVideoPlay
       ? [
           WheelGesturesPlugin({
             forceWheelAxis: "y",
@@ -541,29 +541,6 @@ export function NewDesignLayout({
             </div>
           )}
 
-          {!coverVideoPlay && project.cover_video_url && (
-            <div
-              className="flex gap-2 absolute z-10 bottom-8 left-8 max-xl:hidden "
-              style={{}}
-            >
-              <button
-                onClick={() => {
-                  setCoverVideoPlay(true);
-                }}
-                className="flex h-12 w-12 items-center justify-center rounded-full text-foreground transition-colors cursor-pointer max-xl:cursor-default hover:opacity-80"
-                aria-label="Close menu"
-                style={{
-                  backgroundColor: textColor,
-                }}
-              >
-                <Clapperboard
-                  className="h-5 w-5"
-                  style={{ color: backgroundColor }}
-                />
-              </button>
-            </div>
-          )}
-
           <div className="embla">
             <div className="embla__viewport" ref={emblaRef}>
               <div className="embla__container max-xl:flex max-xl:flex-col">
@@ -582,6 +559,31 @@ export function NewDesignLayout({
                   }
                   return (
                     <div className="embla_slide " key={i}>
+                      {/* play btn for cover video */}
+                      {!coverVideoPlay &&
+                        project.cover_video_url &&
+                        item.media_type === "cover_image" && (
+                          <div
+                            className="flex gap-2 absolute z-10 bottom-8 left-8 max-xl:hidden "
+                            style={{}}
+                          >
+                            <button
+                              onClick={() => {
+                                setCoverVideoPlay(true);
+                              }}
+                              className="flex h-12 w-12 items-center justify-center rounded-full text-foreground transition-colors cursor-pointer max-xl:cursor-default hover:opacity-80"
+                              aria-label="Close menu"
+                              style={{
+                                backgroundColor: textColor,
+                              }}
+                            >
+                              <Clapperboard
+                                className="h-5 w-5"
+                                style={{ color: backgroundColor }}
+                              />
+                            </button>
+                          </div>
+                        )}
                       {/* Scroll Pagination */}
                       <div className="flex">
                         <div
