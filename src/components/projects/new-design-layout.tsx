@@ -1111,7 +1111,7 @@ export function NewDesignLayout({
                             style={{
                               width: widthValue,
                               height:
-                                width < 1280 ? "40dvh" : `${heightValue}px`,
+                                width < 1280 ? "298px" : `${heightValue}px`,
                             }}
                           >
                             <div
