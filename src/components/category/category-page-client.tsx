@@ -64,6 +64,7 @@ export function CategoryPageClient({
   const rightSpanRef = useRef<HTMLDivElement>(null);
   const [isScrolling, setIsScrolling] = useState<boolean>(false);
   const [scrollLength, setScrollLength] = useState<number>(-1);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
 
   const derivedTags = useMemo(() => {
     const map = new Map<string, Tag>();
@@ -425,7 +426,13 @@ export function CategoryPageClient({
                   }
 
                   return (
-                    <div className="embla_slide" key={slideIndex}>
+                    <div
+                      className="embla_slide [*]:cursor-inherit"
+                      key={slideIndex}
+                      onMouseDown={() => setIsDragging(true)}
+                      onMouseUp={() => setIsDragging(false)}
+                      style={{ cursor: isDragging ? "grabbing" : "grab" }}
+                    >
                       {/* Scroll Hint - Only on slide */}
                       {!isScrolling && scrollLength > 1 && (
                         <motion.div
@@ -519,6 +526,7 @@ export function CategoryPageClient({
                                   index
                                 );
                               }}
+                              style={{ cursor: "inherit" }}
                             >
                               <div className="relative w-full h-full overflow-hidden bg-card">
                                 <Image
@@ -611,6 +619,7 @@ export function CategoryPageClient({
                                       index + firstRow.length
                                     );
                                   }}
+                                  style={{ cursor: "inherit" }}
                                 >
                                   <div className="relative w-full h-full overflow-hidden bg-card">
                                     <Image

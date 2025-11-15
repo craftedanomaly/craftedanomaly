@@ -23,6 +23,8 @@ import { useRouter } from "next/navigation";
 import ReactPlayer from "react-player";
 import screenfull from "screenfull";
 import Duration from "@/components/ui/VideoDuration";
+import Controller from "@/components/ui/controller";
+import Controller2 from "@/components/ui/controller-2";
 interface CategoryRelation {
   categories: {
     id: string;
@@ -36,6 +38,7 @@ interface MediaItem {
   media_type: "cover_image" | "cover_video" | "image" | "video";
   media_url: string;
   url: string;
+  display_order: number;
 }
 
 interface VisualDesignLayoutProps {
@@ -90,6 +93,8 @@ export function NewDesignLayout({
 
   const router = useRouter();
   const [coverVideoPlay, setCoverVideoPlay] = useState<boolean>(false);
+
+  const [isDragging, setIsDragging] = useState<boolean>(false);
 
   useEffect(() => {
     document.body.classList.add("hide-header");
@@ -205,6 +210,7 @@ export function NewDesignLayout({
   const processedMedia = media.map((m) => ({
     media_type: m.media_type === "image" ? "image" : "video",
     media_url: m.url ? m.url : "failed",
+    display_order: m.display_order,
   }));
 
   const combinedMedia = [...coverImageMedia, ...processedMedia]?.filter(
@@ -429,6 +435,8 @@ export function NewDesignLayout({
     pip,
   } = state;
 
+  console.log("blocks:", blocks);
+
   return (
     <>
       {/* customized div as header */}
@@ -560,7 +568,7 @@ export function NewDesignLayout({
               )}
 
               {/* Keyboard Hint */}
-              <div className="pt-8 border-t border-border max-xl:hidden cursor-default">
+              {/* <div className="pt-8 border-t border-border max-xl:hidden cursor-default">
                 <p
                   className="text-xs text-muted-foreground"
                   style={{
@@ -576,7 +584,7 @@ export function NewDesignLayout({
                   </kbd>{" "}
                   to navigate, or scroll horizontally with mouse
                 </p>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -740,324 +748,8 @@ export function NewDesignLayout({
                   }}
                 />
               ) : (
-                <>
-                  <ReactPlayer
-                    className="react-player"
-                    ref={setPlayerRef}
-                    src={project.cover_video_url}
-                    pip={pip}
-                    playing={playing}
-                    controls={false}
-                    light={light}
-                    loop={loop}
-                    playbackRate={playbackRate}
-                    volume={volume}
-                    muted={muted}
-                    config={{
-                      youtube: {
-                        color: "white",
-                      },
-                      vimeo: {
-                        color: "ffffff",
-                      },
-                      spotify: {
-                        preferVideo: true,
-                      },
-                      tiktok: {
-                        fullscreen_button: true,
-                        progress_bar: true,
-                        play_button: true,
-                        volume_control: true,
-                        timestamp: false,
-                        music_info: false,
-                        description: false,
-                        rel: false,
-                        native_context_menu: true,
-                        closed_caption: false,
-                      },
-                    }}
-                    onLoadStart={() => console.log("onLoadStart")}
-                    onReady={() => console.log("onReady")}
-                    onStart={(e) => console.log("onStart", e)}
-                    onPlay={handlePlay}
-                    onPause={handlePause}
-                    onRateChange={handleRateChange}
-                    onSeeking={(e) => console.log("onSeeking", e)}
-                    onSeeked={(e) => console.log("onSeeked", e)}
-                    onEnded={handleEnded}
-                    onError={(e) => console.log("onError", e)}
-                    onTimeUpdate={handleTimeUpdate}
-                    onProgress={handleProgress}
-                    onDurationChange={handleDurationChange}
-                    width="100%"
-                    height="100%"
-                    style={{
-                      objectFit: "cover",
-                    }}
-                  />
-
-                  {/* Custom Controller */}
-                  {/* <div className="absolute bottom-8 left-8">
-                    <div className="flex">
-                      <button type="button" onClick={handleStop}>
-                        Stop
-                      </button>
-                      <button type="button" onClick={handlePlayPause}>
-                        {playing ? "Pause" : "Play"}
-                      </button>
-                      <button type="button" onClick={handleClickFullscreen}>
-                        Fullscreen
-                      </button>
-                    </div>
-
-                    <div>Speed</div>
-                    <button
-                      type="button"
-                      onClick={handleSetPlaybackRate}
-                      data-value={1}
-                    >
-                      1x
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSetPlaybackRate}
-                      data-value={1.5}
-                    >
-                      1.5x
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSetPlaybackRate}
-                      data-value={2}
-                    >
-                      2x
-                    </button>
-                    <div>
-                      <label htmlFor="seek">Seek</label>
-                    </div>
-                    <div>
-                      <input
-                        id="seek"
-                        type="range"
-                        min={0}
-                        max={0.999999}
-                        step="any"
-                        value={played}
-                        onMouseDown={handleSeekMouseDown}
-                        onChange={handleSeekChange}
-                        onMouseUp={handleSeekMouseUp}
-                      />
-                    </div>
-                    <div>Volume</div>
-                    <input
-                      id="volume"
-                      type="range"
-                      min={0}
-                      max={1}
-                      step="any"
-                      value={volume}
-                      onChange={handleVolumeChange}
-                    />
-
-                    <div>Muted</div>
-                    <input
-                      id="muted"
-                      type="checkbox"
-                      checked={muted}
-                      onChange={handleToggleMuted}
-                    />
-
-                    <div>Loop</div>
-                    <input
-                      id="loop"
-                      type="checkbox"
-                      checked={loop}
-                      onChange={handleToggleLoop}
-                    />
-                    <div>Played</div>
-                    <progress max={1} value={played} />
-                    <div>Loaded</div>
-                    <progress max={1} value={loaded} />
-
-                    <div>Duration</div>
-                    <Duration seconds={duration * played} />
-                    <div>Remaining</div>
-                    <Duration seconds={duration * (1 - played)} />
-                  </div> */}
-
-                  <div className="absolute bottom-0 right-0 w-80">
-                    {/* Controller Header */}
-                    <div
-                      onClick={() => setIsOpen(!isOpen)}
-                      className="text-white px-4 py-2 cursor-pointer select-none flex justify-between items-center backdrop-blur-md backdrop-brightness-150 shadow-lg rounded-tl-2xl overflow-hidden border-r-0 border-b-0"
-                      style={{
-                        borderLeft: "2px solid rgba(0,0,0,0.2)",
-                        borderTop: "2px solid rgba(0,0,0,0.2)",
-                      }}
-                    >
-                      <span className="text-sm">Controller</span>
-                      <span className="text-sm">{isOpen ? "−" : "+"}</span>
-                    </div>
-
-                    {/* Controller Content with smooth animation */}
-                    <div
-                      className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                        isOpen
-                          ? "max-h-[1000px] opacity-100 p-4"
-                          : "max-h-0 opacity-0"
-                      } bg-gray-950/80 rounded-b-lg shadow-lg backdrop-blur-md text-white space-y-4 backdrop-brightness-150 `}
-                    >
-                      {/* Controller */}
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={handleStop}
-                          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-md transition"
-                        >
-                          <CircleStop width={20} height={20} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handlePlayPause}
-                          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-md transition"
-                        >
-                          {playing ? (
-                            <Pause width={20} height={20} />
-                          ) : (
-                            <Play width={20} height={20} />
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleClickFullscreen}
-                          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-md transition"
-                        >
-                          <Fullscreen width={20} height={20} />
-                        </button>
-                      </div>
-
-                      {/* Speed */}
-                      <div className="flex items-center gap-2">
-                        {[1, 1.5, 2].map((rate) => (
-                          <button
-                            key={rate}
-                            type="button"
-                            onClick={handleSetPlaybackRate}
-                            data-value={rate}
-                            className={`px-2 text-xs py-1 rounded-md transition ${
-                              playbackRate === rate
-                                ? "bg-gray-700 border border-transparent"
-                                : "border hover:bg-gray-700 transition-all duration-300 cursor-pointer "
-                            }`}
-                          >
-                            {rate}x
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Seek */}
-                      <div>
-                        <label
-                          htmlFor="seek"
-                          className="block text-xs mb-1 text-gray-400"
-                        >
-                          Seek
-                        </label>
-                        <div className="video-timeline">
-                          <input
-                            id="seek"
-                            type="range"
-                            min={0}
-                            max={0.999999}
-                            step="any"
-                            value={played}
-                            onMouseDown={handleSeekMouseDown}
-                            onChange={handleSeekChange}
-                            onMouseUp={handleSeekMouseUp}
-                            className="w-full h-2 rounded-lg smooth-seek"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Volume */}
-                      <div>
-                        <label
-                          htmlFor="volume"
-                          className="block text-xs mb-1 text-gray-400"
-                        >
-                          Volume
-                        </label>
-                        <input
-                          id="volume"
-                          type="range"
-                          min={0}
-                          max={1}
-                          step="any"
-                          value={volume}
-                          onChange={handleVolumeChange}
-                          className="w-full h-2 rounded-lg smooth-volume"
-                        />
-                      </div>
-
-                      {/* Muted & Loop */}
-                      <div className="flex gap-4 items-center">
-                        <label className="flex items-center gap-1 text-xs text-gray-400">
-                          <input
-                            type="checkbox"
-                            checked={muted}
-                            onChange={handleToggleMuted}
-                            className="accent-red-600"
-                          />
-                          Muted
-                        </label>
-                        <label className="flex items-center gap-1 text-xs text-gray-400">
-                          <input
-                            type="checkbox"
-                            checked={loop}
-                            onChange={handleToggleLoop}
-                            className="accent-yellow-600"
-                          />
-                          Loop
-                        </label>
-                      </div>
-
-                      {/* Progress Bars */}
-                      {/* <div> */}
-                      {/* <div className="flex justify-between text-xs mb-1">
-                          <label className="block text-xs mb-1 text-gray-400">
-                            Played
-                          </label>
-                          <label className="block text-xs mb-1 text-gray-400">
-                            Loaded
-                          </label>
-                        </div> */}
-                      {/* <div className="flex gap-2">
-                          <progress
-                            max={1}
-                            value={played}
-                            className="w-1/2 h-2 rounded-lg bg-gray-700 accent-blue-400"
-                          />
-                          <progress
-                            max={1}
-                            value={loaded}
-                            className="w-1/2 h-2 rounded-lg bg-gray-700 accent-green-400"
-                          />
-                        </div> */}
-                      {/* </div> */}
-
-                      {/* Duration & Remaining */}
-                      <div className="flex justify-between text-xs text-gray-400">
-                        <span>
-                          Duration: <Duration seconds={duration * played} />
-                        </span>
-                        <span>
-                          Remaining:{" "}
-                          <Duration seconds={duration * (1 - played)} />
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </>
+                // <Controller src={project.cover_video_url} />
+                <Controller2 src={project.cover_video_url} />
               )}
             </div>
           ) : (
@@ -1078,7 +770,13 @@ export function NewDesignLayout({
                       heightValue = 350;
                     }
                     return (
-                      <div className="embla_slide " key={i}>
+                      <div
+                        className="embla_slide cursor-default"
+                        key={i}
+                        onMouseDown={() => setIsDragging(true)}
+                        onMouseUp={() => setIsDragging(false)}
+                        style={{ cursor: isDragging ? "grabbing" : "grab" }}
+                      >
                         {/* play btn for cover video */}
                         {!coverVideoPlay &&
                           project.cover_video_url &&
