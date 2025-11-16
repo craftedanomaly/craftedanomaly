@@ -17,7 +17,13 @@ import {
 import useEmblaCarousel from "embla-carousel-react";
 import WheelGesturesPlugin from "embla-carousel-wheel-gestures";
 
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import { EmblaCarouselType } from "embla-carousel";
 import { useRouter } from "next/navigation";
 import ReactPlayer from "react-player";
@@ -37,8 +43,8 @@ interface MediaItem {
   id: string;
   media_type: "cover_image" | "cover_video" | "image" | "video";
   media_url: string;
-  url: string;
   display_order: number;
+  url: string;
 }
 
 interface VisualDesignLayoutProps {
@@ -65,8 +71,9 @@ interface VisualDesignLayoutProps {
   blocks: Array<{
     id: string;
     block_type: string;
-    content: any;
+    media_url: string;
     display_order: number;
+    content: any;
   }>;
 }
 
@@ -78,6 +85,8 @@ export function NewDesignLayout({
 }: VisualDesignLayoutProps) {
   const rightSpanRef = useRef<HTMLDivElement>(null);
   const [isScrolling, setIsScrolling] = useState<boolean>(false);
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
+  const [activeSlideIndex, setActiveSldieIndex] = useState<number | null>(0);
   const [scrollLength, setScrollLength] = useState<number>(-1);
   const { width, height } = useWindowSize();
   const [logoSettings, setLogoSettings] = useState({
@@ -126,12 +135,14 @@ export function NewDesignLayout({
   // Next Slide
   const scrollPrev = useCallback(() => {
     if (!isScrolling) setIsScrolling(true);
+    setIsScrolled(true);
     if (emblaApi) emblaApi.scrollPrev();
   }, [emblaApi]);
 
   // Previous Slide
   const scrollNext = useCallback(() => {
     if (!isScrolling) setIsScrolling(true);
+    setIsScrolled(true);
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
 
@@ -142,17 +153,24 @@ export function NewDesignLayout({
   useEffect(() => {
     if (!emblaApi) return;
 
+    const onSelect = () => {
+      setActiveSldieIndex(emblaApi.selectedScrollSnap());
+    };
+
     const onScroll = () => {
+      setIsScrolled(true);
       setIsScrolling(true);
     };
-    // const onSettle = () => setIsScrolling(false);
+    const onSettle = () => setIsScrolling(false);
 
+    emblaApi.on("select", onSelect);
     emblaApi.on("scroll", onScroll);
-    // emblaApi.on("settle", onSettle);
+    emblaApi.on("settle", onSettle);
 
     return () => {
+      emblaApi.off("select", onSelect);
       emblaApi.off("scroll", onScroll);
-      // emblaApi.off("settle", onSettle);
+      emblaApi.off("settle", onSettle);
     };
   }, [emblaApi]);
 
@@ -203,6 +221,7 @@ export function NewDesignLayout({
         {
           media_type: "cover_image",
           media_url: project.cover_image,
+          display_order: -1,
         },
       ]
     : [];
@@ -213,9 +232,39 @@ export function NewDesignLayout({
     display_order: m.display_order,
   }));
 
-  const combinedMedia = [...coverImageMedia, ...processedMedia]?.filter(
+  let combinedMedia = [...coverImageMedia, ...processedMedia]?.filter(
     (i) => i.media_url !== "failed"
   );
+
+  // add blocks if video, before_after or testimonial type
+  blocks.forEach((block) => {
+    if (["video", "before_after", "testimonial"].includes(block.block_type)) {
+      // yeni display_order, blok display_order +1
+      const newDisplayOrder = block.display_order + 1;
+
+      // combinedMedia'daki elemanların display_order'larını kaydır
+      combinedMedia.forEach((item) => {
+        if (
+          item.display_order !== undefined &&
+          item.display_order >= newDisplayOrder
+        ) {
+          item.display_order += 1;
+        }
+      });
+
+      combinedMedia.push({
+        media_type: block.block_type,
+        media_url: block.media_url,
+        display_order: newDisplayOrder,
+      });
+    }
+  });
+
+  const nonMediaBlocks = blocks.filter(
+    (b) => !["video", "before_after", "testimonial"].includes(b.block_type)
+  );
+
+  combinedMedia.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
 
   // Smooth progress pagination
   // component top-level
@@ -257,10 +306,6 @@ export function NewDesignLayout({
   const smoothSegmentOpacities = segmentOpacities.map((o) =>
     useSpring(o, { stiffness: 120, damping: 25, mass: 0.7, restDelta: 0.001 })
   );
-
-  console.log("project media:", media);
-  console.log("combined media:", combinedMedia);
-  console.log("cover video:", project.cover_video_url);
 
   // non youtube video controller states/settings
 
@@ -435,8 +480,6 @@ export function NewDesignLayout({
     pip,
   } = state;
 
-  console.log("blocks:", blocks);
-
   return (
     <>
       {/* customized div as header */}
@@ -508,67 +551,122 @@ export function NewDesignLayout({
               }}
             />
 
-            <div className="relative space-y-8">
-              {/* Category Info */}
-              <div className="space-y-4 mt-10">
-                {project.project_type && (
-                  <div className="text-[11px] uppercase tracking-[0.32em] opacity-80">
-                    {project.project_type}
-                  </div>
-                )}
-                <h1
-                  className="text-4xl xl:text-5xl text-foreground leading-tight"
-                  style={{
-                    color: textColor,
-                  }}
-                >
-                  {project.title}
-                </h1>
+            <div>
+              <div className="relative flex flex-col w-full mb-10 max-md:mb-0">
+                {/* Category Info */}
+                <div className="flex justify-center">
+                  <div className="min-h-[400px] max-md:min-h-auto">
+                    <div className="space-y-4 mt-10 max-md:mt-0">
+                      {project.project_type && (
+                        <div className="text-[11px] uppercase tracking-[0.32em] opacity-80">
+                          {project.project_type}
+                        </div>
+                      )}
+                      <h1
+                        className="text-4xl xl:text-5xl text-foreground leading-tight"
+                        style={{
+                          color: textColor,
+                        }}
+                      >
+                        {project.title}
+                      </h1>
 
-                <div className="text-xs opacity-70 space-y-1">
-                  {categoryInfo && (
-                    <div>
-                      <b>Category:</b> {categoryInfo.name}
+                      <div className="text-xs opacity-70 space-y-1">
+                        {categoryInfo && (
+                          <div>
+                            <b>Category:</b> {categoryInfo.name}
+                          </div>
+                        )}
+                        {project.client && (
+                          <div>
+                            <b>Client:</b> {project.client}
+                          </div>
+                        )}
+                        {project.year && (
+                          <div>
+                            <b>Year:</b> {project.year}
+                          </div>
+                        )}
+                        {project.role_en && (
+                          <div>
+                            <b>Role:</b> {project.role_en}
+                          </div>
+                        )}
+                      </div>
+
+                      {tags && tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          {tags.map((tag) => (
+                            <span
+                              key={tag.id}
+                              className="rounded-full border border-current/30 px-3 py-1 text-xs uppercase tracking-wide opacity-80"
+                            >
+                              {tag.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {project.client && (
-                    <div>
-                      <b>Client:</b> {project.client}
-                    </div>
-                  )}
-                  {project.year && (
-                    <div>
-                      <b>Year:</b> {project.year}
-                    </div>
-                  )}
-                  {project.role_en && (
-                    <div>
-                      <b>Role:</b> {project.role_en}
-                    </div>
-                  )}
+
+                    {project.blurb && (
+                      <p className="text-[17px] leading-relaxed max-w-xl mt-8">
+                        {project.blurb}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                {tags && tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    {tags.map((tag) => (
-                      <span
-                        key={tag.id}
-                        className="rounded-full border border-current/30 px-3 py-1 text-xs uppercase tracking-wide opacity-80"
-                      >
-                        {tag.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-              {project.blurb && (
-                <p className="text-[17px] leading-relaxed max-w-xl">
-                  {project.blurb}
-                </p>
-              )}
+                {/* --- nonMediaBlocks --- */}
+                <div
+                  className="relative mt-0"
+                  style={{
+                    display: width <= 768 ? "none" : "initial",
+                  }}
+                >
+                  <div className="min-h-[100dvh] absolute w-full">
+                    <AnimatePresence mode="wait">
+                      {nonMediaBlocks.map((block) => {
+                        if (block.display_order !== activeSlideIndex)
+                          return null;
+                        const isActive =
+                          block.display_order === activeSlideIndex;
 
-              {/* Keyboard Hint */}
-              {/* <div className="pt-8 border-t border-border max-xl:hidden cursor-default">
+                        return (
+                          <motion.div
+                            key={block.id}
+                            layout
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{
+                              opacity: isActive ? 1 : 0,
+                              y: isActive ? 0 : 20,
+                            }}
+                            exit={{ opacity: 0, y: 20 }}
+                            transition={{ duration: 0.5 }}
+                            className="overflow-hidden mt-auto"
+                          >
+                            {block.block_type === "text" && (
+                              <div
+                                className="prose max-w-xl text-lg"
+                                dangerouslySetInnerHTML={{
+                                  __html: block.content,
+                                }}
+                              />
+                            )}
+
+                            {block.block_type === "quote" && (
+                              <blockquote className="border-l-4 border-current pl-6 py-4 italic text-lg opacity-90">
+                                {block.content}
+                              </blockquote>
+                            )}
+                          </motion.div>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </div>
+                </div>
+
+                {/* Keyboard Hint */}
+                {/* <div className="pt-8 border-t border-border max-xl:hidden cursor-default">
                 <p
                   className="text-xs text-muted-foreground"
                   style={{
@@ -585,6 +683,7 @@ export function NewDesignLayout({
                   to navigate, or scroll horizontally with mouse
                 </p>
               </div> */}
+              </div>
             </div>
           </div>
         </div>
@@ -594,7 +693,7 @@ export function NewDesignLayout({
           ref={rightSpanRef}
         >
           {/* Scroll Hint - Only on slide */}
-          {!isScrolling && scrollLength > 1 && !coverVideoPlay && (
+          {!isScrolled && scrollLength > 1 && !coverVideoPlay && (
             <motion.div
               className="absolute left-1/2 top-1/2 -translate-x-[50%] -translate-y-[50%] z-[30] pointer-events-auto cursor-pointer p-2 max-xl:hidden"
               initial={{ opacity: 0 }}
@@ -769,6 +868,11 @@ export function NewDesignLayout({
                       widthValue = parentWidth;
                       heightValue = 350;
                     }
+
+                    const isYouTube =
+                      item.media_url?.includes("youtube.com") ||
+                      item.media_url?.includes("youtu.be");
+
                     return (
                       <div
                         className="embla_slide cursor-default"
@@ -804,6 +908,8 @@ export function NewDesignLayout({
                               </button>
                             </div>
                           )}
+
+                        {/* slide content */}
                         <div className="flex">
                           <div
                             style={{
@@ -817,7 +923,48 @@ export function NewDesignLayout({
                                 project.slug === "otis-tarda" ? "bg-black" : ""
                               }`}
                             >
-                              {!coverVideoPlay && (
+                              {/* IMAGE RENDER */}
+                              {!coverVideoPlay &&
+                                (item.media_type === "image" ||
+                                  item.media_type === "cover_image") && (
+                                  <Image
+                                    src={item.media_url}
+                                    alt={`${project.title} + media ${i} + url ${item.media_url}`}
+                                    fill
+                                    className={`${
+                                      project.slug === "otis-tarda"
+                                        ? "object-contain"
+                                        : "object-cover"
+                                    }`}
+                                  />
+                                )}
+
+                              {/* VIDEO RENDER */}
+                              {!coverVideoPlay &&
+                                item.media_type === "video" && (
+                                  <div
+                                    className={`absolute inset-0 bg-transparent mx-auto ${
+                                      isScrolling && "pointer-events-none"
+                                    }`}
+                                  >
+                                    {isYouTube ? (
+                                      <ReactPlayer
+                                        src={item.media_url}
+                                        controls
+                                        height="100%"
+                                        muted
+                                        style={{
+                                          objectFit: "cover",
+                                          margin: "0 auto",
+                                          width: width <= 768 ? "100%" : "50%",
+                                        }}
+                                      />
+                                    ) : (
+                                      <Controller2 src={item.media_url} />
+                                    )}
+                                  </div>
+                                )}
+                              {/* {!coverVideoPlay && (
                                 <>
                                   {item.media_type === "cover_image" &&
                                   item.media_url ? (
@@ -845,7 +992,7 @@ export function NewDesignLayout({
                                     />
                                   ) : null}
                                 </>
-                              )}
+                              )} */}
                             </div>
                           </div>
                         </div>
