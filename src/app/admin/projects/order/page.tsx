@@ -21,6 +21,7 @@ interface Project {
 interface Category {
   id: string;
   name: string;
+  slug: string;
 }
 
 export default function ProjectOrderPage() {
@@ -47,7 +48,7 @@ export default function ProjectOrderPage() {
     try {
       const { data, error } = await supabase
         .from('categories')
-        .select('id, name')
+        .select('id, name, slug')
         .eq('active', true)
         .order('display_order');
 
@@ -58,7 +59,8 @@ export default function ProjectOrderPage() {
 
       const formattedCategories = data.map((cat: any) => ({
         id: cat.id,
-        name: cat.name || 'Unnamed'
+        name: cat.name || 'Unnamed',
+        slug: cat.slug || ''
       }));
 
       setCategories(formattedCategories);
@@ -138,6 +140,14 @@ export default function ProjectOrderPage() {
 
         if (error) throw error;
       }
+
+      // Trigger on-demand revalidation for affected pages
+      const categorySlug = categories.find(c => c.id === selectedCategory)?.slug;
+      await fetch('/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paths: ['/', categorySlug ? `/${categorySlug}` : '/'] })
+      }).catch(() => {});
 
       toast.success('Project order saved successfully');
     } catch (error) {

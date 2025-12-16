@@ -1,7 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { HomePage } from "@/components/home/HomePage";
 
-export const dynamic = "force-dynamic";
+// ISR: Revalidate every 60 seconds, admin can trigger on-demand revalidation
+export const revalidate = 60;
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

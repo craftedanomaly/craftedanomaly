@@ -2,10 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { CategoryPageClient } from "@/components/category/category-page-client";
 
-// Ensure newly created projects appear immediately without a full rebuild
-export const dynamic = "force-dynamic";
-
-// Revalidate every 60 seconds - ISR strategy
+// ISR: Revalidate every 60 seconds, admin can trigger on-demand revalidation
 export const revalidate = 60;
 
 interface CategoryPageProps {

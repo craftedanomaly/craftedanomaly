@@ -269,6 +269,13 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
       }
 
 
+      // Trigger on-demand revalidation
+      await fetch('/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paths: ['/', '/projects'] })
+      }).catch(() => {});
+
       toast.success('Project created successfully!');
 
       if (onProjectAdded && project) {

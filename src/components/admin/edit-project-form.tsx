@@ -378,6 +378,13 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
         toast.warning('Before/After block incomplete (needs two images). Existing one was preserved.');
       }
 
+      // Trigger on-demand revalidation
+      await fetch('/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paths: ['/', `/projects/${updatedProject?.slug}`] })
+      }).catch(() => {});
+
       toast.success('Project updated successfully!');
 
       if (onProjectUpdated && updatedProject) {

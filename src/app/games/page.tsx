@@ -1,7 +1,8 @@
 import { CategoryPageClient } from "@/components/category/category-page-client";
 import { createClient } from "@supabase/supabase-js";
 
-export const dynamic = "force-dynamic";
+// ISR: Revalidate every 60 seconds
+export const revalidate = 60;
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

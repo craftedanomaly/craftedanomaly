@@ -4,8 +4,8 @@ import ProjectDetailClient from "@/components/projects/project-detail-client";
 import { VisualDesignLayout } from "@/components/projects/visual-design-layout";
 import { NewDesignLayout } from "@/components/projects/new-design-layout";
 
-// Always resolve slugs at request time so new projects are immediately available
-export const dynamic = "force-dynamic";
+// ISR: Revalidate every 60 seconds, admin can trigger on-demand revalidation
+export const revalidate = 60;
 
 interface ProjectPageProps {
   params: Promise<{
