@@ -8,6 +8,7 @@ import { FilmStripCarousel } from "./FilmStripCarousel";
 import { CategoryIndicator } from "./CategoryIndicator";
 import { OurWorksSection } from "../ourworks/ourworks";
 import { OurWorksCategoryIndicator } from "../ourworks/ourWorksCategoryIndicator";
+import { AdobeWorksSection } from "../ourworks/adobe-works-section";
 
 interface HeroSlide {
   src: string;
@@ -102,10 +103,17 @@ export function HomePage({ heroSlides, projects, categories }: HomePageProps) {
                 />
               }
             /> */}
-          <OurWorksSection
+          {/* Old 3-column parallax section */}
+          {/* <OurWorksSection
             projects={projects}
             onCenterProjectChange={handleCenterProjectChange}
             scrollToCategoryRef={scrollToCategoryRef}
+            categories={categories}
+          /> */}
+          
+          {/* New Adobe-inspired section */}
+          <AdobeWorksSection
+            projects={projects}
             categories={categories}
           />
         </div>
