@@ -4,7 +4,7 @@ import { useRef, useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { Eye, EyeOff, Lock, Grid, List, ZoomIn, ZoomOut, Maximize2, Move, Play } from "lucide-react";
+import { Eye, EyeOff, Lock, Grid, List, ZoomIn, ZoomOut, Maximize2, Play } from "lucide-react";
 
 interface Project {
   id: string;
@@ -151,7 +151,7 @@ export function AdobeWorksSection({
   const selectedProject = filteredProjects.find(p => p.id === selectedProjectId);
 
   return (
-    <section className="min-h-screen relative">
+    <section id="adobe-works-section" className="min-h-screen relative">
       {/* Full Blueprint Background */}
       <div 
         className="absolute inset-0"
@@ -237,54 +237,7 @@ export function AdobeWorksSection({
               </div>
             </div>
 
-            {/* Category Filters - Timeline tracks style */}
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-[#3d3d3d]">
-              <div className="flex items-center gap-1 mr-4">
-                <Eye className="w-4 h-4 text-gray-500" />
-                <span className="text-xs text-gray-400 uppercase tracking-wider">Filters</span>
-              </div>
-              
-              <button
-                onClick={() => {
-                  setActiveCategory("all");
-                  const allCategories = ["all", ...categories.map(c => c.slug)];
-                  const segmentWidth = 100 / allCategories.length;
-                  setScrubPosition(segmentWidth * 0.5);
-                }}
-                className={`px-4 py-1.5 rounded text-sm font-medium transition-all ${
-                  activeCategory === "all"
-                    ? "bg-[#ed5c2c] text-white"
-                    : "bg-[#3d3d3d] text-gray-300 hover:bg-[#4d4d4d]"
-                }`}
-              >
-                All Projects [V1]
-              </button>
-              
-              {categories.map((category, index) => {
-                const colors = ["#0066cc", "#7b2cbf", "#2d6a4f", "#d4a373"];
-                const color = colors[index % colors.length];
-                return (
-                  <button
-                    key={category.id}
-                    onClick={() => {
-                      setActiveCategory(category.slug);
-                      const allCategories = ["all", ...categories.map(c => c.slug)];
-                      const categoryIndex = allCategories.indexOf(category.slug);
-                      const segmentWidth = 100 / allCategories.length;
-                      setScrubPosition(segmentWidth * (categoryIndex + 0.5));
-                    }}
-                    className={`px-4 py-1.5 rounded text-sm font-medium transition-all`}
-                    style={{
-                      backgroundColor: activeCategory === category.slug ? color : '#3d3d3d',
-                      color: activeCategory === category.slug ? 'white' : '#d1d5db'
-                    }}
-                  >
-                    {category.name}
-                  </button>
-                );
-              })}
             </div>
-          </div>
 
           {/* Main Content Area */}
           <div className="flex bg-[#1e1e1e]/95 backdrop-blur border-x border-b border-[#3d3d3d] rounded-b-lg overflow-hidden min-h-[700px]">
@@ -330,14 +283,18 @@ export function AdobeWorksSection({
               <div className="flex-1" />
               
               <button 
-                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-[#3d3d3d] rounded transition-colors"
-                title="Move Tool"
-              >
-                <Move className="w-5 h-5" />
-              </button>
-              <button 
-                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-[#3d3d3d] rounded transition-colors"
-                title="Fullscreen"
+                onClick={() => {
+                  const section = document.getElementById('adobe-works-section');
+                  if (section) {
+                    if (document.fullscreenElement) {
+                      document.exitFullscreen();
+                    } else {
+                      section.requestFullscreen();
+                    }
+                  }
+                }}
+                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-[#3d3d3d] hover:text-[#ed5c2c] rounded transition-colors"
+                title="Toggle Fullscreen"
               >
                 <Maximize2 className="w-5 h-5" />
               </button>
