@@ -1,7 +1,12 @@
 "use client";
 
-import { useRef, useState, useMemo, useEffect, useLayoutEffect } from "react";
-import { motion } from "framer-motion";
+import { useRef, useState, useMemo, useEffect, useCallback, useLayoutEffect } from "react";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { OurWorksCategoryIndicator } from "./ourWorksCategoryIndicator";
@@ -40,28 +45,24 @@ export function OurWorksSection({
   scrollToCategoryRef,
   categories,
 }: OurWorksSectionProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
-  const [centerProjectIndex, setCenterProjectIndex] = useState(0);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const leftColRef = useRef<HTMLDivElement>(null);
+  const midColRef = useRef<HTMLDivElement>(null);
+  const rightColRef = useRef<HTMLDivElement>(null);
+
   const [activeCategory, setActiveCategory] = useState<string>("");
-  const { width } = useWindowSize();
-
-  const containerRefs = useRef<HTMLDivElement[]>([]);
-  containerRefs.current = [];
-
-  console.log("scroll to category ref:", scrollToCategoryRef);
+  const [hoveredProjectId, setHoveredProjectId] = useState<string | null>(null);
+  const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
+  const { width, height } = useWindowSize();
 
   const filteredProjects = activeCategory
     ? projects.filter((p) => p.categorySlug === activeCategory)
     : projects;
 
-  const loopedProjects = useMemo(() => {
-    if (filteredProjects.length === 0) return [];
-    return [...filteredProjects];
-  }, [filteredProjects]);
-
-  console.log("filtered projects:", filteredProjects);
+  const shouldReduceMotion = useReducedMotion();
+  const columnsCount = width >= 1024 ? 3 : width >= 640 ? 2 : 1;
 
   const getYouTubeId = (url: string): string | null => {
     try {
@@ -85,48 +86,155 @@ export function OurWorksSection({
     }
   };
 
-  const handleMouseEnter = (
-    projectId: string,
-    index: number,
-    categorySlug?: string,
-    videoUrl?: string
-  ) => {
-    setHoveredIndex(index);
-    const yt = videoUrl ? getYouTubeId(videoUrl) : null;
-    const vm = videoUrl ? getVimeoId(videoUrl) : null;
-    if (!yt && !vm) {
-      const key = `${projectId}-${index}`;
-      const video = videoRefs.current[key];
-      if (video) {
-        try {
-          video.currentTime = 0;
-          void video.play();
-        } catch (error) {
-          console.warn("Video playback failed", error);
-        }
+  const scrollToCategory = useCallback(
+    (categorySlug: string) => {
+      setActiveCategory(categorySlug);
+      // ensure the section is visible after filter switch
+      sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!scrollToCategoryRef) return;
+    if (!("current" in scrollToCategoryRef)) return;
+    scrollToCategoryRef.current = scrollToCategory;
+    return () => {
+      // avoid leaking an old closure
+      if (scrollToCategoryRef.current === scrollToCategory) {
+        scrollToCategoryRef.current = null;
       }
-    }
-    const actualIndex = index % filteredProjects.length;
-    onCenterProjectChange?.(filteredProjects[actualIndex]?.id, categorySlug);
-  };
+    };
+  }, [scrollToCategoryRef, scrollToCategory]);
 
-  const handleMouseLeave = (projectId: string, index: number) => {
-    setHoveredIndex(null);
-    const key = `${projectId}-${index}`;
-    const video = videoRefs.current[key];
-    if (video) {
-      video.pause();
-      video.currentTime = 0;
+  const { scrollYProgress } = useScroll({
+    target: stageRef,
+    // sticky stage: progress 0 at stage top, 1 at stage bottom
+    // IMPORTANT: for a pinned (sticky) viewport, the scrollable distance is
+    // (stageHeight - viewportHeight). Using "end end" matches that distance and
+    // ensures we hit the final translateY *before* the sticky unpins.
+    offset: ["start start", "end end"],
+  });
+
+  // Measure column heights to create a "pinned" scroll area (Buena Suerte feel)
+  // Stage height must be long enough so users never hit blank space before seeing all projects.
+  const [stageHeightPx, setStageHeightPx] = useState<number>(
+    Math.max(1, height ? height * 3 : 2400)
+  );
+  const [maxScrollLeft, setMaxScrollLeft] = useState(0);
+  const [maxScrollMid, setMaxScrollMid] = useState(0);
+  const [maxScrollRight, setMaxScrollRight] = useState(0);
+
+  const desktopBump = 900;
+  const tabletBump = 650;
+  const bumpStrength =
+    shouldReduceMotion || columnsCount === 1
+      ? 0
+      : width >= 1024
+        ? desktopBump
+        : tabletBump;
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      // Measure the *actual* pinned viewport height (not window.innerHeight),
+      // otherwise maxScroll can be over/under-estimated and cause blank space.
+      const viewportH = viewportRef.current?.clientHeight || height || window.innerHeight || 0;
+      if (!viewportH) return;
+
+      const leftH = leftColRef.current?.scrollHeight || 0;
+      const midH = midColRef.current?.scrollHeight || 0;
+      const rightH = rightColRef.current?.scrollHeight || 0;
+
+      // Inner visible height (account for the outer `p-px` border = 2px total)
+      const contentViewportH = Math.max(0, viewportH - 2);
+      // Tiny pixel buffer for rounding
+      const pxBuffer = 1;
+
+      const leftMax = Math.max(0, leftH - contentViewportH + pxBuffer);
+      const midMax = Math.max(0, midH - contentViewportH + pxBuffer);
+      const rightMax = Math.max(0, rightH - contentViewportH + pxBuffer);
+
+      setMaxScrollLeft(leftMax);
+      setMaxScrollMid(midMax);
+      setMaxScrollRight(rightMax);
+
+      const maxTravel = Math.max(leftMax, midMax, rightMax);
+      // Make the pinned stage be the *end of the page*:
+      // stage height = exactly the travel we need (no extra blank scroll after content ends).
+      setStageHeightPx(Math.max(viewportH + maxTravel, viewportH));
+    };
+
+    // First measure after layout
+    const raf = requestAnimationFrame(measure);
+
+    // Keep measuring as images/layout settle
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(() => measure());
+      if (leftColRef.current) ro.observe(leftColRef.current);
+      if (midColRef.current) ro.observe(midColRef.current);
+      if (rightColRef.current) ro.observe(rightColRef.current);
     }
 
-    const centerCategory = filteredProjects[centerProjectIndex]?.categorySlug;
-    if (filteredProjects[centerProjectIndex]) {
-      onCenterProjectChange?.(
-        filteredProjects[centerProjectIndex].id,
-        centerCategory
-      );
+    window.addEventListener("resize", measure);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", measure);
+      ro?.disconnect();
+    };
+  }, [columnsCount, height, filteredProjects.length, shouldReduceMotion, bumpStrength]);
+
+  // Non-linear scroll curves per column (same endpoints, very different mid positions)
+  const baseLeft = useTransform(
+    scrollYProgress,
+    [0, 0.45, 1],
+    [0, -maxScrollLeft * 0.18, -maxScrollLeft]
+  );
+  const baseMid = useTransform(
+    scrollYProgress,
+    [0, 0.5, 1],
+    [0, -maxScrollMid * 0.55, -maxScrollMid]
+  );
+  const baseRight = useTransform(
+    scrollYProgress,
+    [0, 0.55, 1],
+    [0, -maxScrollRight * 0.88, -maxScrollRight]
+  );
+
+  // Use direct transforms (no spring) to avoid overshoot that can reveal blank space.
+  const yLeft = baseLeft;
+  const yMid = baseMid;
+  const yRight = baseRight;
+
+  const columns = useMemo(() => {
+    const cols: Project[][] = Array.from({ length: columnsCount }, () => []);
+    filteredProjects.forEach((p, index) => {
+      cols[index % columnsCount].push(p);
+    });
+    return cols;
+  }, [filteredProjects, columnsCount]);
+
+  // Autoplay hovered video (only for direct video files we render as <video>)
+  useEffect(() => {
+    const id = hoveredProjectId;
+    if (!id) return;
+    const v = videoRefs.current.get(id);
+    if (!v) return;
+
+    try {
+      v.currentTime = 0;
+      void v.play();
+    } catch {
+      // ignore autoplay restrictions
     }
-  };
+
+    return () => {
+      const vv = videoRefs.current.get(id);
+      if (!vv) return;
+      vv.pause();
+      vv.currentTime = 0;
+    };
+  }, [hoveredProjectId]);
 
   if (!filteredProjects || filteredProjects.length === 0) {
     return (
@@ -136,17 +244,17 @@ export function OurWorksSection({
     );
   }
 
-  console.log("categories:", categories);
-
   const getActiveCategoryFromCategoryIndicator = (data: Category) => {
     setActiveCategory(data.slug);
-
-    console.log("data:", data);
+    sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
-    <div className="relative min-h-screen bp-grid flex flex-col items-center justify-start overflow-hidden">
-      <div className="text-center z-10 py-20">
+    <div
+      ref={sectionRef}
+      className="relative min-h-screen bp-grid flex flex-col items-center justify-start overflow-hidden"
+    >
+      <div className="text-center z-10 pt-20 pb-10">
         <h2
           className="text-5xl md:text-7xl font-bold drop-shadow-lg mb-6"
           style={{ color: "#ed5c2c" }}
@@ -159,172 +267,157 @@ export function OurWorksSection({
         />
       </div>
 
-      {/* Works Carousel */}
-      <div
-        ref={containerRef}
-        style={{ perspective: "1000px" }}
-        className="relative w-full h-[100%] flex flex-col gap-6 max-md:gap-0"
-      >
-        {loopedProjects.map((project, index) => {
-          const key = `${project.id}-${index}`;
-          const isHovered = hoveredIndex === index;
-          const borderColor = isHovered
-            ? "var(--accent)"
-            : "rgba(255,255,255,0.2)";
+      {/* Pinned (sticky) stage: boundaries fixed, projects move inside */}
+      <div ref={stageRef} className="relative w-full" style={{ height: stageHeightPx }}>
+        <div ref={viewportRef} className="sticky top-0 h-screen w-full overflow-hidden">
+          {/* Outer 1px border */}
+          <div className="w-full h-full bg-[#0046bf] p-px">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px items-start h-full">
+              {columns.map((colProjects, colIndex) => {
+                const y =
+                  columnsCount === 1
+                    ? yMid
+                    : columnsCount === 2
+                      ? colIndex === 0
+                        ? yLeft
+                        : yRight
+                      : colIndex === 0
+                        ? yLeft
+                        : colIndex === 1
+                          ? yMid
+                          : yRight;
 
-          return (
-            <motion.div key={key} className="relative flex-shrink-0">
-              <Link
-                href={`/projects/${project.slug}`}
-                className="cursor-default pointer-events-none"
-              >
-                <div
-                  onMouseEnter={() =>
-                    handleMouseEnter(
-                      project.id,
-                      index,
-                      project.categorySlug,
-                      project.coverVideoUrl
-                    )
-                  }
-                  onMouseLeave={() => handleMouseLeave(project.id, index)}
-                  className="relative mx-auto overflow-hidden shadow-2xl cursor-pointer pointer-events-auto max-md:rounded-none md:border-t-2 md:border-b-2"
-                  style={{
-                    width: width < 768 ? "100%" : "100%",
-                    minHeight: width < 768 ? "298px" : "100dvh",
-                    borderColor,
-                  }}
-                >
-                  <Image
-                    src={project.coverImageUrl}
-                    alt={project.title}
-                    fill
-                    className="object-cover"
-                    priority={index < 5}
-                  />
+                const colRef =
+                  columnsCount === 1
+                    ? midColRef
+                    : columnsCount === 2
+                      ? colIndex === 0
+                        ? leftColRef
+                        : rightColRef
+                      : colIndex === 0
+                        ? leftColRef
+                        : colIndex === 1
+                          ? midColRef
+                          : rightColRef;
 
-                  {width > 768 ? (
-                    <>
-                      {project.coverVideoUrl &&
-                        project.coverVideoUrl.trim() &&
-                        (() => {
-                          const url = project.coverVideoUrl!;
-                          const yt = getYouTubeId(url);
-                          const vm = getVimeoId(url);
-                          if (yt) {
-                            return isHovered ? (
-                              <iframe
-                                className="absolute inset-0 w-full h-full pointer-events-none"
-                                src={`https://www.youtube.com/embed/${yt}?autoplay=1&mute=1&controls=0&rel=0&showinfo=0&playsinline=1`}
-                                allow="autoplay; encrypted-media"
-                                allowFullScreen
-                                style={{ opacity: 1, zIndex: 10, border: "0" }}
-                              />
-                            ) : null;
+                return (
+                  <motion.div
+                    key={`col-${colIndex}`}
+                    style={{ y }}
+                    className="flex flex-col gap-px will-change-transform"
+                    ref={colRef}
+                  >
+                    {colProjects.map((project, itemIndex) => {
+                      const key = `${project.id}-${project.slug}-${colIndex}-${itemIndex}`;
+                      const aspectPatterns =
+                        columnsCount === 1
+                          ? ["aspect-[4/5]"]
+                          : ["aspect-[4/5]", "aspect-square", "aspect-[3/4]", "aspect-[16/10]"];
+                      const aspectClass =
+                        aspectPatterns[(itemIndex + colIndex) % aspectPatterns.length] ??
+                        "aspect-[4/5]";
+
+                      const videoUrl = project.coverVideoUrl?.trim() || "";
+                      const yt = videoUrl ? getYouTubeId(videoUrl) : null;
+                      const vm = videoUrl ? getVimeoId(videoUrl) : null;
+                      const isDirectVideo = Boolean(videoUrl && !yt && !vm);
+                      const isHovered = hoveredProjectId === project.id;
+
+                      return (
+                        <Link
+                          key={key}
+                          href={`/projects/${project.slug}`}
+                          className="group block"
+                          onFocus={() =>
+                            onCenterProjectChange?.(project.id, project.categorySlug)
                           }
-                          if (vm) {
-                            return isHovered ? (
-                              <iframe
-                                className="absolute inset-0 w-full h-full pointer-events-none"
-                                src={`https://player.vimeo.com/video/${vm}?autoplay=1&muted=1&background=1&dnt=1`}
-                                allow="autoplay; encrypted-media"
-                                allowFullScreen
-                                style={{ opacity: 1, zIndex: 10, border: "0" }}
-                              />
-                            ) : null;
-                          }
-                          return (
-                            <video
-                              ref={(el) => {
-                                if (el) videoRefs.current[key] = el;
-                                else delete videoRefs.current[key];
-                              }}
-                              src={url}
-                              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                              style={{
-                                opacity: isHovered ? 1 : 0,
-                                transition: "opacity 0.25s ease",
-                                zIndex: isHovered ? 10 : 0,
-                              }}
-                              loop
-                              muted
-                              playsInline
-                              preload="metadata"
+                          onMouseEnter={() => {
+                            onCenterProjectChange?.(project.id, project.categorySlug);
+                            setHoveredProjectId(project.id);
+                          }}
+                          onMouseLeave={() => setHoveredProjectId(null)}
+                        >
+                          <div className={`relative w-full overflow-hidden bg-card ${aspectClass}`}>
+                            <Image
+                              src={project.coverImageUrl}
+                              alt={project.title}
+                              fill
+                              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                              priority={itemIndex < 2 && colIndex === 0}
                             />
-                          );
-                        })()}
-                    </>
-                  ) : null}
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
+                            {/* hover autoplay video (same place) */}
+                            {width >= 768 && videoUrl ? (
+                              yt ? (
+                                isHovered ? (
+                                  <iframe
+                                    className="absolute inset-0 w-full h-full pointer-events-none"
+                                    src={`https://www.youtube.com/embed/${yt}?autoplay=1&mute=1&controls=0&rel=0&showinfo=0&playsinline=1`}
+                                    allow="autoplay; encrypted-media"
+                                    allowFullScreen
+                                    style={{ opacity: 1, zIndex: 10, border: "0" }}
+                                  />
+                                ) : null
+                              ) : vm ? (
+                                isHovered ? (
+                                  <iframe
+                                    className="absolute inset-0 w-full h-full pointer-events-none"
+                                    src={`https://player.vimeo.com/video/${vm}?autoplay=1&muted=1&background=1&dnt=1`}
+                                    allow="autoplay; encrypted-media"
+                                    allowFullScreen
+                                    style={{ opacity: 1, zIndex: 10, border: "0" }}
+                                  />
+                                ) : null
+                              ) : isDirectVideo ? (
+                                <video
+                                  ref={(el) => {
+                                    if (el) videoRefs.current.set(project.id, el);
+                                    else videoRefs.current.delete(project.id);
+                                  }}
+                                  src={videoUrl}
+                                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                                  style={{
+                                    opacity: isHovered ? 1 : 0,
+                                    transition: "opacity 0.2s ease",
+                                    zIndex: 10,
+                                  }}
+                                  loop
+                                  muted
+                                  playsInline
+                                  preload="metadata"
+                                />
+                              ) : null
+                            ) : null}
 
-                  {project.projectType && (
-                    <div className="absolute left-4 top-4 z-20 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground pointer-events-none">
-                      {project.projectType}
-                    </div>
-                  )}
+                            {/* subtle base gradient */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent pointer-events-none" />
 
-                  {width <= 768 ? (
-                    <>
-                      <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col">
-                        <h4>{project.categorySlug}</h4>
-                        <h3 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">
-                          {project.title}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          {project.year && (
-                            <span className="inline-block px-3 py-1 bg-accent/80 text-accent-foreground text-xs font-medium rounded-full">
-                              {project.year}
-                            </span>
-                          )}
-                          {/* <div className="px-3 py-1 bg-black/60 backdrop-blur-sm">
-                            <p className="text-white/90 text-xs line-clamp-3">
-                              {project.blurb}
-                            </p>
-                          </div> */}
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      {isHovered && project.blurb && (
-                        <>
-                          <motion.div
-                            className="absolute bottom-0 left-0 right-0 p-6"
-                            whileHover={{ opacity: 1 }}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <h4>{project.categorySlug}</h4>
-                            <h3 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">
-                              {project.title}
-                            </h3>
-                            {project.year && (
-                              <span className="inline-block px-3 py-1 bg-accent/80 text-accent-foreground text-xs font-medium rounded-full">
-                                {project.year}
-                              </span>
-                            )}
-                          </motion.div>
-                          <motion.div
-                            className="absolute top-0 left-0 right-0 p-6 bg-black/60 backdrop-blur-sm"
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <p className="text-white/90 text-sm line-clamp-3">
-                              {project.blurb}
-                            </p>
-                          </motion.div>
-                        </>
-                      )}
-                    </>
-                  )}
-                </div>
-              </Link>
-            </motion.div>
-          );
-        })}
+                            {/* hover overlay (always visible on touch sizes) */}
+                            <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-5 z-20">
+                              <div className="max-md:opacity-100 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200">
+                                <div className="text-white drop-shadow">
+                                  <div className="text-lg md:text-xl font-semibold leading-tight">
+                                    {project.title}
+                                  </div>
+                                  {project.year ? (
+                                    <div className="mt-1 text-xs text-white/80">
+                                      {project.year}
+                                    </div>
+                                  ) : null}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

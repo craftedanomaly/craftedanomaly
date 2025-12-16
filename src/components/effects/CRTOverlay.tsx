@@ -6,7 +6,6 @@ import { WebGLCRT } from './WebGLCRT';
 
 export function CRTOverlay() {
   const [crtEnabled, setCrtEnabled] = useState(true);
-  const [noiseEnabled, setNoiseEnabled] = useState(true);
 
   return (
     <>
@@ -18,13 +17,6 @@ export function CRTOverlay() {
           title="Toggle CRT Effect"
         >
           {crtEnabled ? '📺 ON' : '📺 OFF'}
-        </button>
-        <button
-          onClick={() => setNoiseEnabled(!noiseEnabled)}
-          className="px-3 py-1.5 text-xs font-medium bg-black/60 backdrop-blur-sm border border-white/20 rounded-lg text-white hover:bg-black/80 transition-colors"
-          title="Toggle Film Grain"
-        >
-          {noiseEnabled ? '🎞️ ON' : '🎞️ OFF'}
         </button>
       </div>
 
@@ -95,28 +87,6 @@ export function CRTOverlay() {
         )}
       </AnimatePresence>
 
-      {/* Film Grain Overlay */}
-      <AnimatePresence>
-        {noiseEnabled && (
-          <motion.div
-            className="fixed inset-0 pointer-events-none z-[9997]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div
-              className="absolute inset-0 film-grain"
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='0.4'/%3E%3C/svg%3E")`,
-                backgroundRepeat: 'repeat',
-                backgroundSize: '200px 200px',
-                mixBlendMode: 'overlay',
-                animation: 'grain 0.5s steps(10) infinite',
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 }

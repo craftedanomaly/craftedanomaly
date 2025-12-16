@@ -101,40 +101,6 @@ body {
   }
 }
 
-@keyframes grain {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  10% {
-    transform: translate(-2%, -2%);
-  }
-  20% {
-    transform: translate(2%, -2%);
-  }
-  30% {
-    transform: translate(-2%, 2%);
-  }
-  40% {
-    transform: translate(2%, 2%);
-  }
-  50% {
-    transform: translate(-1%, -1%);
-  }
-  60% {
-    transform: translate(1%, 1%);
-  }
-  70% {
-    transform: translate(-1%, 1%);
-  }
-  80% {
-    transform: translate(1%, -1%);
-  }
-  90% {
-    transform: translate(-2%, 1%);
-  }
-}
-
 @keyframes rgb-shift {
   0% {
     transform: translate(0, 0);
@@ -174,66 +140,13 @@ body {
   filter: contrast(1.05) brightness(1.02);
 }
 
-/* Film Grain */
-.film-grain {
-  opacity: 0.5;
-}
-
 /* Margin top screen height */
 .mt-screen {
   margin-top: 100vh;
 }
 
-/* Film Grain Overlay (from codepen) */
-.film-grain-overlay::after {
-  content: "";
-  background-image: url("https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Dissolve_Noise_Texture.png");
-  height: 300%;
-  width: 300%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  opacity: 0.07;
-  animation: animateGrain 8s steps(10) infinite;
-  pointer-events: none;
-}
-
 .hide-header header {
   display: none !important;
-}
-
-@keyframes animateGrain {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  10% {
-    transform: translate(-5%, -10%);
-  }
-  20% {
-    transform: translate(-15%, -20%);
-  }
-  30% {
-    transform: translate(-5%, -10%);
-  }
-  40% {
-    transform: translate(-15%, -20%);
-  }
-  50% {
-    transform: translate(-5%, -10%);
-  }
-  60% {
-    transform: translate(-15%, -20%);
-  }
-  70% {
-    transform: translate(-5%, -10%);
-  }
-  80% {
-    transform: translate(-15%, -20%);
-  }
-  90% {
-    transform: translate(-5%, -10%);
-  }
 }
 
 @custom-variant dark (&:is(.dark *));

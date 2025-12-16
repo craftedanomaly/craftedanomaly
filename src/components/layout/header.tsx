@@ -22,7 +22,6 @@ import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { getTransition, getVariants } from "@/lib/motion-constants";
 import { supabase } from "@/lib/supabase/client";
-import { FilmGrainToggle } from "@/components/effects/FilmGrainToggle";
 
 interface Category {
   id: string;
@@ -233,7 +232,6 @@ export function Header() {
 
             {/* Grain toggle + Menu Button */}
             <div className="flex items-center gap-1">
-              <FilmGrainToggle inline />
               <Button
                 variant="ghost"
                 size="icon"

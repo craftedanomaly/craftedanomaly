@@ -9,8 +9,10 @@ export function createClient() {
   )
 }
 
-export function createServerSupabaseClient() {
-  const cookieStore = cookies()
+export async function createServerSupabaseClient() {
+  // Next.js 15+ dynamic API: cookies() must be awaited
+  // https://nextjs.org/docs/messages/sync-dynamic-apis
+  const cookieStore = await cookies()
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
