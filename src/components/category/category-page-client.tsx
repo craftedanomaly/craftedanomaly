@@ -491,7 +491,11 @@ export function CategoryPageClient({
                       )}
                       {/* First Row */}
                       <div className="flex max-md:flex-col">
-                        {firstRow.map((project: any, index: number) => (
+                        {firstRow.map((project: any, index: number) => {
+                          const isRevealed =
+                            hoveredProject === project.id || activeProjectIndex === index;
+
+                          return (
                           <div
                             key={project.id}
                             style={{
@@ -545,14 +549,25 @@ export function CategoryPageClient({
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
 
                                 {project.project_type && (
-                                  <div className="absolute left-4 top-4 z-30 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground">
+                                  <motion.div
+                                    initial={false}
+                                    animate={{ opacity: isRevealed ? 1 : 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="absolute left-4 top-4 z-30 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground pointer-events-none"
+                                  >
                                     {project.project_type}
-                                  </div>
+                                  </motion.div>
                                 )}
                                 <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 z-30">
-                                  <h3 className="text-xl md:text-2xl font-bold text-foreground line-clamp-2 md:group-hover:text-accent transition-colors">
-                                    {project.title}
-                                  </h3>
+                                  <motion.div
+                                    initial={false}
+                                    animate={{ opacity: isRevealed ? 1 : 0, y: isRevealed ? 0 : 14 }}
+                                    transition={{ duration: 0.25 }}
+                                  >
+                                    <h3 className="text-xl md:text-2xl font-bold text-foreground line-clamp-2">
+                                      {project.title}
+                                    </h3>
+                                  </motion.div>
                                 </div>
                               </div>
                             </Link>
@@ -564,6 +579,10 @@ export function CategoryPageClient({
                       {count > 2 && secondRow.length > 0 && (
                         <div className="flex max-md:flex-col">
                           {secondRow.map((project: any, index: number) => {
+                            const absoluteIndex = index + firstRow.length;
+                            const isRevealed =
+                              hoveredProject === project.id || activeProjectIndex === absoluteIndex;
+
                             let widthValue = parentWidth * 0.5;
                             let heightValue = height * 0.5;
 
@@ -638,14 +657,34 @@ export function CategoryPageClient({
                                         />
                                       )}
                                     {project.project_type && (
-                                      <div className="absolute left-4 top-4 z-30 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground">
+                                      <motion.div
+                                        initial={false}
+                                        animate={{ opacity: isRevealed ? 1 : 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="absolute left-4 top-4 z-30 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground pointer-events-none"
+                                      >
                                         {project.project_type}
-                                      </div>
+                                      </motion.div>
                                     )}
-                                    <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 z-30">
-                                      <h3 className="text-xl md:text-2xl font-bold text-foreground line-clamp-2 group-hover:text-accent transition-colors">
-                                        {project.title}
-                                      </h3>
+                                    <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 z-30 pointer-events-none">
+                                      <motion.div
+                                        initial={false}
+                                        animate={{ opacity: isRevealed ? 1 : 0, y: isRevealed ? 0 : 14 }}
+                                        transition={{ duration: 0.25 }}
+                                      >
+                                        <h3 className="text-xl md:text-2xl font-bold text-foreground line-clamp-2">
+                                          {project.title}
+                                        </h3>
+                                        <motion.div
+                                          initial={false}
+                                          animate={{ opacity: isRevealed ? 1 : 0, y: isRevealed ? 0 : 6 }}
+                                          transition={{ duration: 0.2 }}
+                                          className="flex items-center gap-2 text-sm text-muted-foreground"
+                                        >
+                                          {project.year && <span>{project.year}</span>}
+                                          {project.client && <span>{project.client}</span>}
+                                        </motion.div>
+                                      </motion.div>
                                     </div>
                                   </div>
                                 </Link>

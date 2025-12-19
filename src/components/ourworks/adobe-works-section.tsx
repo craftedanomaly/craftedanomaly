@@ -372,7 +372,7 @@ export function AdobeWorksSection({
                             priority={Math.abs(offset) <= 1}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                          
+
                           {/* Project Info - Only visible on active card */}
                           <motion.div 
                             className="absolute bottom-0 left-0 right-0 p-5"
@@ -655,30 +655,30 @@ export function AdobeWorksSection({
                           }`} />
 
                           {/* Project info */}
-                          <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
+                          <div className="absolute bottom-0 left-0 right-0 p-4 z-20 pointer-events-none">
                             <motion.div
-                              animate={{ y: isHovered ? 0 : 10, opacity: isHovered ? 1 : 0.8 }}
-                              transition={{ duration: 0.3 }}
+                              initial={false}
+                              animate={{ y: isHovered ? 0 : 12, opacity: isHovered ? 1 : 0 }}
+                              transition={{ duration: 0.25 }}
                             >
                               <h3 className="text-white font-semibold text-lg mb-1 drop-shadow-lg">
                                 {project.title}
                               </h3>
-                              {isHovered && (
-                                <motion.div
-                                  initial={{ opacity: 0, y: 10 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  className="flex items-center gap-2"
-                                >
-                                  {project.year && (
-                                    <span className="text-white/70 text-sm">{project.year}</span>
-                                  )}
-                                  {project.projectType && (
-                                    <span className="px-2 py-0.5 bg-[#ed5c2c]/80 rounded text-xs text-white">
-                                      {project.projectType}
-                                    </span>
-                                  )}
-                                </motion.div>
-                              )}
+                              <motion.div
+                                initial={false}
+                                animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 6 }}
+                                transition={{ duration: 0.2 }}
+                                className="flex items-center gap-2"
+                              >
+                                {project.year && (
+                                  <span className="text-white/70 text-sm">{project.year}</span>
+                                )}
+                                {project.projectType && (
+                                  <span className="px-2 py-0.5 bg-[#ed5c2c]/80 rounded text-xs text-white">
+                                    {project.projectType}
+                                  </span>
+                                )}
+                              </motion.div>
                             </motion.div>
                           </div>
 
