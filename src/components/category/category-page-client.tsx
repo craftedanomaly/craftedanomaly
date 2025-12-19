@@ -496,83 +496,93 @@ export function CategoryPageClient({
                             hoveredProject === project.id || activeProjectIndex === index;
 
                           return (
-                          <div
-                            key={project.id}
-                            style={{
-                              width: widthValue,
-                              height:
-                                width < 768 ? "298px" : `${heightValue}px`,
-                            }}
-                          >
-                            <Link
-                              href={`/projects/${project.slug}`}
-                              className="group block relative h-full"
-                              onMouseEnter={() =>
-                                handleProjectHover(project.id, true)
-                              }
-                              onMouseLeave={() =>
-                                handleProjectHover(project.id, false)
-                              }
-                              onFocus={() => setActiveProjectIndex(index)}
-                              onClick={() => {
-                                scrollPositionManager.saveActiveProject(
-                                  category.slug,
-                                  project.slug,
-                                  index
-                                );
+                            <div
+                              key={project.id}
+                              style={{
+                                width: widthValue,
+                                height:
+                                  width < 768 ? "298px" : `${heightValue}px`,
                               }}
-                              style={{ cursor: "inherit" }}
                             >
-                              <div className="relative w-full h-full overflow-hidden bg-card">
-                                <Image
-                                  src={project.cover_image}
-                                  alt={project.title}
-                                  fill
-                                  className="object-cover"
-                                  sizes="35vw"
-                                />
-                                {project.cover_video_url &&
-                                  hoveredProject === project.id && (
-                                    <video
-                                      ref={(el) => {
-                                        if (el)
-                                          videoRefs.current.set(project.id, el);
-                                      }}
-                                      src={project.cover_video_url}
-                                      className="absolute inset-0 w-full h-full object-cover z-10"
-                                      loop
-                                      muted
-                                      playsInline
-                                    />
+                              <Link
+                                href={`/projects/${project.slug}`}
+                                className="group block relative h-full"
+                                onMouseEnter={() =>
+                                  handleProjectHover(project.id, true)
+                                }
+                                onMouseLeave={() =>
+                                  handleProjectHover(project.id, false)
+                                }
+                                onFocus={() => setActiveProjectIndex(index)}
+                                onClick={() => {
+                                  scrollPositionManager.saveActiveProject(
+                                    category.slug,
+                                    project.slug,
+                                    index
+                                  );
+                                }}
+                                style={{ cursor: "inherit" }}
+                              >
+                                <div className="relative w-full h-full overflow-hidden bg-card">
+                                  <Image
+                                    src={project.cover_image}
+                                    alt={project.title}
+                                    fill
+                                    className="object-cover"
+                                    sizes="35vw"
+                                  />
+                                  {project.cover_video_url &&
+                                    hoveredProject === project.id && (
+                                      <video
+                                        ref={(el) => {
+                                          if (el)
+                                            videoRefs.current.set(project.id, el);
+                                        }}
+                                        src={project.cover_video_url}
+                                        className="absolute inset-0 w-full h-full object-cover z-10"
+                                        loop
+                                        muted
+                                        playsInline
+                                      />
+                                    )}
+
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
+
+                                  {project.project_type && (
+                                    <motion.div
+                                      initial={false}
+                                      animate={{ opacity: isRevealed ? 1 : 0 }}
+                                      transition={{ duration: 0.2 }}
+                                      className="absolute left-4 top-4 z-30 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground pointer-events-none"
+                                    >
+                                      {project.project_type}
+                                    </motion.div>
                                   )}
-
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
-
-                                {project.project_type && (
-                                  <motion.div
-                                    initial={false}
-                                    animate={{ opacity: isRevealed ? 1 : 0 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="absolute left-4 top-4 z-30 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground pointer-events-none"
-                                  >
-                                    {project.project_type}
-                                  </motion.div>
-                                )}
-                                <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 z-30">
-                                  <motion.div
-                                    initial={false}
-                                    animate={{ opacity: isRevealed ? 1 : 0, y: isRevealed ? 0 : 14 }}
-                                    transition={{ duration: 0.25 }}
-                                  >
-                                    <h3 className="text-xl md:text-2xl font-bold text-foreground line-clamp-2">
-                                      {project.title}
-                                    </h3>
-                                  </motion.div>
+                                  <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 z-30">
+                                    <motion.div
+                                      initial={false}
+                                      animate={{ opacity: isRevealed ? 1 : 0, y: isRevealed ? 0 : 14 }}
+                                      transition={{ duration: 0.25 }}
+                                    >
+                                      <h3 className="text-xl md:text-2xl font-bold text-foreground line-clamp-2">
+                                        {project.title}
+                                      </h3>
+                                      <motion.div
+                                        initial={false}
+                                        animate={{ opacity: isRevealed ? 1 : 0, y: isRevealed ? 0 : 6 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="flex items-center gap-2 text-sm text-muted-foreground"
+                                      >
+                                        {project.year && <span>{project.year}</span>}
+                                        {project.client && <span>{project.client}</span>}
+                                      </motion.div>
+                                    </motion.div>
+                                  </div>
                                 </div>
-                              </div>
-                            </Link>
-                          </div>
-                        ))}
+                              </Link>
+                            </div>
+                          );
+                        })}
                       </div>
 
                       {/* Second Row */}
