@@ -550,25 +550,26 @@ export function VisualDesignLayout({
 
   // Compute widths and offsets for the combined row (images + videos + before_after)
   const beforeAfterWidth = Math.round(vw * 0.7); // 70% viewport width for before/after
+  // Video width: fill viewport height with 16:9 aspect ratio (YouTube/Vimeo standard)
+  const videoSlideWidth = Math.round(vh * (16 / 9));
 
   const rowWidths = useMemo(() => {
     const widths: number[] = [];
     let imgIdx = 0;
-    let lastImageWidth = slideWidths[0] || vw;
     for (const it of rowItems) {
       if (it.type === "image") {
         const currentWidth = slideWidths[imgIdx] || vw;
         widths.push(currentWidth);
-        lastImageWidth = currentWidth;
         imgIdx++;
       } else if (it.type === "video") {
-        widths.push(lastImageWidth || slideWidths[imgIdx] || vw);
+        // Use 16:9 aspect ratio width based on viewport height
+        widths.push(videoSlideWidth);
       } else if (it.type === "before_after") {
         widths.push(beforeAfterWidth);
       }
     }
     return widths;
-  }, [rowItems, slideWidths, vw, beforeAfterWidth]);
+  }, [rowItems, slideWidths, vw, beforeAfterWidth, videoSlideWidth, vh]);
 
   const rowOffsets = useMemo(() => {
     const offs: number[] = [];
