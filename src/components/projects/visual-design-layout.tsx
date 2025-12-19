@@ -1630,16 +1630,16 @@ function VideoSlide({
           <video
             src={videoInfo.url}
             controls
-            className="absolute inset-0 h-full w-auto mx-auto pointer-events-auto"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-auto"
             style={{ backgroundColor }}
           />
         ) : videoInfo ? (
           <iframe
             src={videoInfo.embedUrl}
-            className="absolute inset-0 h-full w-auto mx-auto pointer-events-auto"
+            className="absolute inset-0 w-full h-full pointer-events-auto"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            style={{ backgroundColor }}
+            style={{ backgroundColor, border: 'none' }}
           />
         ) : (
           <div
