@@ -18,7 +18,10 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`${poppins.variable} font-sans antialiased`}>
+    <div
+      data-admin-theme
+      className={`${poppins.variable} font-sans antialiased bg-background text-foreground`}
+    >
       <ThemeProvider
         attribute="class"
         defaultTheme="dark"

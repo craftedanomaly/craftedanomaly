@@ -14,7 +14,15 @@ function AdminContent({ children }: { children: React.ReactNode }) {
   return (
     <>
       <AdminSidebarWrapper />
-      <main className={`flex-1 min-h-screen ${isUnauthorized ? '' : 'ml-64'}`}>{children}</main>
+      <main
+        className={`flex-1 min-h-screen bg-background text-foreground ${
+          isUnauthorized ? '' : 'ml-64'
+        }`}
+      >
+        <div className="min-h-screen px-6 py-10 lg:px-10">
+          <div className="max-w-6xl mx-auto">{children}</div>
+        </div>
+      </main>
     </>
   );
 }

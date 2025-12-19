@@ -4,7 +4,7 @@ import { useRef, useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { Eye, EyeOff, Lock, Grid, List, ZoomIn, ZoomOut, Maximize2, Play } from "lucide-react";
+import { Eye, EyeOff, Lock, Grid, List, ZoomIn, ZoomOut, Maximize2, Play, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Project {
   id: string;
@@ -43,8 +43,47 @@ export function AdobeWorksSection({
   const [gridSize, setGridSize] = useState<number>(4);
   const [scrubPosition, setScrubPosition] = useState<number>(0);
   const [isDraggingScrub, setIsDraggingScrub] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileSlideIndex, setMobileSlideIndex] = useState(0);
+  const mobileSlideIndexRef = useRef(0);
+  const touchStartRef = useRef(0);
+  const touchHandledRef = useRef(false);
+  const [isCarouselActive, setIsCarouselActive] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
+  const mobileSliderRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
+
+  // Sync slide index ref
+  useEffect(() => {
+    mobileSlideIndexRef.current = mobileSlideIndex;
+  }, [mobileSlideIndex]);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Activate carousel only when section is fully visible
+  useEffect(() => {
+    if (!isMobile || !sectionRef.current) return;
+    
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Activate when section is almost fully visible
+        setIsCarouselActive(entry.intersectionRatio >= 0.95);
+      },
+      { threshold: [0, 0.5, 0.9, 0.95, 1] }
+    );
+    
+    observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, [isMobile]);
 
   // Filter projects by category and visibility
   const filteredProjects = useMemo(() => {
@@ -53,6 +92,55 @@ export function AdobeWorksSection({
       : projects.filter((p) => p.categorySlug === activeCategory);
     return filtered.filter((p) => !hiddenProjects.has(p.id));
   }, [projects, activeCategory, hiddenProjects]);
+
+  // Handle touch events natively to control scroll locking
+  useEffect(() => {
+    if (!isMobile || !isCarouselActive || !mobileSliderRef.current) return;
+    const slider = mobileSliderRef.current;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartRef.current = e.touches[0].clientY;
+      touchHandledRef.current = false;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const touchCurrent = e.touches[0].clientY;
+      const diff = touchStartRef.current - touchCurrent;
+      const index = mobileSlideIndexRef.current;
+      
+      const isAtFirstItem = index === 0;
+      const isAtLastItem = index === filteredProjects.length - 1;
+      const isScrollingUp = diff < 0;
+      const isScrollingDown = diff > 0;
+      
+      // Allow page scroll only at boundaries
+      const shouldAllowPageScroll = (isAtFirstItem && isScrollingUp) || (isAtLastItem && isScrollingDown);
+      
+      if (!shouldAllowPageScroll) {
+        if (e.cancelable) e.preventDefault();
+        
+        if (Math.abs(diff) > 50 && !touchHandledRef.current) {
+          if (isScrollingDown && !isAtLastItem) {
+            setMobileSlideIndex(prev => prev + 1);
+            touchHandledRef.current = true;
+            touchStartRef.current = touchCurrent;
+          } else if (isScrollingUp && !isAtFirstItem) {
+            setMobileSlideIndex(prev => prev - 1);
+            touchHandledRef.current = true;
+            touchStartRef.current = touchCurrent;
+          }
+        }
+      }
+    };
+
+    slider.addEventListener('touchstart', handleTouchStart, { passive: true });
+    slider.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+    return () => {
+      slider.removeEventListener('touchstart', handleTouchStart);
+      slider.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [isMobile, isCarouselActive, filteredProjects.length]);
 
   // Toggle project visibility
   const toggleProjectVisibility = (projectId: string, e: React.MouseEvent) => {
@@ -150,18 +238,36 @@ export function AdobeWorksSection({
 
   const selectedProject = filteredProjects.find(p => p.id === selectedProjectId);
 
+  // Mobile slider navigation
+  const handleMobileNext = () => {
+    if (mobileSlideIndex < filteredProjects.length - 1) {
+      setMobileSlideIndex(prev => prev + 1);
+    }
+  };
+
+  const handleMobilePrev = () => {
+    if (mobileSlideIndex > 0) {
+      setMobileSlideIndex(prev => prev - 1);
+    }
+  };
+
+  // Reset slide index when category changes
+  useEffect(() => {
+    setMobileSlideIndex(0);
+  }, [activeCategory]);
+
   return (
-    <section id="adobe-works-section" className="min-h-screen relative">
+    <section ref={sectionRef} id="adobe-works-section" className="min-h-screen relative">
       {/* Full Blueprint Background */}
       <div 
         className="absolute inset-0"
         style={{
-          backgroundColor: '#0a1628',
+          backgroundColor: '#005aff',
           backgroundImage: `
-            linear-gradient(to right, rgba(0, 70, 191, 0.3) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(0, 70, 191, 0.3) 1px, transparent 1px),
-            linear-gradient(to right, rgba(0, 70, 191, 0.15) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(0, 70, 191, 0.15) 1px, transparent 1px)
+            linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+            linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px)
           `,
           backgroundSize: '100px 100px, 100px 100px, 20px 20px, 20px 20px'
         }}
@@ -178,68 +284,215 @@ export function AdobeWorksSection({
             </h2>
           </div>
 
-          {/* Top Timeline Bar - Premiere Pro style */}
-          <div className="bg-[#1e1e1e]/95 backdrop-blur border border-[#3d3d3d] rounded-t-lg overflow-hidden">
-            {/* Timeline Ruler - Category Segments */}
-            <div 
-              ref={timelineRef}
-              className="relative h-10 bg-[#252525] border-b border-[#3d3d3d] cursor-pointer select-none flex"
-              onMouseDown={handleTimelineMouseDown}
-              onMouseMove={handleTimelineMouseMove}
-              onMouseUp={handleTimelineMouseUp}
-              onMouseLeave={handleTimelineMouseUp}
-            >
-              {/* Category segments */}
+          {/* Mobile Category Filter */}
+          {isMobile && (
+            <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
               {["all", ...categories.map(c => c.slug)].map((slug, index) => {
-                const allCategories = ["all", ...categories.map(c => c.slug)];
                 const colors = ["#ed5c2c", "#0066cc", "#7b2cbf", "#2d6a4f", "#d4a373", "#e63946"];
                 const isActive = activeCategory === slug;
                 const categoryName = slug === "all" ? "All" : categories.find(c => c.slug === slug)?.name || slug;
                 
                 return (
-                  <div
+                  <button
                     key={slug}
-                    className={`flex-1 flex items-center justify-center border-r border-[#3d3d3d] transition-all ${
-                      isActive ? "" : "opacity-60 hover:opacity-80"
+                    onClick={() => setActiveCategory(slug)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                      isActive 
+                        ? "text-white shadow-lg" 
+                        : "bg-white/10 text-white/70 hover:bg-white/20"
                     }`}
                     style={{
-                      backgroundColor: isActive ? colors[index % colors.length] : '#1e1e1e'
+                      backgroundColor: isActive ? colors[index % colors.length] : undefined
                     }}
                   >
-                    <span className={`text-xs font-medium truncate px-2 ${
-                      isActive ? "text-white" : "text-gray-400"
-                    }`}>
-                      {categoryName}
-                    </span>
-                  </div>
+                    {categoryName}
+                  </button>
                 );
               })}
+            </div>
+          )}
 
-              {/* Playhead / Scrubber */}
-              <div 
-                className="absolute top-0 bottom-0 w-1 bg-white z-20 pointer-events-none shadow-lg"
-                style={{ left: `${scrubPosition}%`, transform: 'translateX(-50%)' }}
-              >
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0" 
-                  style={{ 
-                    borderLeft: '6px solid transparent',
-                    borderRight: '6px solid transparent',
-                    borderTop: '8px solid white'
-                  }}
-                />
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0" 
-                  style={{ 
-                    borderLeft: '6px solid transparent',
-                    borderRight: '6px solid transparent',
-                    borderBottom: '8px solid white'
-                  }}
-                />
+          {/* Mobile Vertical Stacked Card Carousel */}
+          {isMobile && (
+            <div 
+              ref={mobileSliderRef}
+              className="relative h-[500px] overflow-hidden"
+            >
+              {/* Stacked Cards */}
+              <div className="relative h-full flex items-center justify-center px-4">
+                {filteredProjects.map((project, index) => {
+                  const offset = index - mobileSlideIndex;
+                  const isActive = offset === 0;
+                  const isPrev = offset < 0;
+                  const isNext = offset > 0;
+                  
+                  // Only render cards within visible range
+                  if (Math.abs(offset) > 3) return null;
+                  
+                  return (
+                    <motion.div
+                      key={project.id}
+                      className="absolute w-full cursor-pointer"
+                      style={{ 
+                        zIndex: 10 - Math.abs(offset),
+                        pointerEvents: isActive ? 'auto' : 'none'
+                      }}
+                      initial={false}
+                      animate={{
+                        y: isActive ? 0 : isPrev ? -80 * Math.abs(offset) : 120 * offset,
+                        scale: isActive ? 1 : 1 - (Math.abs(offset) * 0.08),
+                        opacity: isActive ? 1 : Math.max(0, 1 - Math.abs(offset) * 0.4),
+                        rotateX: isActive ? 0 : isPrev ? 8 : -5,
+                      }}
+                      transition={{ 
+                        type: "spring", 
+                        stiffness: 300, 
+                        damping: 30 
+                      }}
+                      onClick={() => {
+                        if (isActive) return;
+                        setMobileSlideIndex(index);
+                      }}
+                    >
+                      <Link href={isActive ? `/projects/${project.slug}` : '#'} onClick={(e) => !isActive && e.preventDefault()}>
+                        <div 
+                          className={`relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl transition-shadow duration-300 ${
+                            isActive ? 'shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]' : ''
+                          }`}
+                          style={{
+                            border: isActive ? '3px solid rgba(255,255,255,0.2)' : '2px solid rgba(255,255,255,0.1)'
+                          }}
+                        >
+                          <Image
+                            src={project.coverImageUrl}
+                            alt={project.title}
+                            fill
+                            className="object-cover"
+                            sizes="100vw"
+                            priority={Math.abs(offset) <= 1}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                          
+                          {/* Project Info - Only visible on active card */}
+                          <motion.div 
+                            className="absolute bottom-0 left-0 right-0 p-5"
+                            animate={{ opacity: isActive ? 1 : 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <h3 className="text-white font-bold text-2xl mb-2 drop-shadow-lg">
+                              {project.title}
+                            </h3>
+                            <div className="flex items-center gap-3">
+                              {project.year && (
+                                <span className="text-white/80 text-sm font-medium">{project.year}</span>
+                              )}
+                              {project.projectType && (
+                                <span className="px-3 py-1 bg-[#ed5c2c] rounded-full text-xs text-white font-medium">
+                                  {project.projectType}
+                                </span>
+                              )}
+                            </div>
+                          </motion.div>
+                          
+                          {/* Video indicator */}
+                          {project.coverVideoUrl && isActive && (
+                            <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center">
+                              <Play className="w-5 h-5 text-white ml-0.5" fill="white" />
+                            </div>
+                          )}
+                        </div>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {/* Scroll Indicator */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+                <div className="flex gap-1.5">
+                  {filteredProjects.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setMobileSlideIndex(index)}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        index === mobileSlideIndex 
+                          ? "bg-[#ed5c2c] w-8" 
+                          : "bg-white/30 w-1.5 hover:bg-white/50"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-white/50 text-xs">
+                  {mobileSlideIndex + 1} / {filteredProjects.length}
+                </span>
               </div>
             </div>
+          )}
 
+          {/* Desktop: Top Timeline Bar - Premiere Pro style */}
+          {!isMobile && (
+            <div className="bg-[#1e1e1e]/95 backdrop-blur border border-[#3d3d3d] rounded-t-lg overflow-hidden">
+              {/* Timeline Ruler - Category Segments */}
+              <div 
+                ref={timelineRef}
+                className="relative h-10 bg-[#252525] border-b border-[#3d3d3d] cursor-pointer select-none flex"
+                onMouseDown={handleTimelineMouseDown}
+                onMouseMove={handleTimelineMouseMove}
+                onMouseUp={handleTimelineMouseUp}
+                onMouseLeave={handleTimelineMouseUp}
+              >
+                {/* Category segments */}
+                {["all", ...categories.map(c => c.slug)].map((slug, index) => {
+                  const allCategories = ["all", ...categories.map(c => c.slug)];
+                  const colors = ["#ed5c2c", "#0066cc", "#7b2cbf", "#2d6a4f", "#d4a373", "#e63946"];
+                  const isActive = activeCategory === slug;
+                  const categoryName = slug === "all" ? "All" : categories.find(c => c.slug === slug)?.name || slug;
+                  
+                  return (
+                    <div
+                      key={slug}
+                      className={`flex-1 flex items-center justify-center border-r border-[#3d3d3d] transition-all ${
+                        isActive ? "" : "opacity-60 hover:opacity-80"
+                      }`}
+                      style={{
+                        backgroundColor: isActive ? colors[index % colors.length] : '#1e1e1e'
+                      }}
+                    >
+                      <span className={`text-xs font-medium truncate px-2 ${
+                        isActive ? "text-white" : "text-gray-400"
+                      }`}>
+                        {categoryName}
+                      </span>
+                    </div>
+                  );
+                })}
+
+                {/* Playhead / Scrubber */}
+                <div 
+                  className="absolute top-0 bottom-0 w-1 bg-white z-20 pointer-events-none shadow-lg"
+                  style={{ left: `${scrubPosition}%`, transform: 'translateX(-50%)' }}
+                >
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0" 
+                    style={{ 
+                      borderLeft: '6px solid transparent',
+                      borderRight: '6px solid transparent',
+                      borderTop: '8px solid white'
+                    }}
+                  />
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0" 
+                    style={{ 
+                      borderLeft: '6px solid transparent',
+                      borderRight: '6px solid transparent',
+                      borderBottom: '8px solid white'
+                    }}
+                  />
+                </div>
+              </div>
             </div>
+          )}
 
-          {/* Main Content Area */}
+          {/* Main Content Area - Desktop Only */}
+          {!isMobile && (
           <div className="flex bg-[#1e1e1e]/95 backdrop-blur border-x border-b border-[#3d3d3d] rounded-b-lg overflow-hidden min-h-[700px]">
             
             {/* Left Toolbar - Photoshop style */}
@@ -596,8 +849,10 @@ export function AdobeWorksSection({
               </div>
             </div>
           </div>
+          )}
 
-          {/* Bottom Status Bar */}
+          {/* Bottom Status Bar - Desktop Only */}
+          {!isMobile && (
           <div className="bg-[#1e1e1e]/95 backdrop-blur border border-t-0 border-[#3d3d3d] rounded-b-lg px-4 py-2 flex items-center text-xs text-gray-400">
             <span>Projects: {filteredProjects.length}</span>
             <span className="mx-4">|</span>
@@ -607,6 +862,7 @@ export function AdobeWorksSection({
             <span className="flex-1" />
             <span>Crafted Anomaly © 2024</span>
           </div>
+          )}
         </div>
       </div>
     </section>
