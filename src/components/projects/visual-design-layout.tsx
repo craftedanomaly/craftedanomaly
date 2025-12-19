@@ -549,24 +549,26 @@ export function VisualDesignLayout({
   }, [images, overlaysBySlide, coverVideoUrl]);
 
   // Compute widths and offsets for the combined row (images + videos + before_after)
-  const videoSlideWidth = Math.round(vw * 0.6); // 60% viewport width for videos
   const beforeAfterWidth = Math.round(vw * 0.7); // 70% viewport width for before/after
 
   const rowWidths = useMemo(() => {
     const widths: number[] = [];
     let imgIdx = 0;
+    let lastImageWidth = slideWidths[0] || vw;
     for (const it of rowItems) {
       if (it.type === "image") {
-        widths.push(slideWidths[imgIdx] || vw);
+        const currentWidth = slideWidths[imgIdx] || vw;
+        widths.push(currentWidth);
+        lastImageWidth = currentWidth;
         imgIdx++;
       } else if (it.type === "video") {
-        widths.push(videoSlideWidth);
+        widths.push(lastImageWidth || slideWidths[imgIdx] || vw);
       } else if (it.type === "before_after") {
         widths.push(beforeAfterWidth);
       }
     }
     return widths;
-  }, [rowItems, slideWidths, vw, videoSlideWidth, beforeAfterWidth]);
+  }, [rowItems, slideWidths, vw, beforeAfterWidth]);
 
   const rowOffsets = useMemo(() => {
     const offs: number[] = [];
@@ -1124,7 +1126,7 @@ export function VisualDesignLayout({
                   key={`video-${it.block.id}`}
                   block={it.block}
                   offset={rowOffsets[idx] || 0}
-                  width={rowWidths[idx] || videoSlideWidth}
+                  width={rowWidths[idx] || vw}
                   xMV={xRow}
                   vw={vw}
                   backgroundColor={backgroundColor}
