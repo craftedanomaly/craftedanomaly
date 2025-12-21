@@ -105,6 +105,12 @@ export function NewDesignLayout({
 
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
+  const rightPaneWidth = rightSpanRef.current?.clientWidth || width || 0;
+  const coverFrameHeight = width > 1280 ? height : 350;
+  const coverVideoWidth = coverFrameHeight
+    ? Math.max(coverFrameHeight * (16 / 9), rightPaneWidth)
+    : rightPaneWidth;
+
   useEffect(() => {
     document.body.classList.add("hide-header");
     return () => {
@@ -825,20 +831,31 @@ export function NewDesignLayout({
             <div className="relative h-full">
               {project.cover_video_url.includes("youtube.com") ||
               project.cover_video_url.includes("youtu.be") ? (
-                <ReactPlayer
-                  src={project.cover_video_url}
-                  controls // use YouTube controller
-                  muted
-                  loop
-                  width="100%"
-                  height="100%"
-                  playing
-                  style={{
-                    objectFit: "cover",
-                  }}
-                />
+                <div className="absolute inset-0 overflow-hidden bg-black">
+                  <div
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                    style={{
+                      width: coverVideoWidth
+                        ? `${Math.max(coverVideoWidth, rightPaneWidth)}px`
+                        : "120%",
+                      height: coverFrameHeight
+                        ? `${coverFrameHeight}px`
+                        : "100%",
+                      minWidth: "100%",
+                    }}
+                  >
+                    <ReactPlayer
+                      src={project.cover_video_url}
+                      controls // use YouTube controller
+                      muted
+                      loop
+                      playing
+                      width="100%"
+                      height="100%"
+                    />
+                  </div>
+                </div>
               ) : (
-                // <Controller src={project.cover_video_url} />
                 <Controller2 src={project.cover_video_url} />
               )}
             </div>
@@ -863,6 +880,13 @@ export function NewDesignLayout({
                     const isYouTube =
                       item.media_url?.includes("youtube.com") ||
                       item.media_url?.includes("youtu.be");
+                    const slideHeightValue = width > 1280 ? heightValue : 350;
+                    const preferredVideoWidth =
+                      (slideHeightValue || heightValue || 0) * (16 / 9);
+                    const videoWidthPx = Math.max(
+                      preferredVideoWidth || 0,
+                      widthValue || 0
+                    );
 
                     return (
                       <div
@@ -934,56 +958,36 @@ export function NewDesignLayout({
                               {!coverVideoPlay &&
                                 item.media_type === "video" && (
                                   <div
-                                    className={`absolute inset-0 bg-transparent mx-auto ${
+                                    className={`absolute inset-0 bg-black overflow-hidden ${
                                       isScrolling && "pointer-events-none"
                                     }`}
                                   >
                                     {isYouTube ? (
-                                      <ReactPlayer
-                                        src={item.media_url}
-                                        controls
-                                        height="100%"
-                                        muted
+                                      <div
+                                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
                                         style={{
-                                          objectFit: "cover",
-                                          margin: "0 auto",
-                                          width: width <= 768 ? "100%" : "50%",
+                                          width: videoWidthPx
+                                            ? `${videoWidthPx}px`
+                                            : "120%",
+                                          height: slideHeightValue
+                                            ? `${slideHeightValue}px`
+                                            : "100%",
+                                          minWidth: "100%",
                                         }}
-                                      />
+                                      >
+                                        <ReactPlayer
+                                          src={item.media_url}
+                                          controls
+                                          width="100%"
+                                          height="100%"
+                                          muted
+                                        />
+                                      </div>
                                     ) : (
                                       <Controller2 src={item.media_url} />
                                     )}
                                   </div>
                                 )}
-                              {/* {!coverVideoPlay && (
-                                <>
-                                  {item.media_type === "cover_image" &&
-                                  item.media_url ? (
-                                    <Image
-                                      src={item.media_url}
-                                      alt={`${project.title} + media ${i} + url ${item.media_url}`}
-                                      fill
-                                      className={`${
-                                        project.slug === "otis-tarda"
-                                          ? "object-contain"
-                                          : "object-cover"
-                                      }`}
-                                    />
-                                  ) : item.media_type === "image" &&
-                                    item.media_url ? (
-                                    <Image
-                                      src={item.media_url}
-                                      alt={`${project.title} + media ${i} + url ${item.media_url}`}
-                                      fill
-                                      className={`${
-                                        project.slug === "otis-tarda"
-                                          ? "object-contain"
-                                          : "object-cover"
-                                      }`}
-                                    />
-                                  ) : null}
-                                </>
-                              )} */}
                             </div>
                           </div>
                         </div>

@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import ProjectDetailClient from "@/components/projects/project-detail-client";
-import { VisualDesignLayout } from "@/components/projects/visual-design-layout";
 import { NewDesignLayout } from "@/components/projects/new-design-layout";
 
 // ISR: Revalidate every 60 seconds, admin can trigger on-demand revalidation
@@ -159,12 +158,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   if (layoutType === "visual_design") {
     return (
-      // <VisualDesignLayout
-      //   project={data.project}
-      //   media={data.media}
-      //   tags={data.tags}
-      //   blocks={data.blocks}
-      // />
       <NewDesignLayout
         project={data.project}
         media={data.media}
