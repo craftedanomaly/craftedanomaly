@@ -95,8 +95,8 @@ export function AdobeWorksSection({
 
   // Handle touch events natively to control scroll locking
   useEffect(() => {
-    if (!isMobile || !isCarouselActive || !mobileSliderRef.current) return;
-    const slider = mobileSliderRef.current;
+    if (!isMobile || !isCarouselActive || !sectionRef.current) return;
+    const section = sectionRef.current;
 
     const handleTouchStart = (e: TouchEvent) => {
       touchStartRef.current = e.touches[0].clientY;
@@ -119,7 +119,8 @@ export function AdobeWorksSection({
       if (!shouldAllowPageScroll) {
         if (e.cancelable) e.preventDefault();
         
-        if (Math.abs(diff) > 50 && !touchHandledRef.current) {
+        // Lower threshold (30px) for faster, more natural swiping
+        if (Math.abs(diff) > 30 && !touchHandledRef.current) {
           if (isScrollingDown && !isAtLastItem) {
             setMobileSlideIndex(prev => prev + 1);
             touchHandledRef.current = true;
@@ -133,12 +134,13 @@ export function AdobeWorksSection({
       }
     };
 
-    slider.addEventListener('touchstart', handleTouchStart, { passive: true });
-    slider.addEventListener('touchmove', handleTouchMove, { passive: false });
+    // Attach to entire section for swiping from anywhere
+    section.addEventListener('touchstart', handleTouchStart, { passive: true });
+    section.addEventListener('touchmove', handleTouchMove, { passive: false });
 
     return () => {
-      slider.removeEventListener('touchstart', handleTouchStart);
-      slider.removeEventListener('touchmove', handleTouchMove);
+      section.removeEventListener('touchstart', handleTouchStart);
+      section.removeEventListener('touchmove', handleTouchMove);
     };
   }, [isMobile, isCarouselActive, filteredProjects.length]);
 

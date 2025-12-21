@@ -1609,11 +1609,11 @@ function VideoSlide({
 
   return (
     <div
-      className="absolute top-0 h-screen"
-      style={{ left: offset, width, zIndex: 15 }}
+      className="absolute top-0 h-screen flex items-center justify-center"
+      style={{ left: offset, width, zIndex: 15, backgroundColor }}
     >
       <motion.div
-        className="absolute inset-0 pointer-events-auto"
+        className="relative w-full h-full pointer-events-auto"
         style={{ clipPath, willChange: "clip-path" }}
       >
         {/* Video icon indicator */}
@@ -1631,20 +1631,26 @@ function VideoSlide({
           <video
             src={videoInfo.url}
             controls
-            className="absolute inset-0 w-full h-full object-cover pointer-events-auto"
+            className="w-full h-full object-contain pointer-events-auto"
             style={{ backgroundColor }}
           />
         ) : videoInfo ? (
-          <iframe
-            src={videoInfo.embedUrl}
-            className="absolute inset-0 w-full h-full pointer-events-auto"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            style={{ backgroundColor, border: 'none' }}
-          />
+          <div className="w-full h-full flex items-center justify-center">
+            <iframe
+              src={videoInfo.embedUrl}
+              className="w-full pointer-events-auto"
+              style={{ 
+                aspectRatio: '16 / 9',
+                maxHeight: '100%',
+                border: 'none'
+              }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
         ) : (
           <div
-            className="absolute inset-0 flex items-center justify-center"
+            className="w-full h-full flex items-center justify-center"
             style={{ backgroundColor }}
           >
             <div className="text-white text-center">
