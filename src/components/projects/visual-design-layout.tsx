@@ -1635,13 +1635,15 @@ function VideoSlide({
             style={{ backgroundColor }}
           />
         ) : videoInfo ? (
-          <div className="w-full h-full flex items-center justify-center">
+          <div className="w-full h-full relative overflow-hidden bg-black">
             <iframe
               src={videoInfo.embedUrl}
-              className="w-full pointer-events-auto"
-              style={{ 
-                aspectRatio: '16 / 9',
-                maxHeight: '100%',
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
+              style={{
+                height: '100%',        // Yüksekliği daima container (ekran) kadar yap
+                width: '177.78vh',     // Genişliği yüksekliğe göre 16:9 oranında zorla (100vh * 1.77)
+                minWidth: '100%',      // Eğer ekran çok genişse boşluk kalmasın
+                maxWidth: 'none',      // Genişlik sınırlamasını kaldır (taşmasına izin ver)
                 border: 'none'
               }}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
