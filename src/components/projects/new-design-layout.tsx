@@ -122,19 +122,19 @@ export function NewDesignLayout({
   const [emblaRef, emblaApi] = useEmblaCarousel(
     width > 1280
       ? {
-          loop: false,
-          dragFree: true,
-          dragThreshold: 50,
-          containScroll: "trimSnaps",
-        }
+        loop: false,
+        dragFree: false, // Changed for snapping
+        containScroll: "trimSnaps",
+        align: "start"
+      }
       : undefined,
     width > 1280
       ? [
-          WheelGesturesPlugin({
-            forceWheelAxis: "y",
-            target: document.documentElement,
-          }),
-        ]
+        WheelGesturesPlugin({
+          forceWheelAxis: "y",
+          target: document.documentElement,
+        }),
+      ]
       : undefined
   );
 
@@ -183,13 +183,6 @@ export function NewDesignLayout({
   // Scroll progress
   const [scrollProgress, setScrollProgress] = useState<number>(0);
 
-  //  const smoothProgress = useSpring(scrollYProgress, {
-  //     stiffness: 120,
-  //     damping: 25,
-  //     mass: 0.7,
-  //     restDelta: 0.001,
-  //   });
-
   const onScroll = useCallback((emblaApi: EmblaCarouselType) => {
     const progress = Math.max(0, Math.min(1, emblaApi.scrollProgress()));
     setScrollProgress(progress * 100);
@@ -224,12 +217,12 @@ export function NewDesignLayout({
   // Map items
   const coverImageMedia = project.cover_image
     ? [
-        {
-          media_type: "cover_image",
-          media_url: project.cover_image,
-          display_order: -1,
-        },
-      ]
+      {
+        media_type: "cover_image",
+        media_url: project.cover_image,
+        display_order: -1,
+      },
+    ]
     : [];
 
   const processedMedia = media.map((m) => ({
@@ -245,10 +238,7 @@ export function NewDesignLayout({
   // add blocks if video, before_after or testimonial type
   blocks.forEach((block) => {
     if (["video", "before_after", "testimonial"].includes(block.block_type)) {
-      // yeni display_order, blok display_order +1
       const newDisplayOrder = block.display_order + 1;
-
-      // combinedMedia'daki elemanların display_order'larını kaydır
       combinedMedia.forEach((item) => {
         if (
           item.display_order !== undefined &&
@@ -257,7 +247,6 @@ export function NewDesignLayout({
           item.display_order += 1;
         }
       });
-
       combinedMedia.push({
         media_type: block.block_type,
         media_url: block.media_url,
@@ -273,7 +262,6 @@ export function NewDesignLayout({
   combinedMedia.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
 
   // Smooth progress pagination
-  // component top-level
   const scrollMotion = useMotionValue(0); // between 0-100
   const normalizedProgress = useTransform(scrollMotion, [0, 100], [0, 1]);
 
@@ -283,8 +271,6 @@ export function NewDesignLayout({
 
   const segmentCount = combinedMedia.length;
 
-  // Segment progress
-  // loop öncesi
   const segmentProgresses = combinedMedia.map((_, index) =>
     useTransform(
       normalizedProgress,
@@ -314,7 +300,6 @@ export function NewDesignLayout({
   );
 
   // non youtube video controller states/settings
-
   const playerRef = useRef<HTMLVideoElement | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -419,10 +404,7 @@ export function NewDesignLayout({
 
   const handleProgress = () => {
     const player = playerRef.current;
-    // We only want to update time slider if we are not currently seeking
     if (!player || state.seeking || !player.buffered?.length) return;
-
-    console.log("onProgress");
 
     setState((prevState) => ({
       ...prevState,
@@ -434,10 +416,7 @@ export function NewDesignLayout({
 
   const handleTimeUpdate = () => {
     const player = playerRef.current;
-    // We only want to update time slider if we are not currently seeking
     if (!player || state.seeking) return;
-
-    console.log("onTimeUpdate", player.currentTime);
 
     if (!player.duration) return;
 
@@ -461,15 +440,12 @@ export function NewDesignLayout({
   const handleDurationChange = () => {
     const player = playerRef.current;
     if (!player) return;
-
-    console.log("onDurationChange", player.duration);
     setState((prevState) => ({ ...prevState, duration: player.duration }));
   };
 
   const setPlayerRef = useCallback((player: HTMLVideoElement) => {
     if (!player) return;
     playerRef.current = player;
-    console.log(player);
   }, []);
 
   const {
@@ -550,8 +526,16 @@ export function NewDesignLayout({
           >
             <div>
               <div className="relative flex flex-col w-full mb-10 max-md:mb-0">
-                {/* Category Info */}
-                <div className="flex justify-center">
+                {/* Category Info - Animated */}
+                <motion.div
+                  className="flex justify-center"
+                  animate={{
+                    y: (activeSlideIndex || 0) > 0 ? -40 : 0,
+                    scale: (activeSlideIndex || 0) > 0 ? 0.9 : 1,
+                    opacity: (activeSlideIndex || 0) > 0 ? 0.8 : 1
+                  }}
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                >
                   <div className="min-h-[400px] max-md:min-h-auto">
                     <div className="space-y-4 mt-10 max-md:mt-0">
                       {project.project_type && (
@@ -611,7 +595,7 @@ export function NewDesignLayout({
                       </p>
                     )}
                   </div>
-                </div>
+                </motion.div>
 
                 {/* --- nonMediaBlocks --- */}
                 <div
@@ -620,7 +604,7 @@ export function NewDesignLayout({
                     display: width <= 768 ? "none" : "initial",
                   }}
                 >
-                  <div className="min-h-[100dvh] absolute w-full">
+                  <div className="min-h-[100dvh] absolute w-full top-0"> {/* Adjusted positioning */}
                     <AnimatePresence mode="wait">
                       {nonMediaBlocks.map((block) => {
                         if (block.display_order !== activeSlideIndex)
@@ -631,15 +615,14 @@ export function NewDesignLayout({
                         return (
                           <motion.div
                             key={block.id}
-                            layout
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 30 }}
                             animate={{
                               opacity: isActive ? 1 : 0,
-                              y: isActive ? 0 : 20,
+                              y: isActive ? 0 : 30,
                             }}
-                            exit={{ opacity: 0, y: 20 }}
-                            transition={{ duration: 0.5 }}
-                            className="overflow-hidden mt-auto"
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            className="overflow-hidden mt-auto pt-8"
                           >
                             {block.block_type === "text" && (
                               <div
@@ -806,7 +789,7 @@ export function NewDesignLayout({
                             scrollProgress === 0 && index === 0
                               ? 0.8
                               : // : smoothSegmentOpacity,
-                                smoothSegmentOpacities[index],
+                              smoothSegmentOpacities[index],
                         }}
                       />
 
@@ -830,7 +813,7 @@ export function NewDesignLayout({
           {coverVideoPlay && project.cover_video_url ? (
             <div className="relative h-full">
               {project.cover_video_url.includes("youtube.com") ||
-              project.cover_video_url.includes("youtu.be") ? (
+                project.cover_video_url.includes("youtu.be") ? (
                 <div className="absolute inset-0 overflow-hidden bg-black">
                   <div
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -934,9 +917,8 @@ export function NewDesignLayout({
                             }}
                           >
                             <div
-                              className={`relative w-full h-full  ${
-                                project.slug === "otis-tarda" ? "bg-black" : ""
-                              }`}
+                              className={`relative w-full h-full  ${project.slug === "otis-tarda" ? "bg-black" : ""
+                                }`}
                             >
                               {/* IMAGE RENDER */}
                               {!coverVideoPlay &&
@@ -946,11 +928,10 @@ export function NewDesignLayout({
                                     src={item.media_url}
                                     alt={`${project.title} + media ${i} + url ${item.media_url}`}
                                     fill
-                                    className={`${
-                                      project.slug === "otis-tarda"
-                                        ? "object-contain"
-                                        : "object-cover"
-                                    }`}
+                                    className={`${project.slug === "otis-tarda"
+                                      ? "object-contain"
+                                      : "object-cover"
+                                      }`}
                                   />
                                 )}
 
@@ -958,9 +939,8 @@ export function NewDesignLayout({
                               {!coverVideoPlay &&
                                 item.media_type === "video" && (
                                   <div
-                                    className={`absolute inset-0 bg-black overflow-hidden ${
-                                      isScrolling && "pointer-events-none"
-                                    }`}
+                                    className={`absolute inset-0 bg-black overflow-hidden ${isScrolling && "pointer-events-none"
+                                      }`}
                                   >
                                     {isYouTube ? (
                                       <div
@@ -999,7 +979,7 @@ export function NewDesignLayout({
             </div>
           )}
         </div>
-      </div>
+      </div >
     </>
   );
 }

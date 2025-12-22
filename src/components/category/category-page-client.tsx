@@ -202,9 +202,10 @@ export function CategoryPageClient({
     width > 768
       ? {
           loop: false,
-          dragFree: true,
-          dragThreshold: 50,
+          dragFree: false, // Changed to false for snapping
+          dragThreshold: 20, // Lower threshold for easier swipe
           containScroll: "trimSnaps",
+          align: "start" // Align to start
         }
       : undefined,
     width > 768
@@ -548,16 +549,15 @@ export function CategoryPageClient({
 
                                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
 
+                                  {/* MODIFIED: Always visible project_type */}
                                   {project.project_type && (
-                                    <motion.div
-                                      initial={false}
-                                      animate={{ opacity: isRevealed ? 1 : 0 }}
-                                      transition={{ duration: 0.2 }}
+                                    <div
                                       className="absolute left-4 top-4 z-30 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground pointer-events-none"
                                     >
                                       {project.project_type}
-                                    </motion.div>
+                                    </div>
                                   )}
+                                  
                                   <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 z-30">
                                     <motion.div
                                       initial={false}
@@ -666,16 +666,16 @@ export function CategoryPageClient({
                                           playsInline
                                         />
                                       )}
+                                      
+                                    {/* MODIFIED: Always visible project_type */}
                                     {project.project_type && (
-                                      <motion.div
-                                        initial={false}
-                                        animate={{ opacity: isRevealed ? 1 : 0 }}
-                                        transition={{ duration: 0.2 }}
+                                      <div
                                         className="absolute left-4 top-4 z-30 px-2.5 py-1 text-[10px] uppercase tracking-widest bg-background/70 border border-border rounded-full text-foreground pointer-events-none"
                                       >
                                         {project.project_type}
-                                      </motion.div>
+                                      </div>
                                     )}
+
                                     <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 z-30 pointer-events-none">
                                       <motion.div
                                         initial={false}
