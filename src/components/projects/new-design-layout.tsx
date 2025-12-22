@@ -77,7 +77,54 @@ interface VisualDesignLayoutProps {
   }>;
 }
 
+const VideoSlide = ({
+  url,
+  isYouTube,
+  width,
+  height,
+}: {
+  url: string,
+  isYouTube: boolean,
+  width: number,
+  height: number,
+  isScrolling: boolean
+}) => {
+  const slideHeightValue = width > 1280 ? height : 350;
+  const preferredVideoWidth = slideHeightValue * (16 / 9);
+  const videoWidthPx = Math.max(preferredVideoWidth, width);
+
+  return (
+    <div
+      className="absolute inset-0 bg-black overflow-hidden pointer-events-none"
+    >
+      {isYouTube ? (
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+          style={{
+            width: videoWidthPx ? `${videoWidthPx}px` : "120%",
+            height: slideHeightValue ? `${slideHeightValue}px` : "100%",
+            minWidth: "100%",
+          }}
+        >
+          <ReactPlayer
+            src={url}
+            controls={false}
+            width="100%"
+            height="100%"
+            muted={true}
+            playing={true}
+            loop={true}
+          />
+        </div>
+      ) : (
+        <Controller2 src={url} />
+      )}
+    </div>
+  );
+};
+
 export function NewDesignLayout({
+
   project,
   media,
   tags,
@@ -125,7 +172,8 @@ export function NewDesignLayout({
         loop: false,
         dragFree: false, // Changed for snapping
         containScroll: "trimSnaps",
-        align: "start"
+        align: "start",
+        duration: 10, // Faster snap
       }
       : undefined,
     width > 1280
@@ -133,6 +181,8 @@ export function NewDesignLayout({
         WheelGesturesPlugin({
           forceWheelAxis: "y",
           target: document.documentElement,
+          // @ts-ignore
+          wheelScale: 8, // 8x faster
         }),
       ]
       : undefined
@@ -938,35 +988,13 @@ export function NewDesignLayout({
                               {/* VIDEO RENDER */}
                               {!coverVideoPlay &&
                                 item.media_type === "video" && (
-                                  <div
-                                    className={`absolute inset-0 bg-black overflow-hidden ${isScrolling && "pointer-events-none"
-                                      }`}
-                                  >
-                                    {isYouTube ? (
-                                      <div
-                                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                                        style={{
-                                          width: videoWidthPx
-                                            ? `${videoWidthPx}px`
-                                            : "120%",
-                                          height: slideHeightValue
-                                            ? `${slideHeightValue}px`
-                                            : "100%",
-                                          minWidth: "100%",
-                                        }}
-                                      >
-                                        <ReactPlayer
-                                          src={item.media_url}
-                                          controls
-                                          width="100%"
-                                          height="100%"
-                                          muted
-                                        />
-                                      </div>
-                                    ) : (
-                                      <Controller2 src={item.media_url} />
-                                    )}
-                                  </div>
+                                  <VideoSlide
+                                    url={item.media_url}
+                                    isYouTube={isYouTube}
+                                    width={widthValue}
+                                    height={heightValue}
+                                    isScrolling={isScrolling}
+                                  />
                                 )}
                             </div>
                           </div>

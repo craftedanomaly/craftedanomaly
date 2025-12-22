@@ -104,42 +104,45 @@ export function AdobeWorksSection({
     };
 
     const handleTouchMove = (e: TouchEvent) => {
+      // Prevent page scroll when interacting with the slider
+      if (e.cancelable) e.preventDefault();
+
       const touchCurrent = e.touches[0].clientY;
       const diff = touchStartRef.current - touchCurrent;
-      const index = mobileSlideIndexRef.current;
 
-      const isAtFirstItem = index === 0;
-      const isAtLastItem = index === filteredProjects.length - 1;
-      const isScrollingUp = diff < 0;
-      const isScrollingDown = diff > 0;
+      const threshold = 40; // Sensitivity threshold preventing accidental swipes
 
-      // Allow page scroll only at boundaries
-      const shouldAllowPageScroll = (isAtFirstItem && isScrollingUp) || (isAtLastItem && isScrollingDown);
-
-      if (!shouldAllowPageScroll) {
-        if (e.cancelable) e.preventDefault();
-
-        // Lower threshold (15px) for faster, more natural swiping (tikitiki effect)
-        // Reset touchStartRef to current after triggering to allow continuous scrolling in one gesture
-        if (Math.abs(diff) > 15) {
-          if (isScrollingDown && !isAtLastItem) {
+      if (!touchHandledRef.current) {
+        if (diff > threshold) { // Swipe Up (Next Project)
+          if (mobileSlideIndexRef.current < filteredProjects.length - 1) {
             setMobileSlideIndex(prev => prev + 1);
-            touchStartRef.current = touchCurrent;
-          } else if (isScrollingUp && !isAtFirstItem) {
+            touchHandledRef.current = true;
+          }
+        } else if (diff < -threshold) { // Swipe Down (Prev Project)
+          if (mobileSlideIndexRef.current > 0) {
             setMobileSlideIndex(prev => prev - 1);
-            touchStartRef.current = touchCurrent;
+            touchHandledRef.current = true;
           }
         }
       }
     };
 
-    // Attach to entire section for swiping from anywhere
-    section.addEventListener('touchstart', handleTouchStart, { passive: true });
-    section.addEventListener('touchmove', handleTouchMove, { passive: false });
+    const handleTouchEnd = () => {
+      touchHandledRef.current = false;
+    }
+
+    // Attach to mobile slider container ONLY, not the whole section?
+    // User said "projelerin göründüğü herhangi bir alandaki swipe..."
+    const target = mobileSliderRef.current || section;
+
+    target.addEventListener('touchstart', handleTouchStart, { passive: true });
+    target.addEventListener('touchmove', handleTouchMove, { passive: false });
+    target.addEventListener('touchend', handleTouchEnd);
 
     return () => {
-      section.removeEventListener('touchstart', handleTouchStart);
-      section.removeEventListener('touchmove', handleTouchMove);
+      target.removeEventListener('touchstart', handleTouchStart);
+      target.removeEventListener('touchmove', handleTouchMove);
+      target.removeEventListener('touchend', handleTouchEnd);
     };
   }, [isMobile, isCarouselActive, filteredProjects.length]);
 
@@ -298,8 +301,8 @@ export function AdobeWorksSection({
                     key={slug}
                     onClick={() => setActiveCategory(slug)}
                     className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${isActive
-                        ? "text-white shadow-lg"
-                        : "bg-white/10 text-white/70 hover:bg-white/20"
+                      ? "text-white shadow-lg"
+                      : "bg-white/10 text-white/70 hover:bg-white/20"
                       }`}
                     style={{
                       backgroundColor: isActive ? colors[index % colors.length] : undefined
@@ -414,8 +417,8 @@ export function AdobeWorksSection({
                       key={index}
                       onClick={() => setMobileSlideIndex(index)}
                       className={`h-1.5 rounded-full transition-all duration-300 ${index === mobileSlideIndex
-                          ? "bg-[#ed5c2c] w-8"
-                          : "bg-white/30 w-1.5 hover:bg-white/50"
+                        ? "bg-[#ed5c2c] w-8"
+                        : "bg-white/30 w-1.5 hover:bg-white/50"
                         }`}
                     />
                   ))}
@@ -552,8 +555,8 @@ export function AdobeWorksSection({
                 {/* Grid of projects */}
                 <div
                   className={`grid gap-4 ${viewMode === "list"
-                      ? "grid-cols-1"
-                      : ""
+                    ? "grid-cols-1"
+                    : ""
                     }`}
                   style={viewMode === "grid" ? {
                     gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`
@@ -582,8 +585,8 @@ export function AdobeWorksSection({
                         <Link href={`/projects/${project.slug}`}>
                           <div
                             className={`relative overflow-hidden rounded-lg border-2 transition-all duration-300 ${isHovered
-                                ? "border-[#ed5c2c] shadow-[0_0_30px_rgba(237,92,44,0.4)]"
-                                : "border-[#3d3d3d] hover:border-[#555]"
+                              ? "border-[#ed5c2c] shadow-[0_0_30px_rgba(237,92,44,0.4)]"
+                              : "border-[#3d3d3d] hover:border-[#555]"
                               }`}
                             style={{ aspectRatio: viewMode === "list" ? "21/9" : "16/10" }}
                           >
@@ -764,12 +767,12 @@ export function AdobeWorksSection({
                           onMouseLeave={() => setHoveredProjectId(null)}
                           onClick={() => !isHidden && setSelectedProjectId(project.id)}
                           className={`flex items-center gap-2 px-3 py-2 cursor-pointer border-b border-[#3d3d3d] transition-colors ${selectedProjectId === project.id && !isHidden
-                              ? "bg-[#0066cc]"
-                              : isHovered && !isHidden
-                                ? "bg-[#3d3d3d]"
-                                : isHidden
-                                  ? "bg-[#1a1a1a] opacity-50"
-                                  : "hover:bg-[#3d3d3d]"
+                            ? "bg-[#0066cc]"
+                            : isHovered && !isHidden
+                              ? "bg-[#3d3d3d]"
+                              : isHidden
+                                ? "bg-[#1a1a1a] opacity-50"
+                                : "hover:bg-[#3d3d3d]"
                             }`}
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}

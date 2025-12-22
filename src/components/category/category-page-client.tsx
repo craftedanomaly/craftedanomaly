@@ -201,20 +201,23 @@ export function CategoryPageClient({
   const [emblaRef, emblaApi] = useEmblaCarousel(
     width > 768
       ? {
-          loop: false,
-          dragFree: false, // Changed to false for snapping
-          dragThreshold: 20, // Lower threshold for easier swipe
-          containScroll: "trimSnaps",
-          align: "start" // Align to start
-        }
+        loop: false,
+        dragFree: false, // Changed to false for snapping
+        dragThreshold: 20, // Lower threshold for easier swipe
+        containScroll: "trimSnaps",
+        align: "start", // Align to start
+        duration: 10, // Fast snap duration (lower is faster)
+      }
       : undefined,
     width > 768
       ? [
-          WheelGesturesPlugin({
-            forceWheelAxis: "y",
-            target: document.documentElement,
-          }),
-        ]
+        WheelGesturesPlugin({
+          forceWheelAxis: "y",
+          target: document.documentElement,
+          // @ts-ignore
+          wheelScale: 8, // 8x faster scroll (Doubled)
+        }),
+      ]
       : undefined
   );
 
@@ -352,11 +355,10 @@ export function CategoryPageClient({
                         onClick={() => {
                           toggleTag(tag.slug);
                         }}
-                        className={`px-3 py-1.5 text-xs rounded-full border transition-all ${
-                          selectedTags.includes(tag.slug)
-                            ? "bg-accent text-accent-foreground border-accent"
-                            : "bg-background text-muted-foreground border-border hover:border-accent/50"
-                        }`}
+                        className={`px-3 py-1.5 text-xs rounded-full border transition-all ${selectedTags.includes(tag.slug)
+                          ? "bg-accent text-accent-foreground border-accent"
+                          : "bg-background text-muted-foreground border-border hover:border-accent/50"
+                          }`}
                       >
                         {tag.name}
                       </button>
@@ -557,7 +559,7 @@ export function CategoryPageClient({
                                       {project.project_type}
                                     </div>
                                   )}
-                                  
+
                                   <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 z-30">
                                     <motion.div
                                       initial={false}
@@ -666,7 +668,7 @@ export function CategoryPageClient({
                                           playsInline
                                         />
                                       )}
-                                      
+
                                     {/* MODIFIED: Always visible project_type */}
                                     {project.project_type && (
                                       <div
