@@ -52,6 +52,9 @@ const projectSchema = z.object({
   layoutType: z.enum(['default', 'visual_design']).optional(),
   backgroundColor: z.string().optional(),
   textColor: z.string().optional(),
+
+  price: z.string().optional(),
+  shopUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
 });
 
 type ProjectFormData = z.infer<typeof projectSchema>;
@@ -65,7 +68,7 @@ interface EditProjectFormProps {
 export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProjectFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categoriesData, setCategoriesData] = useState<any[]>([]);
-  type GalleryItem = { url: string; layout: 'single' | 'masonry' };
+  type GalleryItem = { url: string; layout: 'single' | 'masonry'; title?: string; price?: string; shopUrl?: string };
   const [galleryImages, setGalleryImages] = useState<GalleryItem[]>([]);
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([]);
   const [testimonials, setTestimonials] = useState<string[]>([]);
@@ -80,7 +83,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
       .from('categories')
       .select('*')
       .order('display_order');
-    
+
     if (data) {
       setCategoriesData(data);
     }
@@ -91,12 +94,18 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
       // Load gallery images
       const { data: mediaData } = await supabase
         .from('media')
-        .select('id, url, media_type, display_order, layout')
+        .select('id, url, media_type, display_order, layout, title, price, shop_url')
         .eq('project_id', project.id)
         .order('display_order');
-      
+
       if (mediaData) {
-        setGalleryImages(mediaData.map((m: any) => ({ url: m.url, layout: (m.layout as any) || 'masonry' })));
+        setGalleryImages(mediaData.map((m: any) => ({
+          url: m.url,
+          layout: (m.layout as any) || 'masonry',
+          title: m.title,
+          price: m.price,
+          shopUrl: m.shop_url
+        })));
       }
 
       // Load testimonials
@@ -110,7 +119,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
         .select('*')
         .eq('project_id', project.id)
         .order('display_order');
-      
+
       if (blocksData) {
         setContentBlocks(blocksData.map(block => {
           const isBeforeAfterMarker = block.block_type === 'gallery' && block.content === '__before_after__';
@@ -130,7 +139,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
         .from('project_categories')
         .select('category_id')
         .eq('project_id', project.id);
-      
+
       const categoryIds = projectCats?.map(pc => pc.category_id) || [];
       setValue('categories', categoryIds);
 
@@ -139,7 +148,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
         .from('project_tags')
         .select('tags(name)')
         .eq('project_id', project.id);
-      
+
       const tagNames = ((projectTags as any[]) || [])
         .map((t: any) => t?.tags?.name)
         .filter(Boolean)
@@ -177,6 +186,8 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
       coverVideo: (project as any).cover_video_url || '',
       status: project.status || 'draft',
       categories: [],
+      price: (project as any).price || '',
+      shopUrl: (project as any).shop_url || '',
     },
   });
 
@@ -188,7 +199,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
       toast.error(`Please fix ${Object.keys(errors).length} validation error${Object.keys(errors).length > 1 ? 's' : ''} before submitting`);
       return;
     }
-    
+
     setIsSubmitting(true);
 
     try {
@@ -207,12 +218,14 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
           client: data.client || null,
           project_type: data.projectType || null,
           status: data.status,
-          published_at: data.status === 'published' && !project.published_at 
-            ? new Date().toISOString() 
+          published_at: data.status === 'published' && !project.published_at
+            ? new Date().toISOString()
             : project.published_at,
           layout_type: data.layoutType || 'default',
           background_color: data.backgroundColor || '#0b0b0c',
           text_color: data.textColor || '#ffffff',
+          price: data.price || null,
+          shop_url: data.shopUrl || null,
         })
         .eq('id', project.id)
         .select()
@@ -235,7 +248,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
       await supabase.from('project_tags').delete().eq('project_id', project.id);
       const tagsArray = data.tags.split(',').map((tag) => tag.trim()).filter(Boolean);
       console.log('Processing tags for project:', project.id, tagsArray);
-      
+
       for (const tagName of tagsArray) {
         let { data: existingTag, error: findError } = await supabase
           .from('tags')
@@ -249,18 +262,18 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
         }
 
         let tagId;
-        
+
         if (!existingTag) {
           console.log('Creating new tag:', tagName);
           const { data: newTag, error: createError } = await supabase
             .from('tags')
-            .insert([{ 
-              name: tagName, 
-              slug: tagName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') 
+            .insert([{
+              name: tagName,
+              slug: tagName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
             }])
             .select('id')
             .single();
-          
+
           if (createError) {
             console.error('Error creating tag:', createError);
             continue;
@@ -273,11 +286,11 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
         }
 
         if (tagId) {
-          const { error: linkError } = await supabase.from('project_tags').insert([{ 
-            project_id: project.id, 
-            tag_id: tagId 
+          const { error: linkError } = await supabase.from('project_tags').insert([{
+            project_id: project.id,
+            tag_id: tagId
           }]);
-          
+
           if (linkError) {
             console.error('Error linking tag to project:', linkError);
           } else {
@@ -285,7 +298,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
           }
         }
       }
-      
+
       console.log('Finished processing tags');
 
       // Update gallery images
@@ -297,6 +310,9 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
             media_type: 'image',
             url: item.url,
             layout: item.layout,
+            title: item.title || null,
+            price: item.price || null,
+            shop_url: item.shopUrl || null,
             display_order: index,
           }))
         );
@@ -383,7 +399,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paths: ['/', `/projects/${updatedProject?.slug}`] })
-      }).catch(() => {});
+      }).catch(() => { });
 
       toast.success('Project updated successfully!');
 
@@ -455,7 +471,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               type="submit"
               form="project-form"
               disabled={isSubmitting}
@@ -509,7 +525,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto p-8 space-y-8">
-            
+
             {/* Basic Info Section */}
             <section id="basic" className="space-y-6">
               <div className="flex items-center gap-3 pb-4 border-b">
@@ -521,7 +537,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                   <p className="text-sm text-muted-foreground">Essential project details</p>
                 </div>
               </div>
-              
+
               <div className="grid gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="title">Title *</Label>
@@ -566,11 +582,10 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                               : [...categoriesValue, cat.id];
                             setValue('categories', value, { shouldValidate: true });
                           }}
-                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
-                            checked
-                              ? 'bg-primary text-primary-foreground shadow-sm border-primary'
-                              : 'bg-background hover:bg-accent text-foreground border-border hover:border-accent-foreground/20'
-                          }`}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${checked
+                            ? 'bg-primary text-primary-foreground shadow-sm border-primary'
+                            : 'bg-background hover:bg-accent text-foreground border-border hover:border-accent-foreground/20'
+                            }`}
                         >
                           {cat.name}
                         </button>
@@ -590,14 +605,13 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                     <button
                       type="button"
                       onClick={() => setValue('layoutType', 'default', { shouldValidate: true })}
-                      className={`p-4 rounded-lg border-2 transition-all ${
-                        watch('layoutType') === 'default'
-                          ? 'border-primary bg-primary/5 shadow-sm'
-                          : 'border-border hover:border-primary/50'
-                      }`}
+                      className={`p-4 rounded-lg border-2 transition-all ${watch('layoutType') === 'default'
+                        ? 'border-primary bg-primary/5 shadow-sm'
+                        : 'border-border hover:border-primary/50'
+                        }`}
                     >
                       <div className="text-left">
-                        <div className="font-semibold mb-1">Default Layout</div>
+                        <div className="font-semibold mb-1">Poster Layout</div>
                         <div className="text-xs text-muted-foreground">
                           Standard project layout with left info panel and right media gallery
                         </div>
@@ -606,11 +620,10 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                     <button
                       type="button"
                       onClick={() => setValue('layoutType', 'visual_design', { shouldValidate: true })}
-                      className={`p-4 rounded-lg border-2 transition-all ${
-                        watch('layoutType') === 'visual_design'
-                          ? 'border-primary bg-primary/5 shadow-sm'
-                          : 'border-border hover:border-primary/50'
-                      }`}
+                      className={`p-4 rounded-lg border-2 transition-all ${watch('layoutType') === 'visual_design'
+                        ? 'border-primary bg-primary/5 shadow-sm'
+                        : 'border-border hover:border-primary/50'
+                        }`}
                     >
                       <div className="text-left">
                         <div className="font-semibold mb-1">Visual Design Layout</div>
@@ -736,6 +749,33 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                     {...register('liveUrl')}
                     placeholder="https://example.com"
                   />
+                  {errors.liveUrl && (
+                    <p className="text-sm text-destructive">{errors.liveUrl.message}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Price (for Poster Layout)</Label>
+                    <Input
+                      id="price"
+                      {...register('price')}
+                      placeholder="$29.99"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="shopUrl">Shop URL (for Poster Layout)</Label>
+                    <Input
+                      id="shopUrl"
+                      type="url"
+                      {...register('shopUrl')}
+                      placeholder="https://shop.com/product"
+                    />
+                    {errors.shopUrl && (
+                      <p className="text-sm text-destructive">{errors.shopUrl.message}</p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -760,7 +800,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                   <p className="text-sm text-muted-foreground">Visual content for your project</p>
                 </div>
               </div>
-              
+
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Label>Cover Image *</Label>
@@ -823,6 +863,47 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                         <div className="flex items-center gap-2 mb-2">
                           <GripVertical className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm text-muted-foreground">Image {index + 1}</span>
+                        </div>
+                        <div className="space-y-2 mb-3">
+                          <Label className="text-xs">Image Name (optional)</Label>
+                          <Input
+                            placeholder="Poster Name"
+                            value={item.title || ''}
+                            onChange={(e) => {
+                              const next = [...galleryImages];
+                              next[index] = { ...next[index], title: e.target.value };
+                              setGalleryImages(next);
+                            }}
+                            className="h-8"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs">Price</Label>
+                            <Input
+                              placeholder="$99"
+                              value={item.price || ''}
+                              onChange={(e) => {
+                                const next = [...galleryImages];
+                                next[index] = { ...next[index], price: e.target.value };
+                                setGalleryImages(next);
+                              }}
+                              className="h-8"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Link</Label>
+                            <Input
+                              placeholder="https://..."
+                              value={item.shopUrl || ''}
+                              onChange={(e) => {
+                                const next = [...galleryImages];
+                                next[index] = { ...next[index], shopUrl: e.target.value };
+                                setGalleryImages(next);
+                              }}
+                              className="h-8"
+                            />
+                          </div>
                         </div>
                         <ImageUpload
                           value={item.url}
@@ -888,11 +969,11 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                   <p className="text-sm text-muted-foreground">Laurels and recognition images</p>
                 </div>
               </div>
-              
+
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Label>Testimonial Images</Label>
-                  
+
                   {/* Multiple file upload */}
                   <div className="space-y-4">
                     <div className="border-2 border-dashed border-border rounded-lg p-6">
@@ -903,17 +984,17 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                         onChange={async (e) => {
                           const files = Array.from(e.target.files || []);
                           if (files.length === 0) return;
-                          
+
                           const uploadPromises = files.map(async (file) => {
                             const formData = new FormData();
                             formData.append('file', file);
-                            
+
                             try {
                               const response = await fetch('/api/upload', {
                                 method: 'POST',
                                 body: formData,
                               });
-                              
+
                               if (response.ok) {
                                 const data = await response.json();
                                 return data.url;
@@ -923,10 +1004,10 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                             }
                             return null;
                           });
-                          
+
                           const uploadedUrls = await Promise.all(uploadPromises);
                           const validUrls = uploadedUrls.filter(Boolean);
-                          
+
                           if (validUrls.length > 0) {
                             setTestimonials([...testimonials, ...validUrls]);
                           }
@@ -939,7 +1020,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                         </p>
                       </div>
                     </div>
-                    
+
                     {/* Display uploaded testimonials */}
                     {testimonials.length > 0 && (
                       <div className="grid gap-4 md:grid-cols-3">
@@ -947,8 +1028,8 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                           <div key={index} className="space-y-2">
                             <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
                               {img && (
-                                <img 
-                                  src={img} 
+                                <img
+                                  src={img}
                                   alt={`Testimonial ${index + 1}`}
                                   className="w-full h-full object-contain"
                                 />
@@ -968,7 +1049,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                       </div>
                     )}
                   </div>
-                  
+
                   <p className="text-xs text-muted-foreground">
                     Add laurel images or testimonial graphics. These will scroll horizontally on the project page with orange overlay.
                   </p>
@@ -987,9 +1068,9 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                   <p className="text-sm text-muted-foreground">Rich content for your project</p>
                 </div>
               </div>
-              
-              <ContentBlocksBuilder 
-                blocks={contentBlocks} 
+
+              <ContentBlocksBuilder
+                blocks={contentBlocks}
                 onChange={setContentBlocks}
               />
             </section>
@@ -1005,7 +1086,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
                   <p className="text-sm text-muted-foreground">Control visibility and status</p>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="status">Status *</Label>
                 <Select
@@ -1035,7 +1116,7 @@ export function EditProjectForm({ project, onProjectUpdated, onBack }: EditProje
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             type="submit"
             form="project-form"
             disabled={isSubmitting}

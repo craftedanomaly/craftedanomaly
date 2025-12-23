@@ -52,6 +52,8 @@ const projectSchema = z.object({
     ),
   status: z.enum(['draft', 'published']),
   coverVideo: z.string().optional(),
+  price: z.string().optional(),
+  shopUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
 });
 
 type ProjectFormData = z.infer<typeof projectSchema>;
@@ -64,7 +66,7 @@ interface AddProjectFormProps {
 export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categoriesData, setCategoriesData] = useState<any[]>([]);
-  type GalleryItem = { url: string; layout: 'single' | 'masonry' };
+  type GalleryItem = { url: string; layout: 'single' | 'masonry'; title?: string; price?: string; shopUrl?: string };
   const [galleryImages, setGalleryImages] = useState<GalleryItem[]>([]);
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([]);
   const [testimonials, setTestimonials] = useState<string[]>([]);
@@ -78,7 +80,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
       .from('categories')
       .select('*')
       .order('display_order');
-    
+
     if (data) {
       setCategoriesData(data);
     }
@@ -107,6 +109,8 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
       coverImage: '',
       liveUrl: '',
       coverVideo: '',
+      price: '',
+      shopUrl: '',
     },
   });
 
@@ -119,7 +123,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
       toast.error(`Please fix ${Object.keys(errors).length} validation error${Object.keys(errors).length > 1 ? 's' : ''} before submitting`);
       return;
     }
-    
+
     setIsSubmitting(true);
 
     try {
@@ -143,6 +147,8 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
             text_color: data.textColor || '#ffffff',
             status: data.status,
             published_at: data.status === 'published' ? new Date().toISOString() : null,
+            price: data.price || null,
+            shop_url: data.shopUrl || null,
           },
         ])
         .select(`
@@ -174,7 +180,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
       // Handle tags
       const tagsArray = data.tags.split(',').map((tag) => tag.trim()).filter(Boolean);
       console.log('Processing tags:', tagsArray);
-      
+
       for (const tagName of tagsArray) {
         let { data: existingTag, error: findError } = await supabase
           .from('tags')
@@ -188,18 +194,18 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
         }
 
         let tagId;
-        
+
         if (!existingTag) {
           console.log('Creating new tag:', tagName);
           const { data: newTag, error: createError } = await supabase
             .from('tags')
-            .insert([{ 
-              name: tagName, 
-              slug: tagName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') 
+            .insert([{
+              name: tagName,
+              slug: tagName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
             }])
             .select('id')
             .single();
-          
+
           if (createError) {
             console.error('Error creating tag:', createError);
             continue;
@@ -212,11 +218,11 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
         }
 
         if (tagId) {
-          const { error: linkError } = await supabase.from('project_tags').insert([{ 
-            project_id: projectId, 
-            tag_id: tagId 
+          const { error: linkError } = await supabase.from('project_tags').insert([{
+            project_id: projectId,
+            tag_id: tagId
           }]);
-          
+
           if (linkError) {
             console.error('Error linking tag to project:', linkError);
           } else {
@@ -224,7 +230,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
           }
         }
       }
-      
+
       console.log('Finished processing tags');
 
       // Handle gallery images
@@ -235,6 +241,9 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
             media_type: 'image',
             url: item.url,
             layout: item.layout,
+            title: item.title || null,
+            price: item.price || null,
+            shop_url: item.shopUrl || null,
             display_order: index,
           }))
         );
@@ -274,7 +283,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paths: ['/', '/projects'] })
-      }).catch(() => {});
+      }).catch(() => { });
 
       toast.success('Project created successfully!');
 
@@ -350,7 +359,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               type="submit"
               form="project-form"
               disabled={isSubmitting}
@@ -404,7 +413,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto p-8 space-y-8">
-            
+
             {/* Basic Info Section */}
             <section id="basic" className="space-y-6">
               <div className="flex items-center gap-3 pb-4 border-b">
@@ -416,7 +425,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                   <p className="text-sm text-muted-foreground">Essential project details</p>
                 </div>
               </div>
-              
+
               <div className="grid gap-6">
                 {/* Layout Type Selector */}
                 <div className="space-y-3 p-4 border border-border rounded-lg bg-muted/30">
@@ -426,14 +435,13 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                     <button
                       type="button"
                       onClick={() => setValue('layoutType', 'default', { shouldValidate: true })}
-                      className={`p-4 rounded-lg border-2 transition-all ${
-                        layoutTypeValue === 'default'
-                          ? 'border-primary bg-primary/5 shadow-sm'
-                          : 'border-border hover:border-primary/50'
-                      }`}
+                      className={`p-4 rounded-lg border-2 transition-all ${layoutTypeValue === 'default'
+                        ? 'border-primary bg-primary/5 shadow-sm'
+                        : 'border-border hover:border-primary/50'
+                        }`}
                     >
                       <div className="text-left">
-                        <div className="font-semibold mb-1">Default Layout</div>
+                        <div className="font-semibold mb-1">Poster Layout</div>
                         <div className="text-xs text-muted-foreground">
                           Standard project layout with left info panel and right media gallery
                         </div>
@@ -442,11 +450,10 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                     <button
                       type="button"
                       onClick={() => setValue('layoutType', 'visual_design', { shouldValidate: true })}
-                      className={`p-4 rounded-lg border-2 transition-all ${
-                        layoutTypeValue === 'visual_design'
-                          ? 'border-primary bg-primary/5 shadow-sm'
-                          : 'border-border hover:border-primary/50'
-                      }`}
+                      className={`p-4 rounded-lg border-2 transition-all ${layoutTypeValue === 'visual_design'
+                        ? 'border-primary bg-primary/5 shadow-sm'
+                        : 'border-border hover:border-primary/50'
+                        }`}
                     >
                       <div className="text-left">
                         <div className="font-semibold mb-1">Visual Design Layout</div>
@@ -553,11 +560,10 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                               : [...categoriesValue, cat.id];
                             setValue('categories', value, { shouldValidate: true });
                           }}
-                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
-                            checked
-                              ? 'bg-primary text-primary-foreground shadow-sm border-primary'
-                              : 'bg-background hover:bg-accent text-foreground border-border hover:border-accent-foreground/20'
-                          }`}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${checked
+                            ? 'bg-primary text-primary-foreground shadow-sm border-primary'
+                            : 'bg-background hover:bg-accent text-foreground border-border hover:border-accent-foreground/20'
+                            }`}
                         >
                           {cat.name}
                         </button>
@@ -634,6 +640,33 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                     {...register('liveUrl')}
                     placeholder="https://example.com"
                   />
+                  {errors.liveUrl && (
+                    <p className="text-sm text-destructive">{errors.liveUrl.message}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Price (for Poster Layout)</Label>
+                    <Input
+                      id="price"
+                      {...register('price')}
+                      placeholder="$29.99"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="shopUrl">Shop URL (for Poster Layout)</Label>
+                    <Input
+                      id="shopUrl"
+                      type="url"
+                      {...register('shopUrl')}
+                      placeholder="https://shop.com/product"
+                    />
+                    {errors.shopUrl && (
+                      <p className="text-sm text-destructive">{errors.shopUrl.message}</p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -658,7 +691,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                   <p className="text-sm text-muted-foreground">Visual content for your project</p>
                 </div>
               </div>
-              
+
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Label>Cover Image *</Label>
@@ -712,6 +745,47 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                         <div className="flex items-center gap-2 mb-2">
                           <GripVertical className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm text-muted-foreground">Image {index + 1}</span>
+                        </div>
+                        <div className="space-y-2 mb-3">
+                          <Label className="text-xs">Image Name (optional)</Label>
+                          <Input
+                            placeholder="Poster Name"
+                            value={item.title || ''}
+                            onChange={(e) => {
+                              const next = [...galleryImages];
+                              next[index] = { ...next[index], title: e.target.value };
+                              setGalleryImages(next);
+                            }}
+                            className="h-8"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs">Price</Label>
+                            <Input
+                              placeholder="$99"
+                              value={item.price || ''}
+                              onChange={(e) => {
+                                const next = [...galleryImages];
+                                next[index] = { ...next[index], price: e.target.value };
+                                setGalleryImages(next);
+                              }}
+                              className="h-8"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Link</Label>
+                            <Input
+                              placeholder="https://..."
+                              value={item.shopUrl || ''}
+                              onChange={(e) => {
+                                const next = [...galleryImages];
+                                next[index] = { ...next[index], shopUrl: e.target.value };
+                                setGalleryImages(next);
+                              }}
+                              className="h-8"
+                            />
+                          </div>
                         </div>
                         <ImageUpload
                           value={item.url}
@@ -777,11 +851,11 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                   <p className="text-sm text-muted-foreground">Laurels and recognition images</p>
                 </div>
               </div>
-              
+
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Label>Testimonial Images</Label>
-                  
+
                   {/* Multiple file upload */}
                   <div className="space-y-4">
                     <div className="border-2 border-dashed border-border rounded-lg p-6">
@@ -792,17 +866,17 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                         onChange={async (e) => {
                           const files = Array.from(e.target.files || []);
                           if (files.length === 0) return;
-                          
+
                           const uploadPromises = files.map(async (file) => {
                             const formData = new FormData();
                             formData.append('file', file);
-                            
+
                             try {
                               const response = await fetch('/api/upload', {
                                 method: 'POST',
                                 body: formData,
                               });
-                              
+
                               if (response.ok) {
                                 const data = await response.json();
                                 return data.url;
@@ -812,10 +886,10 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                             }
                             return null;
                           });
-                          
+
                           const uploadedUrls = await Promise.all(uploadPromises);
                           const validUrls = uploadedUrls.filter(Boolean);
-                          
+
                           if (validUrls.length > 0) {
                             setTestimonials([...testimonials, ...validUrls]);
                           }
@@ -828,7 +902,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                         </p>
                       </div>
                     </div>
-                    
+
                     {/* Display uploaded testimonials */}
                     {testimonials.length > 0 && (
                       <div className="grid gap-4 md:grid-cols-3">
@@ -836,8 +910,8 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                           <div key={index} className="space-y-2">
                             <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
                               {img && (
-                                <img 
-                                  src={img} 
+                                <img
+                                  src={img}
                                   alt={`Testimonial ${index + 1}`}
                                   className="w-full h-full object-contain"
                                 />
@@ -857,7 +931,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                       </div>
                     )}
                   </div>
-                  
+
                   <p className="text-xs text-muted-foreground">
                     Add laurel images or testimonial graphics. These will scroll horizontally on the project page with orange overlay.
                   </p>
@@ -876,9 +950,9 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                   <p className="text-sm text-muted-foreground">Rich content blocks and before/after images</p>
                 </div>
               </div>
-              
-              <ContentBlocksBuilder 
-                blocks={contentBlocks} 
+
+              <ContentBlocksBuilder
+                blocks={contentBlocks}
                 onChange={setContentBlocks}
               />
             </section>
@@ -894,7 +968,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
                   <p className="text-sm text-muted-foreground">Control visibility and status</p>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="status">Status *</Label>
                 <Select
@@ -924,7 +998,7 @@ export function AddProjectForm({ onProjectAdded, onBack }: AddProjectFormProps) 
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             type="submit"
             form="project-form"
             disabled={isSubmitting}

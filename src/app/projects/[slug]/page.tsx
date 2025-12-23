@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import ProjectDetailClient from "@/components/projects/project-detail-client";
+import PosterDesignLayout from "@/components/projects/poster-design-layout";
 import { NewDesignLayout } from "@/components/projects/new-design-layout";
 
 // ISR: Revalidate every 60 seconds, admin can trigger on-demand revalidation
@@ -167,13 +167,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     );
   }
 
-  // Default layout
+  // Poster Design Layout (New Default)
   return (
-    <ProjectDetailClient
+    <PosterDesignLayout
       project={data.project}
       media={data.media}
-      tags={data.tags}
-      blocks={data.blocks}
     />
   );
 }
